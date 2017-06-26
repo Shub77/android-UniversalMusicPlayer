@@ -20,8 +20,14 @@
     <string name="favorite">Favorite</string>
     <string name="error_no_metadata">Unable to retrieve metadata.</string>
     <string name="browse_genres">Genres</string>
+    <string name="browse_albums">Albums</string>
+    <string name="browse_artists">Artists</string>
     <string name="browse_genre_subtitle">Songs by genre</string>
+    <string name="browse_album_subtitle">Songs by album</string>
+    <string name="browse_artist_subtitle">Songs by artist</string>
     <string name="browse_musics_by_genre_subtitle">%1$s songs</string>
+    <string name="browse_musics_by_album_subtitle">%1$s songs on %1$s</string>
+    <string name="browse_musics_by_artist_subtitle">songs by %1$s</string>
     <string name="random_queue_title">Random music</string>
     <string name="error_no_connection">Cannot connect to server. Please, check your Internet connectivity.</string>
     <string name="error_loading_media">Error Loading Media</string>

@@ -35,11 +35,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.media.MediaRouter;
 
 import com.example.android.uamp.model.MusicProvider;
-import com.example.android.uamp.playback.CastPlayback;
-import com.example.android.uamp.playback.LocalPlayback;
-import com.example.android.uamp.playback.Playback;
-import com.example.android.uamp.playback.PlaybackManager;
-import com.example.android.uamp.playback.QueueManager;
+import com.example.android.uamp.playback.*;
 import com.example.android.uamp.ui.NowPlayingActivity;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
@@ -161,7 +157,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         super.onCreate();
         LogHelper.d(TAG, "onCreate");
 
-        mMusicProvider = new MusicProvider();
+        mMusicProvider = new MusicProvider(this);
 
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
@@ -196,7 +192,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                     }
                 });
 
-        LocalPlayback playback = new LocalPlayback(this, mMusicProvider);
+        StoragePlayback /*LocalPlayback*/ playback = new StoragePlayback /*LocalPlayback*/ (this, mMusicProvider);
         mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, queueManager,
                 playback);
 
@@ -437,7 +433,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
             LogHelper.d(TAG, "onSessionEnded");
             mSessionExtras.remove(EXTRA_CONNECTED_CAST);
             mSession.setExtras(mSessionExtras);
-            Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
+            Playback playback = new StoragePlayback /*LocalPlayback*/ (MusicService.this, mMusicProvider);
             mMediaRouter.setMediaSessionCompat(null);
             mPlaybackManager.switchToPlayback(playback, false);
         }
