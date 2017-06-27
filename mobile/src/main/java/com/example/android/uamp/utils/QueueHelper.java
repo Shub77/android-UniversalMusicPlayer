@@ -30,8 +30,7 @@ import com.example.android.uamp.model.MusicProvider;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
-import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_SEARCH;
+import static com.example.android.uamp.utils.MediaIDHelper.*;
 
 /**
  * Utility class to help on queue related tasks.
@@ -40,11 +39,19 @@ public class QueueHelper {
 
     private static final String TAG = LogHelper.makeLogTag(QueueHelper.class);
 
-    private static final int RANDOM_QUEUE_SIZE = 10;
+    private static final int RANDOM_QUEUE_SIZE = 2;
 
+    /**
+     * Gets a playing queue based on the supplied media id
+     * This is not the integer media id of a song, but the browsable 'Path'
+     * e.g. passing __ARTIST__Prince will return a list with all songs by prince
+     * @param mediaId browsable media path specifying the songs to add
+     * @param musicProvider a music provide who will return the actual songs
+     * @return The new playing queue (a list of QueueItems)
+     */
     public static List<MediaSessionCompat.QueueItem> getPlayingQueue(String mediaId,
             MusicProvider musicProvider) {
-
+        LogHelper.i(TAG, "getPlayingQueue for mediaId ", mediaId);
         // extract the browsing hierarchy from the media ID:
         String[] hierarchy = MediaIDHelper.getHierarchy(mediaId);
 
@@ -55,12 +62,16 @@ public class QueueHelper {
 
         String categoryType = hierarchy[0];
         String categoryValue = hierarchy[1];
-        LogHelper.d(TAG, "Creating playing queue for ", categoryType, ",  ", categoryValue);
+        LogHelper.i(TAG, "Creating playing queue for ", categoryType, ",  ", categoryValue);
 
         Iterable<MediaMetadataCompat> tracks = null;
         // This sample only supports genre and by_search category types.
         if (categoryType.equals(MEDIA_ID_MUSICS_BY_GENRE)) {
             tracks = musicProvider.getMusicsByGenre(categoryValue);
+        } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_ALBUM)) {
+            tracks = musicProvider.getMusicsByAlbum(categoryValue);
+        } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_ARTIST)) {
+            tracks = musicProvider.getMusicsByArtist(categoryValue);
         } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_SEARCH)) {
             tracks = musicProvider.searchMusicBySongTitle(categoryValue);
         }
@@ -179,7 +190,7 @@ public class QueueHelper {
             }
             result.add(metadata);
         }
-        LogHelper.d(TAG, "getRandomQueue: result.size=", result.size());
+        LogHelper.i(TAG, "getRandomQueue: result.size=", result.size());
 
         return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, "random");
     }

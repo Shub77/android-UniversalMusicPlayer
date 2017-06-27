@@ -95,7 +95,14 @@ public class QueueManager {
         return index >= 0;
     }
 
+    /**
+     * Skips [amount] songs through the queue
+     * Amount = -1 means skip to previous track
+     * @param amount
+     * @return true if the new index is a valid playable media item
+     */
     public boolean skipQueuePosition(int amount) {
+        LogHelper.i(TAG, "skip queue by ", Integer.toString(amount), "queue size=", mPlayingQueue.size());
         int index = mCurrentIndex + amount;
         if (index < 0) {
             // skip backwards before the first song will keep you on the first song
@@ -114,6 +121,7 @@ public class QueueManager {
     }
 
     public boolean setQueueFromSearch(String query, Bundle extras) {
+        LogHelper.i(TAG, "SetQueuefromSearch: query = ", query);
         List<MediaSessionCompat.QueueItem> queue =
                 QueueHelper.getPlayingQueueFromSearch(query, extras, mMusicProvider);
         setCurrentQueue(mResources.getString(R.string.search_queue_title), queue);
@@ -122,13 +130,14 @@ public class QueueManager {
     }
 
     public void setRandomQueue() {
+        LogHelper.i(TAG, "setRandomQueue");
         setCurrentQueue(mResources.getString(R.string.random_queue_title),
                 QueueHelper.getRandomQueue(mMusicProvider));
         updateMetadata();
     }
 
     public void setQueueFromMusic(String mediaId) {
-        LogHelper.d(TAG, "setQueueFromMusic", mediaId);
+        LogHelper.i(TAG, "setQueueFromMusic id=", mediaId);
 
         // The mediaId used here is not the unique musicId. This one comes from the
         // MediaBrowser, and is actually a "hierarchy-aware mediaID": a concatenation of
@@ -137,9 +146,11 @@ public class QueueManager {
         // selected from.
         boolean canReuseQueue = false;
         if (isSameBrowsingCategory(mediaId)) {
+            LogHelper.i(TAG, "Same Browsing Category, so we aren't recreating the queue");
             canReuseQueue = setCurrentQueueItem(mediaId);
         }
         if (!canReuseQueue) {
+            LogHelper.i(TAG, "Recreating the queue based on new mediaId");
             String queueTitle = mResources.getString(R.string.browse_musics_by_genre_subtitle,
                     MediaIDHelper.extractBrowseCategoryValueFromMediaID(mediaId));
             setCurrentQueue(queueTitle,
@@ -163,11 +174,13 @@ public class QueueManager {
     }
 
     protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
+        LogHelper.i(TAG, "setCurrentQueue: title=", title);
         setCurrentQueue(title, newQueue, null);
     }
 
     protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue,
                                    String initialMediaId) {
+        LogHelper.i(TAG, "setCurrentQueue: setting new queue with initial media id = ", initialMediaId);
         mPlayingQueue = newQueue;
         int index = 0;
         if (initialMediaId != null) {

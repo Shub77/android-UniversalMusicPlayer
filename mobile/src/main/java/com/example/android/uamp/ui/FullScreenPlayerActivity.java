@@ -149,6 +149,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mSkipNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                LogHelper.i(TAG, "mSkipNext onClickListener");
                 MediaControllerCompat.TransportControls controls =
                     getSupportMediaController().getTransportControls();
                 controls.skipToNext();
