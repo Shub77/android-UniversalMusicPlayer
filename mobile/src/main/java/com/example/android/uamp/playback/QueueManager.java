@@ -74,6 +74,11 @@ public class QueueManager {
         return Arrays.equals(newBrowseHierarchy, currentBrowseHierarchy);
     }
 
+    // I added this ...
+    private List<MediaSessionCompat.QueueItem> getCurrentQueue() {
+        return mPlayingQueue;
+    }
+
     private void setCurrentQueueIndex(int index) {
         if (index >= 0 && index < mPlayingQueue.size()) {
             mCurrentIndex = index;

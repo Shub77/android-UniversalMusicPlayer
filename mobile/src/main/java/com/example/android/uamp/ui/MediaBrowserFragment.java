@@ -118,7 +118,7 @@ public class MediaBrowserFragment extends Fragment {
             public void onChildrenLoaded(@NonNull String parentId,
                                          @NonNull List<MediaBrowserCompat.MediaItem> children) {
                 try {
-                    LogHelper.d(TAG, "fragment onChildrenLoaded, parentId=" + parentId +
+                    LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId +
                         "  count=" + children.size());
                     checkForUserVisibleErrors(children.isEmpty());
                     mBrowserAdapter.clear();
@@ -152,7 +152,7 @@ public class MediaBrowserFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        LogHelper.d(TAG, "fragment.onCreateView");
+        LogHelper.i(TAG, "fragment.onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
 
         mErrorView = rootView.findViewById(R.id.playback_error);
@@ -181,7 +181,7 @@ public class MediaBrowserFragment extends Fragment {
         // fetch browsing information to fill the listview:
         MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
 
-        LogHelper.d(TAG, "fragment.onStart, mediaId=", mMediaId,
+        LogHelper.i(TAG, "fragment.onStart, mediaId=", mMediaId,
                 "  onConnected=" + mediaBrowser.isConnected());
 
         if (mediaBrowser.isConnected()) {
@@ -316,9 +316,16 @@ public class MediaBrowserFragment extends Fragment {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+            LogHelper.i(TAG, "BrowseAdapter get view position ", position, " out of ", getCount());
             MediaBrowserCompat.MediaItem item = getItem(position);
             return MediaItemViewHolder.setupListView((Activity) getContext(), convertView, parent,
                     item);
+        }
+
+        @Override
+        public void add(MediaBrowserCompat.MediaItem item) {
+            super.add(item);
+            LogHelper.i(TAG,  "BrowseAdapter added item "+item.getDescription().getTitle(), " adapter size = ", getCount() );
         }
     }
 

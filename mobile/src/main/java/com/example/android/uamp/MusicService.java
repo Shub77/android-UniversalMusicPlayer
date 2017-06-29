@@ -166,6 +166,10 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
         mPackageValidator = new PackageValidator(this);
 
+        // Queue manager is just our local utility class, maintaining a queue of MediaSessionCompat.QueueItem
+        // Any changes to the queue (current queue index updated or queue changed will be called back to this service
+        // (using QueueManager.MetadataUpdateListener)
+        // So in effect the sevice holds the queue, via the queuemanager
         QueueManager queueManager = new QueueManager(mMusicProvider, getResources(),
                 new QueueManager.MetadataUpdateListener() {
                     @Override
@@ -187,6 +191,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
                     @Override
                     public void onQueueUpdated(String title,
                                                List<MediaSessionCompat.QueueItem> newQueue) {
+                        // So when the queue is updated we tell our mediaSessionCompat
+                        // The media session has callbacks which are handled by mPlaybackManager
                         mSession.setQueue(newQueue);
                         mSession.setQueueTitle(title);
                     }
