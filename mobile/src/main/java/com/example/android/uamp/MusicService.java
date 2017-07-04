@@ -182,9 +182,16 @@ public class MusicService extends MediaBrowserServiceCompat implements
                         mPlaybackManager.updatePlaybackState(
                                 getString(R.string.error_no_metadata));
                     }
-
+/* there is no queue index
+    so onCurrentQueueIndexUpdated has been replaced by onNowPlayingChanged
                     @Override
                     public void onCurrentQueueIndexUpdated(int queueIndex) {
+                        mPlaybackManager.handlePlayRequest();
+                    }
+*/
+
+                    @Override
+                    public void onNowPlayingChanged(MediaSessionCompat.QueueItem newNowPlaying) {
                         mPlaybackManager.handlePlayRequest();
                     }
 
@@ -197,6 +204,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
                         mSession.setQueueTitle(title);
                     }
                 });
+
+
 
         StoragePlayback /*LocalPlayback*/ playback = new StoragePlayback /*LocalPlayback*/ (this, mMusicProvider);
         mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, queueManager,
@@ -242,6 +251,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
 
         registerCarConnectionReceiver();
+        queueManager.setRandomQueue();
     }
 
     /**

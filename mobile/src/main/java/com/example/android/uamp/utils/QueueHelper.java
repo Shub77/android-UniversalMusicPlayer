@@ -39,8 +39,6 @@ public class QueueHelper {
 
     private static final String TAG = LogHelper.makeLogTag(QueueHelper.class);
 
-    private static final int RANDOM_QUEUE_SIZE = 2;
-
     /**
      * Gets a playing queue based on the supplied media id
      * This is not the integer media id of a song, but the browsable 'Path'
@@ -97,7 +95,7 @@ public class QueueHelper {
         if (params.isAny) {
             // If isAny is true, we will play anything. This is app-dependent, and can be,
             // for example, favorite playlists, "I'm feeling lucky", most recent, etc.
-            return getRandomQueue(musicProvider);
+            return getRandomQueue(musicProvider, 4);
         }
 
         Iterable<MediaMetadataCompat> result = null;
@@ -176,16 +174,17 @@ public class QueueHelper {
     }
 
     /**
-     * Create a random queue with at most {@link #RANDOM_QUEUE_SIZE} elements.
+     * Create a random queue with at specified number of songs
      *
      * @param musicProvider the provider used for fetching music.
+     * @param numSongs number of songs to return.
      * @return list containing {@link MediaSessionCompat.QueueItem}'s
      */
-    public static List<MediaSessionCompat.QueueItem> getRandomQueue(MusicProvider musicProvider) {
-        List<MediaMetadataCompat> result = new ArrayList<>(RANDOM_QUEUE_SIZE);
+    public static List<MediaSessionCompat.QueueItem> getRandomQueue(MusicProvider musicProvider, int numSongs) {
+        List<MediaMetadataCompat> result = new ArrayList<>(numSongs);
         Iterable<MediaMetadataCompat> shuffled = musicProvider.getShuffledMusic();
         for (MediaMetadataCompat metadata: shuffled) {
-            if (result.size() == RANDOM_QUEUE_SIZE) {
+            if (result.size() == numSongs) {
                 break;
             }
             result.add(metadata);

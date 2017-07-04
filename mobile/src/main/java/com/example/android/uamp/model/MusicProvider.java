@@ -120,7 +120,9 @@ public class MusicProvider {
      * Get an iterator over a shuffled collection of all songs
      */
     public Iterable<MediaMetadataCompat> getShuffledMusic() {
+        LogHelper.i(TAG, "getShuffledMusic");
         if (mCurrentState != State.INITIALIZED) {
+            LogHelper.i(TAG, "not initialized");
             return Collections.emptyList();
         }
         List<MediaMetadataCompat> shuffled = new ArrayList<>(mMusicListById.size());
@@ -128,6 +130,7 @@ public class MusicProvider {
             shuffled.add(mutableMetadata.metadata);
         }
         Collections.shuffle(shuffled);
+        LogHelper.i(TAG, "shuffled size = ", shuffled.size());
         return shuffled;
     }
 

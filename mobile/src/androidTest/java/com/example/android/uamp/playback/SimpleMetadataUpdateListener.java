@@ -28,9 +28,20 @@ public class SimpleMetadataUpdateListener implements QueueManager.MetadataUpdate
     @Override
     public void onMetadataRetrieveError() {
     }
-
+/*
     @Override
     public void onCurrentQueueIndexUpdated(int queueIndex) {
+    }
+*/
+    /* there is no queue index
+    so onCurrentQueueIndexUpdated has been replaced by onNowPlayingChanged
+                    @Override
+                    public void onCurrentQueueIndexUpdated(int queueIndex) {
+                    }
+*/
+
+    @Override
+    public void onNowPlayingChanged(MediaSessionCompat.QueueItem newNowPlaying) {
     }
 
     @Override

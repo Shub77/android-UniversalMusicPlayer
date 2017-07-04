@@ -41,10 +41,8 @@ import java.util.List;
  * THIS IS UNUSED... IT IS A COPY OF QUEUEMANAGER USING A LIST IMPLEMENTATION WHERE MUSIC CYCLES AROUND THE LIST
  * CAN GO FORWARDS AND BACKWARDS. I WANT TO USE MY IMPLEMENTATION OF QUEUEMANAGER WHICH IS A REAL QUEUE
  */
-public class QueueManager {
-    private static final String TAG = LogHelper.makeLogTag(QueueManager.class);
-
-    private static final int RANDOM_QUEUE_SIZE = 4;
+public class ListManager {
+    private static final String TAG = LogHelper.makeLogTag(ListManager.class);
 
     private MusicProvider mMusicProvider;
     private MetadataUpdateListener mListener;
@@ -52,26 +50,17 @@ public class QueueManager {
 
     // "Now playing" queue:
     private List<MediaSessionCompat.QueueItem> mPlayingQueue;
+    private int mCurrentIndex;
 
-    // get rid of the current index and add a now playing track
-    // In our implementation the track being played isn't part of the queue
-    // The queue only represents tracks waiting to be played.
-
-    // private int mCurrentIndex;
-    private MediaSessionCompat.QueueItem mNowPlaying;
-
-    public QueueManager(@NonNull MusicProvider musicProvider,
-                        @NonNull Resources resources,
-                        @NonNull MetadataUpdateListener listener) {
+    public ListManager(@NonNull MusicProvider musicProvider,
+                       @NonNull Resources resources,
+                       @NonNull MetadataUpdateListener listener) {
         this.mMusicProvider = musicProvider;
         this.mListener = listener;
         this.mResources = resources;
 
         mPlayingQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
-
-        // the current index is replaced by now playing in this implementation
-        // mCurrentIndex = 0;
-        mNowPlaying = null;
+        mCurrentIndex = 0;
     }
 
     public boolean isSameBrowsingCategory(@NonNull String mediaId) {
@@ -91,23 +80,13 @@ public class QueueManager {
         return mPlayingQueue;
     }
 
-    // In our implementation we take the item out of the queue and we set it now playing
-    // example implementation just set the current index
     private void setCurrentQueueIndex(int index) {
         if (index >= 0 && index < mPlayingQueue.size()) {
-            mNowPlaying = mPlayingQueue.remove(index);
-            // mCurrentIndex = index;
-
-            // I've replaced onCurrentQueueIndexChanged with the following:
-            mListener.onNowPlayingChanged(mNowPlaying);
-            // the following call doesn't make sense anymore
-            // mListener.onCurrentQueueIndexUpdated(mCurrentIndex);
+            mCurrentIndex = index;
+            mListener.onCurrentQueueIndexUpdated(mCurrentIndex);
         }
     }
 
-    // In our implementation we take the item out of the queue and we set it now playing
-    // example implementation just set the current index
-    // No change to the code as we are using the refactored setCurrentQueueIndex()
     public boolean setCurrentQueueItem(long queueId) {
         // set the current index on queue from the queue Id:
         int index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, queueId);
@@ -115,9 +94,6 @@ public class QueueManager {
         return index >= 0;
     }
 
-    // In our implementation we take the item out of the queue and we set it now playing
-    // example implementation just set the current index
-    // No change to the code as we are using the refactored setCurrentQueueIndex()
     public boolean setCurrentQueueItem(String mediaId) {
         // set the current index on queue from the music Id:
         int index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, mediaId);
@@ -126,56 +102,27 @@ public class QueueManager {
     }
 
     /**
-     * Our implementation will use this instead of skipQueuePosition
-     * As our only control is 'go to next track'. No need to skip 'n' tracks
-     * @return
-     */
-    public boolean goToNextSong() {
-        LogHelper.i(TAG, "goToNextSong queue size=", mPlayingQueue.size());
-        if (mPlayingQueue.size() > 0) {
-            // get the next track as the first in the queue and set it to now playing
-            mNowPlaying = mPlayingQueue.remove(0);
-
-            // TEMP
-            // Add another item into the queue
-            // In fact fill the queue up to n places, in case the queue size is < n (queued items were removed by user, maybe)
-            // Don't add items if queus alredy has >n items (items were added manually by the user)
-            fillRandomQueue();
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Skips [amount] songs through the queue
      * Amount = -1 means skip to previous track
      * @param amount
      * @return true if the new index is a valid playable media item
      */
-    // We should only allow skip to next...
-    // But for the moment leave it like this.
     public boolean skipQueuePosition(int amount) {
         LogHelper.i(TAG, "skip queue by ", Integer.toString(amount), "queue size=", mPlayingQueue.size());
-        int index = /* mCurrentIndex + */ amount; // in principle the current index is always 0 in our implementation.
+        int index = mCurrentIndex + amount;
         if (index < 0) {
             // skip backwards before the first song will keep you on the first song
             index = 0;
-        } else if (index >= mPlayingQueue.size()) {
-            // in the example skip forwards when in last song will cycle back to start of the queue
-            // index %= mPlayingQueue.size();
-            // in our example it returns false
-            return false;
+        } else {
+            // skip forwards when in last song will cycle back to start of the queue
+            index %= mPlayingQueue.size();
         }
         if (!QueueHelper.isIndexPlayable(index, mPlayingQueue)) {
             LogHelper.e(TAG, "Cannot increment queue index by ", amount,
-                    " queue length=", mPlayingQueue.size());
+                    ". Current=", mCurrentIndex, " queue length=", mPlayingQueue.size());
             return false;
         }
-        // strange that in the example we just update the index.
-        // there is no call(back) to any listener
-        // so we just do the same (remove from queue and update now playing)
-        mNowPlaying = mPlayingQueue.remove(index);
-        // mCurrentIndex = index;
+        mCurrentIndex = index;
         return true;
     }
 
@@ -186,27 +133,6 @@ public class QueueManager {
         setCurrentQueue(mResources.getString(R.string.search_queue_title), queue);
         updateMetadata();
         return queue != null && !queue.isEmpty();
-    }
-
-    public void setRandomQueue() {
-        LogHelper.i(TAG, "setRandomQueue");
-        setCurrentQueue(mResources.getString(R.string.random_queue_title), QueueHelper.getRandomQueue(mMusicProvider, RANDOM_QUEUE_SIZE));
-        //goToNextSong();
-        updateMetadata();
-    }
-
-    // Fills the queue up to n items by adding Random tracks.
-    // If the queue is already >= n then there is no need to do anything
-    public void fillRandomQueue() {
-        int currentQueueSize = mPlayingQueue.size();
-        LogHelper.i(TAG, "fillRandomQueue, current size = ", mPlayingQueue.size());
-        if (currentQueueSize < RANDOM_QUEUE_SIZE)
-        {
-            List<MediaSessionCompat.QueueItem> newTracks =  QueueHelper.getRandomQueue(mMusicProvider, RANDOM_QUEUE_SIZE - currentQueueSize);
-            // Add the new songs
-            addToCurrentQueue("Random", newTracks, null);
-        }
-        updateMetadata();
     }
 
     /**
@@ -244,21 +170,8 @@ public class QueueManager {
         if (initialMediaId != null) {
             index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, initialMediaId);
         }
-        // here we are setting the currently playing track as the one that was chosen.
-        // we just don't really need to do this. Adding things to the queue doesn't really change what is playing
-        // mCurrentIndex = Math.max(index, 0);
-
-        // In the queue implementation we can browse and just add to the queue. This doesn't change what is playing
-        // Here we say that if we add to the queue and nothing is currently playing then we start playing
-        // This might not really be the completely desired functionality. Would it start playing on startup when a randomised queue was intialised
-        // We need a 'now playing' but we don't need to start playing it (should be paused)
-        if (mNowPlaying == null)
-        {
-            mNowPlaying = mPlayingQueue.remove(0);
-        }
-
+        mCurrentIndex = Math.max(index, 0);
         mListener.onQueueUpdated(title, mPlayingQueue);
-        mListener.onNowPlayingChanged(mNowPlaying); // we need to call this so the player gets created.
     }
 
 
@@ -287,15 +200,11 @@ public class QueueManager {
     }
     */
 
-    // Easy change. No current index .. we just return 'Now playing'
     public MediaSessionCompat.QueueItem getCurrentMusic() {
-        return mNowPlaying;
-        /* example implementation
         if (!QueueHelper.isIndexPlayable(mCurrentIndex, mPlayingQueue)) {
             return null;
         }
         return mPlayingQueue.get(mCurrentIndex);
-        */
     }
 
     public int getCurrentQueueSize() {
@@ -310,28 +219,21 @@ public class QueueManager {
         setCurrentQueue(title, newQueue, null);
     }
 
-
     protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue,
                                    String initialMediaId) {
         LogHelper.i(TAG, "setCurrentQueue: setting new queue with initial media id = ", initialMediaId);
         mPlayingQueue = newQueue;
+        int index = 0;
         if (initialMediaId != null) {
-            int index = 0;
-            if (initialMediaId != null) {
-                index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, initialMediaId);
-            }
-            // don't set the mCurrent index, just set the nowPlaying instead
-            int currentIndex = Math.max(index, 0);
-            mNowPlaying = mPlayingQueue.remove(currentIndex);
+            index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, initialMediaId);
         }
+        mCurrentIndex = Math.max(index, 0);
         mListener.onQueueUpdated(title, newQueue);
     }
 
     public void updateMetadata() {
-        LogHelper.i(TAG, "updateMetadata");
         MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
         if (currentMusic == null) {
-            LogHelper.i(TAG, "current Music = null");
             mListener.onMetadataRetrieveError();
             return;
         }
@@ -343,8 +245,6 @@ public class QueueManager {
         }
 
         mListener.onMetadataChanged(metadata);
-        // call onqueue updated, as well as on metadata changed
-        mListener.onQueueUpdated("title", mPlayingQueue);
 
         // Set the proper album artwork on the media session, so it can be shown in the
         // locked screen and in other places.
@@ -371,19 +271,7 @@ public class QueueManager {
         }
     }
 
-    // this is my interface
     public interface MetadataUpdateListener {
-        void onMetadataChanged(MediaMetadataCompat metadata);
-        void onMetadataRetrieveError();
-        void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newQueue);
-
-        // void onCurrentQueueIndexUpdated(int queueIndex);
-        void onNowPlayingChanged(MediaSessionCompat.QueueItem nowPlaying);
-
-    }
-
-    // This is from the google example
-    public interface ExampleMetadataUpdateListener {
         void onMetadataChanged(MediaMetadataCompat metadata);
         void onMetadataRetrieveError();
         void onCurrentQueueIndexUpdated(int queueIndex);

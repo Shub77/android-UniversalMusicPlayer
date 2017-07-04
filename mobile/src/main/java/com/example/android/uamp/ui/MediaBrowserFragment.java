@@ -316,7 +316,7 @@ public class MediaBrowserFragment extends Fragment {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            LogHelper.i(TAG, "BrowseAdapter get view position ", position, " out of ", getCount());
+            // LogHelper.i(TAG, "BrowseAdapter get view position ", position, " out of ", getCount());
             MediaBrowserCompat.MediaItem item = getItem(position);
             return MediaItemViewHolder.setupListView((Activity) getContext(), convertView, parent,
                     item);
@@ -325,7 +325,7 @@ public class MediaBrowserFragment extends Fragment {
         @Override
         public void add(MediaBrowserCompat.MediaItem item) {
             super.add(item);
-            LogHelper.i(TAG,  "BrowseAdapter added item "+item.getDescription().getTitle(), " adapter size = ", getCount() );
+            // LogHelper.i(TAG,  "BrowseAdapter added item "+item.getDescription().getTitle(), " adapter size = ", getCount() );
         }
     }
 

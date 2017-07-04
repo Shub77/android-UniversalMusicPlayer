@@ -23,11 +23,15 @@ import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.text.TextUtils;
 
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
 /**
- * Main activity for the music player.
+ * Browsing activity activity for the music player.
  * This class hold the MediaBrowser and the MediaController instances. It will create a MediaBrowser
  * when it is created and connect/disconnect on start/stop. Thus, a MediaBrowser will be always
  * connected while this activity is running.
@@ -182,5 +186,40 @@ public class MusicPlayerActivity extends BaseActivity
             mVoiceSearchParams = null;
         }
         getBrowseFragment().onConnected();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        LogHelper.d(TAG, "onCreateOptionsMenu");
+        super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.browser_toolbar, menu);
+
+        return true;
+    }
+
+    // handle user interaction with the menu
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+/*
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+*/
+        Intent intent;
+        switch (item.getItemId()) {
+            case R.id.action_show_now_playing:
+                Intent fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(fullScreenIntent);
+
+                return true;
+            case R.id.action_restartService:
+//                restartIntentService();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

@@ -192,7 +192,16 @@ public class PlaybackManager implements Playback.Callback {
     @Override
     public void onCompletion() {
         // The media player finished playing the current song, so we go ahead
-        // and start the next.
+        // and start the next. Use our new call 'go to next song' instead of skip(1)
+        if (mQueueManager.goToNextSong()) {
+            handlePlayRequest();
+            mQueueManager.updateMetadata();
+        } else {
+            // If skipping was not possible, we stop and release the resources:
+            handleStopRequest(null);
+        }
+
+        /*
         if (mQueueManager.skipQueuePosition(1)) {
             handlePlayRequest();
             mQueueManager.updateMetadata();
@@ -200,6 +209,7 @@ public class PlaybackManager implements Playback.Callback {
             // If skipping was not possible, we stop and release the resources:
             handleStopRequest(null);
         }
+        */
     }
 
     @Override
@@ -272,7 +282,6 @@ public class PlaybackManager implements Playback.Callback {
             }
             handlePlayRequest();
         }
-
         @Override
         public void onSkipToQueueItem(long queueId) {
             LogHelper.d(TAG, "OnSkipToQueueItem:" + queueId);
@@ -307,8 +316,9 @@ public class PlaybackManager implements Playback.Callback {
 
         @Override
         public void onSkipToNext() {
-            LogHelper.i(TAG, "skipToNext");
-            if (mQueueManager.skipQueuePosition(1)) {
+            LogHelper.i(TAG, "onSkipToNext");
+            // Use our new call go to next song, not 'skip position (1)
+            if (mQueueManager.goToNextSong() /* .skipQueuePosition(1)*/ ) {
                 handlePlayRequest();
             } else {
                 // skipQueuePositiong returns false if the new position is not a playable media item

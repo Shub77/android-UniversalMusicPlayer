@@ -132,17 +132,19 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
             new MediaBrowserCompat.ConnectionCallback() {
         @Override
         public void onConnected() {
-            LogHelper.i(TAG, "onConnected");
+            LogHelper.i(TAG, "MediaBrowserCompat.ConnectionCallback: onConnected");
             try {
                 connectToSession(mMediaBrowser.getSessionToken());
             } catch (RemoteException e) {
                 LogHelper.e(TAG, e, "could not connect media controller");
             }
+            LogHelper.i(TAG, "onConnected: Connected to media controller");
         }
     };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        LogHelper.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_playqueue);
         initializeToolbar();
@@ -245,18 +247,12 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
         LogHelper.i(TAG, "connectToSession");
         MediaControllerCompat mediaController = new MediaControllerCompat(
                 FullScreenPlayQueueActivity.this, token);
-        if (mediaController.getMetadata() == null) {
-            finish();
-            return;
-        }
-        setSupportMediaController(mediaController);
-        mediaController.registerCallback(mCallback);
-        PlaybackStateCompat state = mediaController.getPlaybackState();
-        updatePlaybackState(state);
 
         // get the queue and show in the list
         List< MediaSessionCompat.QueueItem> queue = mediaController.getQueue();
+        LogHelper.i(TAG, "connectToSession: queue == null?", queue==null);
         if (queue != null) {
+            LogHelper.i(TAG, "connectToSession: queue size = ", queue.size());
             playQueueAdapter.clear();
             for (MediaSessionCompat.QueueItem item : queue) {
                 playQueueAdapter.add(item);
@@ -266,6 +262,19 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
             LogHelper.i(TAG, "Queue is null");
         }
 
+        if (mediaController.getMetadata() == null) {
+            LogHelper.i(TAG, "connectToSession, mediacontroller.getMetadata() is null");
+            // Don't finish() just because nothing is playing. We still want to see the queue and the play controlls.
+            // In fact we should almost always have something 'now playing' (even if paused). Unless the play queue hasn't been initialised
+            // (Or there is no music on the device!)
+            return;
+        }
+        setSupportMediaController(mediaController);
+        mediaController.registerCallback(mCallback);
+        PlaybackStateCompat state = mediaController.getPlaybackState();
+        updatePlaybackState(state);
+
+        // We were updating the queue here
 
         MediaMetadataCompat metadata = mediaController.getMetadata();
         if (metadata != null) {
@@ -313,6 +322,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
 
     @Override
     public void onStart() {
+        LogHelper.i(TAG, "onStart");
         super.onStart();
         if (mMediaBrowser != null) {
             mMediaBrowser.connect();
@@ -321,6 +331,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
 
     @Override
     public void onStop() {
+        LogHelper.i(TAG, "onStop");
         super.onStop();
         if (mMediaBrowser != null) {
             mMediaBrowser.disconnect();
@@ -332,6 +343,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
 
     @Override
     public void onDestroy() {
+        LogHelper.i(TAG, "onDestroy");
         super.onDestroy();
         stopSeekbarUpdate();
         mExecutorService.shutdown();
@@ -387,6 +399,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
     }
 
     private void updatePlaybackState(PlaybackStateCompat state) {
+        LogHelper.i(TAG, "updatePlaybackState called, state =  ", state);
         if (state == null) {
             return;
         }
@@ -415,7 +428,15 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
                 stopSeekbarUpdate();
                 break;
             case PlaybackStateCompat.STATE_NONE:
+                LogHelper.i(TAG, "STATE_NONE");
+                mLoading.setVisibility(INVISIBLE);
+                mPlayPause.setVisibility(VISIBLE);
+                mPlayPause.setImageDrawable(mPlayDrawable);
+                stopSeekbarUpdate();
+                break;
             case PlaybackStateCompat.STATE_STOPPED:
+                LogHelper.i(TAG, "STATE_STOPPED");
+                //mControllers.setVisibility(VISIBLE);
                 mLoading.setVisibility(INVISIBLE);
                 mPlayPause.setVisibility(VISIBLE);
                 mPlayPause.setImageDrawable(mPlayDrawable);
@@ -473,6 +494,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+            LogHelper.i(TAG, "getview, position ", position);
             View vi = convertView;
             ViewHolder holder;
             songInf= LayoutInflater.from(activity);

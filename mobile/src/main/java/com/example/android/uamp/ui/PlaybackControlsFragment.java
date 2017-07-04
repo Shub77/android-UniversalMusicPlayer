@@ -57,7 +57,7 @@ public class PlaybackControlsFragment extends Fragment {
     private final MediaControllerCompat.Callback mCallback = new MediaControllerCompat.Callback() {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
-            LogHelper.d(TAG, "Received playback state change to state ", state.getState());
+            LogHelper.i(TAG, "Received playback state change to state ", state.getState());
             PlaybackControlsFragment.this.onPlaybackStateChanged(state);
         }
 
@@ -66,7 +66,7 @@ public class PlaybackControlsFragment extends Fragment {
             if (metadata == null) {
                 return;
             }
-            LogHelper.d(TAG, "Received metadata state change to mediaId=",
+            LogHelper.i(TAG, "Received metadata state change to mediaId=",
                     metadata.getDescription().getMediaId(),
                     " song=", metadata.getDescription().getTitle());
             PlaybackControlsFragment.this.onMetadataChanged(metadata);
@@ -129,16 +129,20 @@ public class PlaybackControlsFragment extends Fragment {
     public void onConnected() {
         MediaControllerCompat controller = ((FragmentActivity) getActivity())
                 .getSupportMediaController();
-        LogHelper.d(TAG, "onConnected, mediaController==null? ", controller == null);
+        LogHelper.i(TAG, "onConnected, mediaController==null? ", controller == null);
         if (controller != null) {
-            onMetadataChanged(controller.getMetadata());
-            onPlaybackStateChanged(controller.getPlaybackState());
-            controller.registerCallback(mCallback);
+            MediaMetadataCompat metadata = controller.getMetadata();
+            LogHelper.i(TAG, "metadata == null?", metadata == null);
+            if (metadata != null) {
+                onMetadataChanged(controller.getMetadata());
+                onPlaybackStateChanged(controller.getPlaybackState());
+                controller.registerCallback(mCallback);
+            }
         }
     }
 
     private void onMetadataChanged(MediaMetadataCompat metadata) {
-        LogHelper.d(TAG, "onMetadataChanged ", metadata);
+        LogHelper.i(TAG, "onMetadataChanged ", metadata);
         if (getActivity() == null) {
             LogHelper.w(TAG, "onMetadataChanged called when getActivity null," +
                     "this should not happen if the callback was properly unregistered. Ignoring.");
@@ -191,9 +195,9 @@ public class PlaybackControlsFragment extends Fragment {
     }
 
     private void onPlaybackStateChanged(PlaybackStateCompat state) {
-        LogHelper.d(TAG, "onPlaybackStateChanged ", state);
+        LogHelper.i(TAG, "onPlaybackStateChanged ", state);
         if (getActivity() == null) {
-            LogHelper.w(TAG, "onPlaybackStateChanged called when getActivity null," +
+            LogHelper.i(TAG, "onPlaybackStateChanged called when getActivity null," +
                     "this should not happen if the callback was properly unregistered. Ignoring.");
             return;
         }
