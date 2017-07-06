@@ -42,7 +42,7 @@ import static android.support.v4.media.session.MediaSessionCompat.QueueItem;
  */
 public class StoragePlayback implements Playback {
 
-    private static final String TAG = LogHelper.makeLogTag(LocalPlayback.class);
+    private static final String TAG = LogHelper.makeLogTag(StoragePlayback.class);
 
     // The volume we set the media player to when we lose audio focus, but are
     // allowed to reduce the volume instead of stopping playback.

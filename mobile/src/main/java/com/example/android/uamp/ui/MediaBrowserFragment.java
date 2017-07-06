@@ -15,32 +15,30 @@
  */
 package com.example.android.uamp.ui;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
@@ -118,8 +116,7 @@ public class MediaBrowserFragment extends Fragment {
             public void onChildrenLoaded(@NonNull String parentId,
                                          @NonNull List<MediaBrowserCompat.MediaItem> children) {
                 try {
-                    LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId +
-                        "  count=" + children.size());
+                    //LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
                     checkForUserVisibleErrors(children.isEmpty());
                     mBrowserAdapter.clear();
                     for (MediaBrowserCompat.MediaItem item : children) {
@@ -152,7 +149,7 @@ public class MediaBrowserFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        LogHelper.i(TAG, "fragment.onCreateView");
+        //LogHelper.i(TAG, "fragment.onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
 
         mErrorView = rootView.findViewById(R.id.playback_error);
@@ -162,17 +159,39 @@ public class MediaBrowserFragment extends Fragment {
 
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
         listView.setAdapter(mBrowserAdapter);
+
+        // This onclick listener for the list item.
+        // The click could come from the list item background -> means browse
+        // OR could come from the 'add' button -> means add to the music queue
+        // Requires the add button code to pass the button click up to the list item click, to be handled here
+        // Here we use the view parameter to determine if a button was clicked
+        // of if the click came directly from the list background
+        // requires android:descendantFocusability="blocksDescendants" in the list item layout,
+        // otherwise the button takes all the focus and we can't click on the list item background
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 checkForUserVisibleErrors(false);
                 MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
-                mMediaFragmentListener.onMediaItemSelected(item);
+
+                long viewId = view.getId();
+                if (viewId == R.id.plus_eq) {
+                    LogHelper.i(TAG, "Add button clicked for item", item.getMediaId());
+                    // This is a callback to the Music Player Activity
+                    mMediaFragmentListener.onAddMediaToQueue(item);
+                    // click has been handled by the add button. Nothing else to do
+                    return;
+                }
+
+                // This is a callback to the Music Player Activity to browse (NOT add)
+                mMediaFragmentListener.onBrowseMediaItemSelected(item);
+
             }
         });
 
         return rootView;
     }
+
 
     @Override
     public void onStart() {
@@ -181,8 +200,7 @@ public class MediaBrowserFragment extends Fragment {
         // fetch browsing information to fill the listview:
         MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
 
-        LogHelper.i(TAG, "fragment.onStart, mediaId=", mMediaId,
-                "  onConnected=" + mediaBrowser.isConnected());
+        //LogHelper.i(TAG, "fragment.onStart, mediaId=", mMediaId,"  onConnected=" + mediaBrowser.isConnected());
 
         if (mediaBrowser.isConnected()) {
             onConnected();
@@ -310,16 +328,150 @@ public class MediaBrowserFragment extends Fragment {
     // An adapter for showing the list of browsed MediaItem's
     private static class BrowseAdapter extends ArrayAdapter<MediaBrowserCompat.MediaItem> {
 
+        private static ColorStateList sColorStatePlaying;
+        private static ColorStateList sColorStateNotPlaying;
+        public static final int STATE_INVALID = -1;
+        public static final int STATE_NONE = 0;
+        public static final int STATE_PLAYABLE = 1;
+        public static final int STATE_PAUSED = 2;
+        public static final int STATE_PLAYING = 3;
+
         public BrowseAdapter(Activity context) {
-            super(context, R.layout.media_list_item, new ArrayList<MediaBrowserCompat.MediaItem>());
+            super(context, R.layout.media_list_item_with_plus, new ArrayList<MediaBrowserCompat.MediaItem>());
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             // LogHelper.i(TAG, "BrowseAdapter get view position ", position, " out of ", getCount());
             MediaBrowserCompat.MediaItem item = getItem(position);
-            return MediaItemViewHolder.setupListView((Activity) getContext(), convertView, parent,
-                    item);
+            View vi = /*MediaItemViewHolder.*/setupListView((Activity) getContext(), convertView, parent, item, position);
+            return vi;
+        }
+
+        // TODO: the following method(s) is copied from  MediaItemViewHolder.setupListView. Fefactor
+        private View setupListView(Activity activity, View convertView, final ViewGroup parent, MediaBrowserCompat.MediaItem item, final int position) {
+            if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
+                initializeColorStateLists(activity);
+            }
+
+            MediaItemViewHolder holder;
+
+            Integer cachedState = STATE_INVALID;
+
+            if (convertView == null) {
+                convertView = LayoutInflater.from(activity)
+                        .inflate(R.layout.media_list_item_with_plus, parent, false);
+                holder = new MediaItemViewHolder();
+                holder.mPlayImageView = (ImageView) convertView.findViewById(R.id.play_eq);
+                holder.mAddImageView = (ImageView) convertView.findViewById(R.id.plus_eq);
+                holder.mTitleView = (TextView) convertView.findViewById(R.id.title);
+                holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description);
+                convertView.setTag(holder);
+            } else {
+                holder = (MediaItemViewHolder) convertView.getTag();
+                cachedState = (Integer) convertView.getTag(R.id.tag_mediaitem_state_cache);
+            }
+
+            MediaDescriptionCompat description = item.getDescription();
+            holder.mTitleView.setText(description.getTitle());
+            holder.mDescriptionView.setText(description.getSubtitle());
+
+            String mediaID = item.getMediaId();
+            // TODO: Tidy up this test (use MediaIdHelper)
+            if (mediaID.indexOf('/') < 0 && mediaID.indexOf('|') < 0) {
+                holder.mAddImageView.setVisibility(View.GONE);
+            } else {
+                holder.mAddImageView.setVisibility(View.VISIBLE);
+                // This onclick listener for the button just passes the click to be handled by the standard list
+                // list item on click code (which will use the 'view' to determine if a button was clicked
+                // of if the click came directly from the list background
+                // requires android:descendantFocusability="blocksDescendants" in the list item layout,
+                // otherwise the button takes all the focus and we can't click on the list item background
+                holder.mAddImageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((ListView) parent).performItemClick(v, position, 0); // Let the event be handled in onItemClick()
+                    }
+                });
+
+            }
+
+            // If the state of convertView is different, we need to adapt the view to the
+            // new state.
+            int state = getMediaItemState(activity, item);
+            if (cachedState == null || cachedState != state) {
+                Drawable drawable = getDrawableByState(activity, state);
+                if (drawable != null) {
+                    holder.mPlayImageView.setImageDrawable(drawable);
+                    holder.mPlayImageView.setVisibility(View.VISIBLE);
+                } else {
+                    holder.mPlayImageView.setVisibility(View.GONE);
+                }
+                convertView.setTag(R.id.tag_mediaitem_state_cache, state);
+            }
+
+            return convertView;
+        }
+
+        private static void initializeColorStateLists(Context ctx) {
+            sColorStateNotPlaying = ColorStateList.valueOf(ctx.getResources().getColor(
+                    R.color.media_item_icon_not_playing));
+            sColorStatePlaying = ColorStateList.valueOf(ctx.getResources().getColor(
+                    R.color.media_item_icon_playing));
+        }
+
+        public static Drawable getDrawableByState(Context context, int state) {
+            if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
+                initializeColorStateLists(context);
+            }
+
+            switch (state) {
+                case STATE_PLAYABLE:
+                    Drawable pauseDrawable = ContextCompat.getDrawable(context,
+                            R.drawable.ic_play_arrow_black_36dp);
+                    DrawableCompat.setTintList(pauseDrawable, sColorStateNotPlaying);
+                    return pauseDrawable;
+                case STATE_PLAYING:
+                    AnimationDrawable animation = (AnimationDrawable)
+                            ContextCompat.getDrawable(context, R.drawable.ic_equalizer_white_36dp);
+                    DrawableCompat.setTintList(animation, sColorStatePlaying);
+                    animation.start();
+                    return animation;
+                case STATE_PAUSED:
+                    Drawable playDrawable = ContextCompat.getDrawable(context,
+                            R.drawable.ic_equalizer1_white_36dp);
+                    DrawableCompat.setTintList(playDrawable, sColorStatePlaying);
+                    return playDrawable;
+                default:
+                    return null;
+            }
+        }
+
+        public static int getMediaItemState(Context context, MediaBrowserCompat.MediaItem mediaItem) {
+            int state = STATE_NONE;
+            // Set state to playable first, then override to playing or paused state if needed
+            if (mediaItem.isPlayable()) {
+                state = STATE_PLAYABLE;
+                if (MediaIDHelper.isMediaItemPlaying(context, mediaItem)) {
+                    state = getStateFromController(context);
+                }
+            }
+
+            return state;
+        }
+
+        public static int getStateFromController(Context context) {
+            MediaControllerCompat controller = ((FragmentActivity) context)
+                    .getSupportMediaController();
+            PlaybackStateCompat pbState = controller.getPlaybackState();
+            if (pbState == null ||
+                    pbState.getState() == PlaybackStateCompat.STATE_ERROR) {
+                return MediaItemViewHolder.STATE_NONE;
+            } else if (pbState.getState() == PlaybackStateCompat.STATE_PLAYING) {
+                return MediaItemViewHolder.STATE_PLAYING;
+            } else {
+                return MediaItemViewHolder.STATE_PAUSED;
+            }
         }
 
         @Override
@@ -330,7 +482,8 @@ public class MediaBrowserFragment extends Fragment {
     }
 
     public interface MediaFragmentListener extends MediaBrowserProvider {
-        void onMediaItemSelected(MediaBrowserCompat.MediaItem item);
+        void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item);
+        void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
         void setToolbarTitle(CharSequence title);
     }
 

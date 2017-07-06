@@ -174,6 +174,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                 new QueueManager.MetadataUpdateListener() {
                     @Override
                     public void onMetadataChanged(MediaMetadataCompat metadata) {
+                        LogHelper.i(TAG, "Service MetadataUpdateListener onMetadataChanged ", metadata.getDescription().getTitle());
                         mSession.setMetadata(metadata);
                     }
 
@@ -192,16 +193,25 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
                     @Override
                     public void onNowPlayingChanged(MediaSessionCompat.QueueItem newNowPlaying) {
+                        LogHelper.i(TAG, "Service MetadataUpdateListener onNowPlayingChanged ", newNowPlaying.getDescription().getTitle());
                         mPlaybackManager.handlePlayRequest();
+                    }
+
+                    // I added this!
+                    @Override
+                    public void onPauseRequest() {
+                        LogHelper.i(TAG, "Service MetadataUpdateListener onPauseRequest ");
+                        mSession.getController().getTransportControls().pause();
                     }
 
                     @Override
                     public void onQueueUpdated(String title,
                                                List<MediaSessionCompat.QueueItem> newQueue) {
+                        LogHelper.i(TAG, "Service MetadataUpdateListener onQueueUpdated: size= ", newQueue.size());
                         // So when the queue is updated we tell our mediaSessionCompat
                         // The media session has callbacks which are handled by mPlaybackManager
-                        mSession.setQueue(newQueue);
-                        mSession.setQueueTitle(title);
+                        mSession.setQueue(newQueue);// DISABLED
+                        mSession.setQueueTitle(title);// DISABLED
                     }
                 });
 
@@ -251,7 +261,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
 
         registerCarConnectionReceiver();
-        queueManager.setRandomQueue();
+        // fill an initial random queue. Does not set any song to play
+        queueManager.fillRandomQueue();
     }
 
     /**
@@ -339,7 +350,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
     @Override
     public void onLoadChildren(@NonNull final String parentMediaId,
                                @NonNull final Result<List<MediaItem>> result) {
-        LogHelper.i(TAG, "OnLoadChildren: parentMediaId=", parentMediaId);
+        //LogHelper.i(TAG, "OnLoadChildren: parentMediaId=", parentMediaId);
         if (MEDIA_ID_EMPTY_ROOT.equals(parentMediaId)) {
             result.sendResult(new ArrayList<MediaItem>());
         } else if (mMusicProvider.isInitialized()) {

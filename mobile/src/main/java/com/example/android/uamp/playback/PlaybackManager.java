@@ -71,7 +71,7 @@ public class PlaybackManager implements Playback.Callback {
      * Handle a request to play music
      */
     public void handlePlayRequest() {
-        LogHelper.d(TAG, "handlePlayRequest: mState=" + mPlayback.getState());
+        LogHelper.i(TAG, "handlePlayRequest: mState=" + mPlayback.getState());
         MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
         if (currentMusic != null) {
             mServiceCallback.onPlaybackStart();
@@ -191,6 +191,7 @@ public class PlaybackManager implements Playback.Callback {
      */
     @Override
     public void onCompletion() {
+        LogHelper.i(TAG, "onCompletion");
         // The media player finished playing the current song, so we go ahead
         // and start the next. Use our new call 'go to next song' instead of skip(1)
         if (mQueueManager.goToNextSong()) {
@@ -276,22 +277,22 @@ public class PlaybackManager implements Playback.Callback {
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
-            LogHelper.d(TAG, "play");
+            LogHelper.i(TAG, "onPlay");
             if (mQueueManager.getCurrentMusic() == null) {
-                mQueueManager.setRandomQueue();
+                mQueueManager.fillRandomQueue();
             }
             handlePlayRequest();
         }
         @Override
         public void onSkipToQueueItem(long queueId) {
-            LogHelper.d(TAG, "OnSkipToQueueItem:" + queueId);
+            LogHelper.i(TAG, "OnSkipToQueueItem:" + queueId);
             mQueueManager.setCurrentQueueItem(queueId);
             mQueueManager.updateMetadata();
         }
 
         @Override
         public void onSeekTo(long position) {
-            LogHelper.d(TAG, "onSeekTo:", position);
+            LogHelper.i(TAG, "onSeekTo:", position);
             mPlayback.seekTo((int) position);
         }
 
@@ -299,18 +300,19 @@ public class PlaybackManager implements Playback.Callback {
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             LogHelper.i(TAG, "playFromMediaId mediaId:", mediaId, "  extras=", extras);
             mQueueManager.setQueueFromMusic(mediaId);
-            handlePlayRequest();
+            // If we call handlePlayRequest here, then we start playing after setting the queue
+            handlePlayRequest();// DISABLED
         }
 
         @Override
         public void onPause() {
-            LogHelper.d(TAG, "pause. current state=" + mPlayback.getState());
+            LogHelper.i(TAG, "pause. current state=" + mPlayback.getState());
             handlePauseRequest();
         }
 
         @Override
         public void onStop() {
-            LogHelper.d(TAG, "stop. current state=" + mPlayback.getState());
+            LogHelper.i(TAG, "stop. current state=" + mPlayback.getState());
             handleStopRequest(null);
         }
 
@@ -329,6 +331,7 @@ public class PlaybackManager implements Playback.Callback {
 
         @Override
         public void onSkipToPrevious() {
+            LogHelper.i(TAG, "onSkipToPrevious");
             if (mQueueManager.skipQueuePosition(-1)) {
                 handlePlayRequest();
             } else {
@@ -352,6 +355,11 @@ public class PlaybackManager implements Playback.Callback {
                 // playback state needs to be updated because the "Favorite" icon on the
                 // custom action will change to reflect the new favorite state.
                 updatePlaybackState(null);
+            } else if (action.equals("newq")) {
+                // New custom action to set the queue, without starting to play any media
+                String mediaId = extras.getString("mediaID");
+                LogHelper.i(TAG, "onCustomAction: NEWQ, medaiId =",mediaId);
+                mQueueManager.setQueueFromMusic(mediaId);
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
             }
@@ -372,7 +380,7 @@ public class PlaybackManager implements Playback.Callback {
          **/
         @Override
         public void onPlayFromSearch(final String query, final Bundle extras) {
-            LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
+            LogHelper.i(TAG, "playFromSearch  query=", query, " extras=", extras);
 
             mPlayback.setState(PlaybackStateCompat.STATE_CONNECTING);
             boolean successSearch = mQueueManager.setQueueFromSearch(query, extras);

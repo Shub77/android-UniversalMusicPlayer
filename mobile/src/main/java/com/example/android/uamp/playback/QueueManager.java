@@ -91,6 +91,7 @@ public class QueueManager {
         return mPlayingQueue;
     }
 
+    // This isn't really used in our implementation
     // In our implementation we take the item out of the queue and we set it now playing
     // example implementation just set the current index
     private void setCurrentQueueIndex(int index) {
@@ -183,17 +184,25 @@ public class QueueManager {
         LogHelper.i(TAG, "SetQueuefromSearch: query = ", query);
         List<MediaSessionCompat.QueueItem> queue =
                 QueueHelper.getPlayingQueueFromSearch(query, extras, mMusicProvider);
-        setCurrentQueue(mResources.getString(R.string.search_queue_title), queue);
+        String title =  mResources.getString(R.string.search_queue_title);
+        setCurrentQueue(title, queue);
+        mListener.onQueueUpdated(title, mPlayingQueue);
         updateMetadata();
         return queue != null && !queue.isEmpty();
     }
 
+    /*
+    // creates a random queue of n items
     public void setRandomQueue() {
         LogHelper.i(TAG, "setRandomQueue");
         setCurrentQueue(mResources.getString(R.string.random_queue_title), QueueHelper.getRandomQueue(mMusicProvider, RANDOM_QUEUE_SIZE));
-        //goToNextSong();
-        updateMetadata();
+        mListener.onQueueUpdated(mResources.getString(R.string.random_queue_title), mPlayingQueue);
+        if (mNowPlaying == null) {
+            goToNextSong();
+            updateMetadata();
+        }
     }
+    */
 
     // Fills the queue up to n items by adding Random tracks.
     // If the queue is already >= n then there is no need to do anything
@@ -206,7 +215,7 @@ public class QueueManager {
             // Add the new songs
             addToCurrentQueue("Random", newTracks, null);
         }
-        updateMetadata();
+        mListener.onQueueUpdated("title", mPlayingQueue);
     }
 
     /**
@@ -225,8 +234,91 @@ public class QueueManager {
         LogHelper.i(TAG, newTracks.size(), " new tracks");
 
         addToCurrentQueue(queueTitle, newTracks, mediaId);
-        updateMetadata();
 
+        // here we are setting the currently playing track as the one that was chosen.
+        // we just don't really need to do this. Adding things to the queue doesn't really change what is playing
+        // mCurrentIndex = Math.max(index, 0);
+
+        // In the queue implementation we can browse and just add to the queue. This doesn't change what is playing
+        // Here we say that if we add to the queue and nothing is currently playing then we start playing
+        // This might not really be the completely desired functionality. Would it start playing on startup when a randomised queue was intialised
+        // We need a 'now playing' but we don't need to start playing it (should be paused)
+
+        /* DISABLED Just set the queue. Don't take anything off it to now playing
+        if (mNowPlaying == null)
+        {
+            mNowPlaying = mPlayingQueue.remove(0);
+            LogHelper.i(TAG, "mNowPlaying was null, new now playing = ", mNowPlaying.getDescription().getTitle());
+            // If we don't call updatemetadata then the queue in queuemanager is updated OK, but the
+            // change is never communicated to the service/player activity
+
+            // Commented update metadata and copied the code inline here to test
+            //updateMetadata();
+
+            // copied code from update metadata
+            final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
+                    mNowPlaying.getDescription().getMediaId());
+            MediaMetadataCompat metadata = mMusicProvider.getMusic(musicId);
+            if (metadata == null) {
+                throw new IllegalArgumentException("Invalid musicId " + musicId);
+            }
+
+            // Call the listener to set the new metadata and playingQueue
+            // If we don't call this then the player activity has no play controls
+            // but if we do call it then everything starts playing
+            // mListener is a MetadataUpdateListener used to call back to the service
+            mListener.onMetadataChanged(metadata);
+        }
+        DISABLED */
+
+        // This communicates the changed queue. It allows the queue to be shown in
+        // in the player activity
+        mListener.onQueueUpdated("title", mPlayingQueue);
+    }
+
+    public void updateMetadata() {
+        LogHelper.i(TAG, "upda  teMetadata");
+        MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
+        if (currentMusic == null) {
+            LogHelper.i(TAG, "current Music = null");
+            mListener.onMetadataRetrieveError();
+            return;
+        }
+        final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
+                currentMusic.getDescription().getMediaId());
+        MediaMetadataCompat metadata = mMusicProvider.getMusic(musicId);
+        if (metadata == null) {
+            throw new IllegalArgumentException("Invalid musicId " + musicId);
+        }
+
+        mListener.onMetadataChanged(metadata);
+        // call onqueue updated, as well as on metadata changed
+        mListener.onQueueUpdated("title", mPlayingQueue);
+
+        // The rest of this is all about artwork, so we aren't so bothered here
+        // Set the proper album artwork on the media session, so it can be shown in the
+        // locked screen and in other places.
+        if (metadata.getDescription().getIconBitmap() == null &&
+                metadata.getDescription().getIconUri() != null) {
+            String albumUri = metadata.getDescription().getIconUri().toString();
+            AlbumArtCache.getInstance().fetch(albumUri, new AlbumArtCache.FetchListener() {
+                @Override
+                public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
+                    mMusicProvider.updateMusicArt(musicId, bitmap, icon);
+
+                    // If we are still playing the same music, notify the listeners:
+                    MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
+                    if (currentMusic == null) {
+                        return;
+                    }
+                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
+                            currentMusic.getDescription().getMediaId());
+                    if (musicId.equals(currentPlayingId)) {
+                        mListener.onMetadataChanged(mMusicProvider.getMusic(currentPlayingId));
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -244,21 +336,9 @@ public class QueueManager {
         if (initialMediaId != null) {
             index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, initialMediaId);
         }
-        // here we are setting the currently playing track as the one that was chosen.
-        // we just don't really need to do this. Adding things to the queue doesn't really change what is playing
-        // mCurrentIndex = Math.max(index, 0);
-
-        // In the queue implementation we can browse and just add to the queue. This doesn't change what is playing
-        // Here we say that if we add to the queue and nothing is currently playing then we start playing
-        // This might not really be the completely desired functionality. Would it start playing on startup when a randomised queue was intialised
-        // We need a 'now playing' but we don't need to start playing it (should be paused)
-        if (mNowPlaying == null)
-        {
-            mNowPlaying = mPlayingQueue.remove(0);
-        }
-
-        mListener.onQueueUpdated(title, mPlayingQueue);
-        mListener.onNowPlayingChanged(mNowPlaying); // we need to call this so the player gets created.
+        // TEST looks like we don't need this here. It is called from elsewhere ...!!!! uncomnet this updateMetadata(); // TEST instead of next 2 lines TEST
+        // mListener.onQueueUpdated(title, mPlayingQueue);
+        //mListener.onNowPlayingChanged(mNowPlaying); // we need to call this so the player gets created.
     }
 
 
@@ -307,7 +387,8 @@ public class QueueManager {
 
     protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
         LogHelper.i(TAG, "setCurrentQueue: title=", title);
-        setCurrentQueue(title, newQueue, null);
+        mPlayingQueue = newQueue;
+        // setCurrentQueue(title, newQueue, null);
     }
 
 
@@ -327,50 +408,6 @@ public class QueueManager {
         mListener.onQueueUpdated(title, newQueue);
     }
 
-    public void updateMetadata() {
-        LogHelper.i(TAG, "updateMetadata");
-        MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
-        if (currentMusic == null) {
-            LogHelper.i(TAG, "current Music = null");
-            mListener.onMetadataRetrieveError();
-            return;
-        }
-        final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                currentMusic.getDescription().getMediaId());
-        MediaMetadataCompat metadata = mMusicProvider.getMusic(musicId);
-        if (metadata == null) {
-            throw new IllegalArgumentException("Invalid musicId " + musicId);
-        }
-
-        mListener.onMetadataChanged(metadata);
-        // call onqueue updated, as well as on metadata changed
-        mListener.onQueueUpdated("title", mPlayingQueue);
-
-        // Set the proper album artwork on the media session, so it can be shown in the
-        // locked screen and in other places.
-        if (metadata.getDescription().getIconBitmap() == null &&
-                metadata.getDescription().getIconUri() != null) {
-            String albumUri = metadata.getDescription().getIconUri().toString();
-            AlbumArtCache.getInstance().fetch(albumUri, new AlbumArtCache.FetchListener() {
-                @Override
-                public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-                    mMusicProvider.updateMusicArt(musicId, bitmap, icon);
-
-                    // If we are still playing the same music, notify the listeners:
-                    MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
-                    if (currentMusic == null) {
-                        return;
-                    }
-                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
-                            currentMusic.getDescription().getMediaId());
-                    if (musicId.equals(currentPlayingId)) {
-                        mListener.onMetadataChanged(mMusicProvider.getMusic(currentPlayingId));
-                    }
-                }
-            });
-        }
-    }
-
     // this is my interface
     public interface MetadataUpdateListener {
         void onMetadataChanged(MediaMetadataCompat metadata);
@@ -379,6 +416,7 @@ public class QueueManager {
 
         // void onCurrentQueueIndexUpdated(int queueIndex);
         void onNowPlayingChanged(MediaSessionCompat.QueueItem nowPlaying);
+        void onPauseRequest();
 
     }
 

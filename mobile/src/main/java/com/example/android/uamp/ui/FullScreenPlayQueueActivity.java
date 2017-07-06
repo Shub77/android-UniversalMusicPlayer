@@ -262,19 +262,24 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
             LogHelper.i(TAG, "Queue is null");
         }
 
-        if (mediaController.getMetadata() == null) {
-            LogHelper.i(TAG, "connectToSession, mediacontroller.getMetadata() is null");
-            // Don't finish() just because nothing is playing. We still want to see the queue and the play controlls.
-            // In fact we should almost always have something 'now playing' (even if paused). Unless the play queue hasn't been initialised
-            // (Or there is no music on the device!)
-            return;
-        }
         setSupportMediaController(mediaController);
         mediaController.registerCallback(mCallback);
         PlaybackStateCompat state = mediaController.getPlaybackState();
         updatePlaybackState(state);
 
-        // We were updating the queue here
+        if (mediaController.getMetadata() == null) {
+            // Here we don't have anything playing (no current item)
+            // We enable the 'skip to next' control only, as this will start playing the first item on the queue
+            LogHelper.i(TAG, "connectToSession, mediacontroller.getMetadata() is null");
+            // Don't finish() just because nothing is playing. We still want to see the queue and the play controls.
+            mPlayPause.setVisibility(INVISIBLE);
+            mControllers.setVisibility(VISIBLE);
+            mSkipNext.setVisibility(VISIBLE);
+            mSeekbar.setVisibility(INVISIBLE);
+            mSkipPrev.setVisibility(INVISIBLE);
+
+            return;
+        }
 
         MediaMetadataCompat metadata = mediaController.getMetadata();
         if (metadata != null) {
@@ -411,7 +416,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
                         .getString(R.string.casting_to_device, castName);
             mLine3.setText(line3Text);
         }
-
+        mSeekbar.setVisibility(VISIBLE);
         switch (state.getState()) {
             case PlaybackStateCompat.STATE_PLAYING:
                 mLoading.setVisibility(INVISIBLE);
@@ -429,6 +434,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
                 break;
             case PlaybackStateCompat.STATE_NONE:
                 LogHelper.i(TAG, "STATE_NONE");
+                mControllers.setVisibility(VISIBLE);
                 mLoading.setVisibility(INVISIBLE);
                 mPlayPause.setVisibility(VISIBLE);
                 mPlayPause.setImageDrawable(mPlayDrawable);
@@ -436,7 +442,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
                 break;
             case PlaybackStateCompat.STATE_STOPPED:
                 LogHelper.i(TAG, "STATE_STOPPED");
-                //mControllers.setVisibility(VISIBLE);
+                mControllers.setVisibility(VISIBLE); // CHANGED
                 mLoading.setVisibility(INVISIBLE);
                 mPlayPause.setVisibility(VISIBLE);
                 mPlayPause.setImageDrawable(mPlayDrawable);
@@ -494,7 +500,6 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            LogHelper.i(TAG, "getview, position ", position);
             View vi = convertView;
             ViewHolder holder;
             songInf= LayoutInflater.from(activity);

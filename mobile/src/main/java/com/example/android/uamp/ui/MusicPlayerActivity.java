@@ -19,8 +19,13 @@ import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import android.util.Log;
@@ -29,6 +34,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
+
+import java.util.List;
 
 /**
  * Browsing activity activity for the music player.
@@ -81,16 +88,49 @@ public class MusicPlayerActivity extends BaseActivity
         super.onSaveInstanceState(outState);
     }
 
+    /**
+     * A callback from the MediaBrowserFragment
+     * We have clicked on add button for an item
+     * Add all the music in the item's category to the queue
+     * - Could be just one song, or a category (e.g. all songs for an artist)
+     * @param item
+     */
     @Override
-    public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
-        LogHelper.d(TAG, "onMediaItemSelected, mediaId=" + item.getMediaId());
+    public void onAddMediaToQueue(MediaBrowserCompat.MediaItem item) {
+        MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
+        Bundle bundle = new Bundle();
+        bundle.putString("mediaID", item.getMediaId());
+        controls.sendCustomAction("newq",bundle);
+    }
+
+
+    /**
+     * A callback from the MediaBrowserFragment
+     * We have clicked on the background of a list item.
+     * So we browse down (if applicable)
+     * Unlike in the example, we do NOT start playing any track
+     * @param item
+     */
+    @Override
+    public void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item) {
+        LogHelper.i(TAG, "onBrowseMediaItemSelected, mediaId=" + item.getMediaId());
+        /*
         if (item.isPlayable()) {
-            getSupportMediaController().getTransportControls()
-                    .playFromMediaId(item.getMediaId(), null);
-        } else if (item.isBrowsable()) {
+            // My code using new custom action
+            MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
+            Bundle bundle = new Bundle();
+            bundle.putString("mediaID", item.getMediaId());
+            controls.sendCustomAction("newq",bundle);
+            This was the original code.
+            play from media ID sets the queue and ALSO starts playing.
+            which we dont really want.
+            we just want to set the queue
+            controls.playFromMediaId(item.getMediaId(), null);
+        } else */
+        if (item.isBrowsable()) {
             navigateToBrowser(item.getMediaId());
         } else {
-            LogHelper.w(TAG, "Ignoring MediaItem that is neither browsable nor playable: ",
+            LogHelper.w(TAG, "Ignoring MediaItem that is not browsable",
                     "mediaId=", item.getMediaId());
         }
     }
@@ -142,7 +182,7 @@ public class MusicPlayerActivity extends BaseActivity
     }
 
     private void navigateToBrowser(String mediaId) {
-        LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
+        LogHelper.i(TAG, "navigateToBrowser, mediaId=" + mediaId);
         MediaBrowserFragment fragment = getBrowseFragment();
 
         if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {
@@ -222,4 +262,6 @@ public class MusicPlayerActivity extends BaseActivity
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }

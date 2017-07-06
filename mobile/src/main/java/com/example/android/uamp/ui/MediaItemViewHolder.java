@@ -47,7 +47,8 @@ public class MediaItemViewHolder {
     private static ColorStateList sColorStatePlaying;
     private static ColorStateList sColorStateNotPlaying;
 
-    ImageView mImageView;
+    ImageView mPlayImageView;
+    ImageView mAddImageView;
     TextView mTitleView;
     TextView mDescriptionView;
 
@@ -64,9 +65,10 @@ public class MediaItemViewHolder {
 
         if (convertView == null) {
             convertView = LayoutInflater.from(activity)
-                    .inflate(R.layout.media_list_item, parent, false);
+                    .inflate(R.layout.media_list_item_with_plus, parent, false);
             holder = new MediaItemViewHolder();
-            holder.mImageView = (ImageView) convertView.findViewById(R.id.play_eq);
+            holder.mPlayImageView = (ImageView) convertView.findViewById(R.id.play_eq);
+            holder.mAddImageView = (ImageView) convertView.findViewById(R.id.plus_eq);
             holder.mTitleView = (TextView) convertView.findViewById(R.id.title);
             holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description);
             convertView.setTag(holder);
@@ -79,16 +81,24 @@ public class MediaItemViewHolder {
         holder.mTitleView.setText(description.getTitle());
         holder.mDescriptionView.setText(description.getSubtitle());
 
+        String mediaID = item.getMediaId();
+        if (mediaID.indexOf('/') < 0 && mediaID.indexOf('|') < 0) {
+            holder.mAddImageView.setVisibility(View.GONE);
+        } else {
+            holder.mAddImageView.setVisibility(View.VISIBLE);
+            //holder.mAddImageView.setOnClickListener(new OnAddImageViewClickListener(mediaID));
+        }
+
         // If the state of convertView is different, we need to adapt the view to the
         // new state.
         int state = getMediaItemState(activity, item);
         if (cachedState == null || cachedState != state) {
             Drawable drawable = getDrawableByState(activity, state);
             if (drawable != null) {
-                holder.mImageView.setImageDrawable(drawable);
-                holder.mImageView.setVisibility(View.VISIBLE);
+                holder.mPlayImageView.setImageDrawable(drawable);
+                holder.mPlayImageView.setVisibility(View.VISIBLE);
             } else {
-                holder.mImageView.setVisibility(View.GONE);
+                holder.mPlayImageView.setVisibility(View.GONE);
             }
             convertView.setTag(R.id.tag_mediaitem_state_cache, state);
         }

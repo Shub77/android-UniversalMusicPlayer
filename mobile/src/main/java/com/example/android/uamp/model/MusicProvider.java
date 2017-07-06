@@ -120,9 +120,9 @@ public class MusicProvider {
      * Get an iterator over a shuffled collection of all songs
      */
     public Iterable<MediaMetadataCompat> getShuffledMusic() {
-        LogHelper.i(TAG, "getShuffledMusic");
+        //LogHelper.i(TAG, "getShuffledMusic");
         if (mCurrentState != State.INITIALIZED) {
-            LogHelper.i(TAG, "not initialized");
+            //LogHelper.i(TAG, "not initialized");
             return Collections.emptyList();
         }
         List<MediaMetadataCompat> shuffled = new ArrayList<>(mMusicListById.size());
@@ -130,7 +130,7 @@ public class MusicProvider {
             shuffled.add(mutableMetadata.metadata);
         }
         Collections.shuffle(shuffled);
-        LogHelper.i(TAG, "shuffled size = ", shuffled.size());
+        //LogHelper.i(TAG, "shuffled size = ", shuffled.size());
         return shuffled;
     }
 
@@ -362,7 +362,7 @@ public class MusicProvider {
 
 
     public List<MediaBrowserCompat.MediaItem> getChildren(String mediaId, Resources resources) {
-        LogHelper.i(TAG, "getChildren, mediaId=", mediaId );
+        //LogHelper.i(TAG, "getChildren, mediaId=", mediaId );
         List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
         if (!MediaIDHelper.isBrowseable(mediaId)) {
@@ -370,40 +370,40 @@ public class MusicProvider {
         }
 
         if (MEDIA_ID_ROOT.equals(mediaId)) {
-            LogHelper.i(TAG, "At the root...");
+            //LogHelper.i(TAG, "At the root...");
             mediaItems.add(createBrowsableMediaItemGenreForRoot(resources));
             mediaItems.add(createBrowsableMediaItemArtistForRoot(resources));
             mediaItems.add(createBrowsableMediaItemAlbumForRoot(resources));
         } else if (MEDIA_ID_MUSICS_BY_GENRE.equals(mediaId)) {
-            LogHelper.i(TAG, "The Genre item, add all Genres ...");
+            //LogHelper.i(TAG, "The Genre item, add all Genres ...");
             for (String genre : getGenres()) {
                 mediaItems.add(createBrowsableMediaItemForGenre(genre, resources));
             }
         } else if (MEDIA_ID_MUSICS_BY_ARTIST.equals(mediaId)) {
-            LogHelper.i(TAG, "The Genre item, add all Artists ...");
+            //LogHelper.i(TAG, "The Genre item, add all Artists ...");
             for (String artist : getArtists()) {
                 mediaItems.add(createBrowsableMediaItemForArtist(artist, resources));
             }
         } else if (MEDIA_ID_MUSICS_BY_ALBUM.equals(mediaId)) {
-            LogHelper.i(TAG, "The Genre item, add all albums...");
+            //LogHelper.i(TAG, "The Genre item, add all albums...");
             for (String album : getAlbums()) {
                 mediaItems.add(createBrowsableMediaItemForAlbum(album, resources));
             }
         } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_GENRE)) {
             String genre = MediaIDHelper.getHierarchy(mediaId)[1];
-            LogHelper.i(TAG, "Genre ", genre, " add all the songs");
+            //LogHelper.i(TAG, "Genre ", genre, " add all the songs");
             for (MediaMetadataCompat metadata : getMusicsByGenre(genre)) {
                 mediaItems.add(createMediaItem(metadata, MediaMetadataCompat.METADATA_KEY_GENRE, MEDIA_ID_MUSICS_BY_GENRE));
             }
         } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_ARTIST)) {
             String artist = MediaIDHelper.getHierarchy(mediaId)[1];
-            LogHelper.i(TAG, "Artist ", artist, " add all the songs");
+            //LogHelper.i(TAG, "Artist ", artist, " add all the songs");
             for (MediaMetadataCompat metadata : getMusicsByArtist(artist)) {
                 mediaItems.add(createMediaItem(metadata, MediaMetadataCompat.METADATA_KEY_ARTIST, MEDIA_ID_MUSICS_BY_ARTIST));
             }
         } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_ALBUM)) {
             String album = MediaIDHelper.getHierarchy(mediaId)[1];
-            LogHelper.i(TAG, "Album ", album, " add all the songs");
+            //LogHelper.i(TAG, "Album ", album, " add all the songs");
             for (MediaMetadataCompat metadata : getMusicsByAlbum(album)) {
                 mediaItems.add(createMediaItem(metadata, MediaMetadataCompat.METADATA_KEY_ALBUM, MEDIA_ID_MUSICS_BY_ALBUM));
             }
