@@ -39,6 +39,8 @@ public class PlaybackManager implements Playback.Callback {
     private static final String TAG = LogHelper.makeLogTag(PlaybackManager.class);
     // Action to thumbs up a media item
     private static final String CUSTOM_ACTION_THUMBS_UP = "com.example.android.uamp.THUMBS_UP";
+    public static final String CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE = "uk.me.asbridge.uamp.ADD_MUSIC_TO_QUEUE";
+    public static final String CUSTOM_EXTRA_MEDIA_ID = "uk.me.asbridge.uamp.CUSTOM_EXTRA_MEDIA_ID";
 
     private MusicProvider mMusicProvider;
     private QueueManager mQueueManager;
@@ -301,7 +303,7 @@ public class PlaybackManager implements Playback.Callback {
             LogHelper.i(TAG, "playFromMediaId mediaId:", mediaId, "  extras=", extras);
             mQueueManager.setQueueFromMusic(mediaId);
             // If we call handlePlayRequest here, then we start playing after setting the queue
-            handlePlayRequest();// DISABLED
+            handlePlayRequest();
         }
 
         @Override
@@ -355,11 +357,11 @@ public class PlaybackManager implements Playback.Callback {
                 // playback state needs to be updated because the "Favorite" icon on the
                 // custom action will change to reflect the new favorite state.
                 updatePlaybackState(null);
-            } else if (action.equals("newq")) {
+            } else if (CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE.equals(action)) {
                 // New custom action to set the queue, without starting to play any media
-                String mediaId = extras.getString("mediaID");
-                LogHelper.i(TAG, "onCustomAction: NEWQ, medaiId =",mediaId);
-                mQueueManager.setQueueFromMusic(mediaId);
+                String mediaId = extras.getString(CUSTOM_EXTRA_MEDIA_ID);
+                LogHelper.i(TAG, "onCustomAction: ADD_MUSIC_TO_QUEUE, medaiId =",mediaId);
+                mQueueManager.addMusicToQueue(mediaId);
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
             }

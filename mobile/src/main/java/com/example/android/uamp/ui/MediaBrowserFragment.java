@@ -21,7 +21,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.ColorStateList;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -29,7 +28,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -328,156 +326,24 @@ public class MediaBrowserFragment extends Fragment {
     // An adapter for showing the list of browsed MediaItem's
     private static class BrowseAdapter extends ArrayAdapter<MediaBrowserCompat.MediaItem> {
 
-        private static ColorStateList sColorStatePlaying;
-        private static ColorStateList sColorStateNotPlaying;
-        public static final int STATE_INVALID = -1;
-        public static final int STATE_NONE = 0;
-        public static final int STATE_PLAYABLE = 1;
-        public static final int STATE_PAUSED = 2;
-        public static final int STATE_PLAYING = 3;
-
         public BrowseAdapter(Activity context) {
             super(context, R.layout.media_list_item_with_plus, new ArrayList<MediaBrowserCompat.MediaItem>());
         }
 
+        /**
+         * This is the important call of the adapter which returns the view for the item
+         * All calls from this are just 'helpers'
+         * @param position
+         * @param convertView
+         * @param parent
+         * @return
+         */
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             // LogHelper.i(TAG, "BrowseAdapter get view position ", position, " out of ", getCount());
             MediaBrowserCompat.MediaItem item = getItem(position);
-            View vi = /*MediaItemViewHolder.*/setupListView((Activity) getContext(), convertView, parent, item, position);
+            View vi = MediaItemViewHolder.getListItemViewView((Activity) getContext(), convertView, parent, item, position);
             return vi;
-        }
-
-        // TODO: the following method(s) is copied from  MediaItemViewHolder.setupListView. Fefactor
-        private View setupListView(Activity activity, View convertView, final ViewGroup parent, MediaBrowserCompat.MediaItem item, final int position) {
-            if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
-                initializeColorStateLists(activity);
-            }
-
-            MediaItemViewHolder holder;
-
-            Integer cachedState = STATE_INVALID;
-
-            if (convertView == null) {
-                convertView = LayoutInflater.from(activity)
-                        .inflate(R.layout.media_list_item_with_plus, parent, false);
-                holder = new MediaItemViewHolder();
-                holder.mPlayImageView = (ImageView) convertView.findViewById(R.id.play_eq);
-                holder.mAddImageView = (ImageView) convertView.findViewById(R.id.plus_eq);
-                holder.mTitleView = (TextView) convertView.findViewById(R.id.title);
-                holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description);
-                convertView.setTag(holder);
-            } else {
-                holder = (MediaItemViewHolder) convertView.getTag();
-                cachedState = (Integer) convertView.getTag(R.id.tag_mediaitem_state_cache);
-            }
-
-            MediaDescriptionCompat description = item.getDescription();
-            holder.mTitleView.setText(description.getTitle());
-            holder.mDescriptionView.setText(description.getSubtitle());
-
-            String mediaID = item.getMediaId();
-            // TODO: Tidy up this test (use MediaIdHelper)
-            if (mediaID.indexOf('/') < 0 && mediaID.indexOf('|') < 0) {
-                holder.mAddImageView.setVisibility(View.GONE);
-            } else {
-                holder.mAddImageView.setVisibility(View.VISIBLE);
-                // This onclick listener for the button just passes the click to be handled by the standard list
-                // list item on click code (which will use the 'view' to determine if a button was clicked
-                // of if the click came directly from the list background
-                // requires android:descendantFocusability="blocksDescendants" in the list item layout,
-                // otherwise the button takes all the focus and we can't click on the list item background
-                holder.mAddImageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        ((ListView) parent).performItemClick(v, position, 0); // Let the event be handled in onItemClick()
-                    }
-                });
-
-            }
-
-            // If the state of convertView is different, we need to adapt the view to the
-            // new state.
-            int state = getMediaItemState(activity, item);
-            if (cachedState == null || cachedState != state) {
-                Drawable drawable = getDrawableByState(activity, state);
-                if (drawable != null) {
-                    holder.mPlayImageView.setImageDrawable(drawable);
-                    holder.mPlayImageView.setVisibility(View.VISIBLE);
-                } else {
-                    holder.mPlayImageView.setVisibility(View.GONE);
-                }
-                convertView.setTag(R.id.tag_mediaitem_state_cache, state);
-            }
-
-            return convertView;
-        }
-
-        private static void initializeColorStateLists(Context ctx) {
-            sColorStateNotPlaying = ColorStateList.valueOf(ctx.getResources().getColor(
-                    R.color.media_item_icon_not_playing));
-            sColorStatePlaying = ColorStateList.valueOf(ctx.getResources().getColor(
-                    R.color.media_item_icon_playing));
-        }
-
-        public static Drawable getDrawableByState(Context context, int state) {
-            if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
-                initializeColorStateLists(context);
-            }
-
-            switch (state) {
-                case STATE_PLAYABLE:
-                    Drawable pauseDrawable = ContextCompat.getDrawable(context,
-                            R.drawable.ic_play_arrow_black_36dp);
-                    DrawableCompat.setTintList(pauseDrawable, sColorStateNotPlaying);
-                    return pauseDrawable;
-                case STATE_PLAYING:
-                    AnimationDrawable animation = (AnimationDrawable)
-                            ContextCompat.getDrawable(context, R.drawable.ic_equalizer_white_36dp);
-                    DrawableCompat.setTintList(animation, sColorStatePlaying);
-                    animation.start();
-                    return animation;
-                case STATE_PAUSED:
-                    Drawable playDrawable = ContextCompat.getDrawable(context,
-                            R.drawable.ic_equalizer1_white_36dp);
-                    DrawableCompat.setTintList(playDrawable, sColorStatePlaying);
-                    return playDrawable;
-                default:
-                    return null;
-            }
-        }
-
-        public static int getMediaItemState(Context context, MediaBrowserCompat.MediaItem mediaItem) {
-            int state = STATE_NONE;
-            // Set state to playable first, then override to playing or paused state if needed
-            if (mediaItem.isPlayable()) {
-                state = STATE_PLAYABLE;
-                if (MediaIDHelper.isMediaItemPlaying(context, mediaItem)) {
-                    state = getStateFromController(context);
-                }
-            }
-
-            return state;
-        }
-
-        public static int getStateFromController(Context context) {
-            MediaControllerCompat controller = ((FragmentActivity) context)
-                    .getSupportMediaController();
-            PlaybackStateCompat pbState = controller.getPlaybackState();
-            if (pbState == null ||
-                    pbState.getState() == PlaybackStateCompat.STATE_ERROR) {
-                return MediaItemViewHolder.STATE_NONE;
-            } else if (pbState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-                return MediaItemViewHolder.STATE_PLAYING;
-            } else {
-                return MediaItemViewHolder.STATE_PAUSED;
-            }
-        }
-
-        @Override
-        public void add(MediaBrowserCompat.MediaItem item) {
-            super.add(item);
-            // LogHelper.i(TAG,  "BrowseAdapter added item "+item.getDescription().getTitle(), " adapter size = ", getCount() );
         }
     }
 

@@ -39,6 +39,61 @@ public class QueueHelper {
 
     private static final String TAG = LogHelper.makeLogTag(QueueHelper.class);
 
+    /** My method, similar to the standard 'getPlayingQueue'
+     * Gets track(s) based on the supplied media id.
+     * This is not the integer media id of a song, but the 'Path' of the item
+     * Could be a specific song (e.g. __ARTIST__/Desmond Dekker|51)
+     * -> returns just a single track with ID 51 (this is different to the exampel method)
+     * Or a category (e.g. passing __ARTIST__/Prince
+     *  -> will return a list with all songs by Prince
+     * @param mediaId
+     * @param musicProvider
+     * @return
+     */
+    public static List<MediaSessionCompat.QueueItem> getTracksFromMediaID(String mediaId,
+                                                                     MusicProvider musicProvider) {
+        LogHelper.i(TAG, "getPlayingQueue for mediaId ", mediaId);
+        // extract the browsing hierarchy from the media ID:
+
+        String[] hierarchy = MediaIDHelper.getHierarchy(mediaId);
+        String categoryType = hierarchy[0]; // ARTIST, ALBUM ...
+        String categoryValue = hierarchy[1]; // VALUE for the Category (e.g. Madonna, Prince)
+        if (MediaIDHelper.isTrack(mediaId)) {
+            // we have a specific track. Just add this track
+            String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
+            MediaMetadataCompat track = musicProvider.getMusic(musicId);
+            return convertToQueue(track, categoryType, categoryValue);
+        }
+
+
+        if (hierarchy.length != 2) {
+            LogHelper.e(TAG, "Could not build a playing queue for this mediaId: ", mediaId);
+            return null;
+        }
+
+        Iterable<MediaMetadataCompat> tracks = null;
+
+        LogHelper.i(TAG, "Creating playing queue for ", categoryType, ",  ", categoryValue);
+
+        // This sample only supports genre and by_search category types.
+        if (categoryType.equals(MEDIA_ID_MUSICS_BY_GENRE)) {
+            tracks = musicProvider.getMusicsByGenre(categoryValue);
+        } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_ALBUM)) {
+            tracks = musicProvider.getMusicsByAlbum(categoryValue);
+        } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_ARTIST)) {
+            tracks = musicProvider.getMusicsByArtist(categoryValue);
+        } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_SEARCH)) {
+            tracks = musicProvider.searchMusicBySongTitle(categoryValue);
+        }
+
+        if (tracks == null) {
+            LogHelper.e(TAG, "Unrecognized category type: ", categoryType, " for media ", mediaId);
+            return null;
+        }
+
+        return convertToQueue(tracks, categoryType, categoryValue);
+    }
+
     /**
      * Gets a playing queue based on the supplied media id
      * This is not the integer media id of a song, but the browsable 'Path'
@@ -148,9 +203,32 @@ public class QueueHelper {
         return -1;
     }
 
+
+    private static List<MediaSessionCompat.QueueItem> convertToQueue(
+            MediaMetadataCompat track, String... categories) {
+        List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
+        // TODO : THIS COUNT IS PROBABLY QRONG IN OUR IMPLEMENTATION (NOT UNIQUE)
+        int count = 0;
+
+        String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
+                track.getDescription().getMediaId(), categories);
+
+        MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
+                .build();
+
+        // We don't expect queues to change after created, so we use the item index as the
+        // queueId. Any other number unique in the queue would work.
+        MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
+                trackCopy.getDescription(), count++);
+        queue.add(item);
+        return queue;
+    }
+
     private static List<MediaSessionCompat.QueueItem> convertToQueue(
             Iterable<MediaMetadataCompat> tracks, String... categories) {
         List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
+        // TODO : THIS COUNT IS PROBABLY QRONG IN OUR IMPLEMENTATION (NOT UNIQUE)
         int count = 0;
         for (MediaMetadataCompat track : tracks) {
 

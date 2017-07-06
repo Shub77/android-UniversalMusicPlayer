@@ -150,7 +150,6 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
         initializeToolbar();
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("");
         }
 
 //        mBackgroundImage = (ImageView) findViewById(R.id.background_image);

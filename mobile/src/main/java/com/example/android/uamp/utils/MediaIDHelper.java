@@ -76,7 +76,7 @@ public class MediaIDHelper {
         return sb.toString();
     }
 
-    private static boolean isValidCategory(String category) {
+    public static boolean isValidCategory(String category) {
         return category == null ||
                 (
                     category.indexOf(CATEGORY_SEPARATOR) < 0 &&
@@ -123,6 +123,16 @@ public class MediaIDHelper {
             return hierarchy[1];
         }
         return null;
+    }
+
+    /**
+     * Test if the specified media id is for a track (not a category)
+     * @param mediaID
+     * @return true if the media id relates to a specific track
+     */
+    public static boolean isTrack(@NonNull String mediaID) {
+        // If the item is a track then it wil have the form __CATEGORYTYPE__/categoryvalue|trackId
+        return mediaID.indexOf(LEAF_SEPARATOR) >= 0;
     }
 
     public static boolean isBrowseable(@NonNull String mediaID) {

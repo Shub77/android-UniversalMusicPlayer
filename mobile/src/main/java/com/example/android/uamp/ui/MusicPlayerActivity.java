@@ -33,6 +33,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.example.android.uamp.R;
+import com.example.android.uamp.playback.Playback;
+import com.example.android.uamp.playback.PlaybackManager;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.List;
@@ -99,8 +101,8 @@ public class MusicPlayerActivity extends BaseActivity
     public void onAddMediaToQueue(MediaBrowserCompat.MediaItem item) {
         MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
         Bundle bundle = new Bundle();
-        bundle.putString("mediaID", item.getMediaId());
-        controls.sendCustomAction("newq",bundle);
+        bundle.putString(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, item.getMediaId());
+        controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE,bundle);
     }
 
 
@@ -119,7 +121,7 @@ public class MusicPlayerActivity extends BaseActivity
             // My code using new custom action
             MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
             Bundle bundle = new Bundle();
-            bundle.putString("mediaID", item.getMediaId());
+            bundle.putString(CUSTOM_EXTRA_MEDIA_ID, item.getMediaId());
             controls.sendCustomAction("newq",bundle);
             This was the original code.
             play from media ID sets the queue and ALSO starts playing.

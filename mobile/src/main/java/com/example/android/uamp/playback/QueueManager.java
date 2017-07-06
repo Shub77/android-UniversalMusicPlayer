@@ -213,27 +213,44 @@ public class QueueManager {
         {
             List<MediaSessionCompat.QueueItem> newTracks =  QueueHelper.getRandomQueue(mMusicProvider, RANDOM_QUEUE_SIZE - currentQueueSize);
             // Add the new songs
-            addToCurrentQueue("Random", newTracks, null);
+            mPlayingQueue.addAll(newTracks);
         }
         mListener.onQueueUpdated("title", mPlayingQueue);
     }
 
+    public void setQueueFromMusic(String mediaId) {
+        LogHelper.d(TAG, "setQueueFromMusic", mediaId);
+
+        // The mediaId used here is not the unique musicId. This one comes from the
+        // MediaBrowser, and is actually a "hierarchy-aware mediaID": a concatenation of
+        // the hierarchy in MediaBrowser and the actual unique musicID. This is necessary
+        // so we can build the correct playing queue, based on where the track was
+        // selected from.
+        boolean canReuseQueue = false;
+        if (isSameBrowsingCategory(mediaId)) {
+            canReuseQueue = setCurrentQueueItem(mediaId);
+        }
+        if (!canReuseQueue) {
+            String queueTitle = mResources.getString(R.string.browse_musics_by_genre_subtitle,
+                    MediaIDHelper.extractBrowseCategoryValueFromMediaID(mediaId));
+            setCurrentQueue(queueTitle,
+                    QueueHelper.getPlayingQueue(mediaId, mMusicProvider), mediaId);
+        }
+        updateMetadata();
+    }
+
     /**
-     * My own implementation of the example function.
+     * My own implementation of the example based on setQueueFromMusic.
      * Takes an input media ID from the 'music browser' and adds songs to the queue
      * (The standard implementation replaces the queue)
      * @param mediaId
      */
-    public void setQueueFromMusic(String mediaId) {
+    public void addMusicToQueue(String mediaId) {
         LogHelper.i(TAG, "setQueueFromMusic id=", mediaId);
-        String queueTitle = mResources.getString(R.string.browse_musics_by_genre_subtitle,
-                MediaIDHelper.extractBrowseCategoryValueFromMediaID(mediaId));
-
         // get all the new tracks to add. Will add all tracks in the same category as the chosen track
-        List<MediaSessionCompat.QueueItem> newTracks = QueueHelper.getPlayingQueue(mediaId, mMusicProvider);
+        List<MediaSessionCompat.QueueItem> newTracks = QueueHelper.getTracksFromMediaID(mediaId, mMusicProvider);
         LogHelper.i(TAG, newTracks.size(), " new tracks");
-
-        addToCurrentQueue(queueTitle, newTracks, mediaId);
+        mPlayingQueue.addAll(newTracks);
 
         // here we are setting the currently playing track as the one that was chosen.
         // we just don't really need to do this. Adding things to the queue doesn't really change what is playing
@@ -325,17 +342,18 @@ public class QueueManager {
      * Takes an input from the 'music browser'
      * @param title
      * @param newQueue
-     * @param initialMediaId
      */
-    protected void addToCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue,
-                                   String initialMediaId) {
+    protected void addToCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
         int oldqueuesize = mPlayingQueue.size();
         mPlayingQueue.addAll(newQueue);
-        LogHelper.i(TAG, "addToCurrentQueue: adding ",newQueue.size(), " new items to existing queue (",oldqueuesize,")items. New queue has ", mPlayingQueue.size() , "items. Initial media id = ", initialMediaId);
+        LogHelper.i(TAG, "addToCurrentQueue: adding ",newQueue.size(), " new items to existing queue (",oldqueuesize,")items. New queue has ", mPlayingQueue.size());
+        /*
         int index = 0;
+
         if (initialMediaId != null) {
             index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, initialMediaId);
         }
+        */
         // TEST looks like we don't need this here. It is called from elsewhere ...!!!! uncomnet this updateMetadata(); // TEST instead of next 2 lines TEST
         // mListener.onQueueUpdated(title, mPlayingQueue);
         //mListener.onNowPlayingChanged(mNowPlaying); // we need to call this so the player gets created.
