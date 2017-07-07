@@ -260,6 +260,7 @@ public class QueueHelper {
      */
     public static List<MediaSessionCompat.QueueItem> getRandomQueue(MusicProvider musicProvider, int numSongs) {
         List<MediaMetadataCompat> result = new ArrayList<>(numSongs);
+        /*
         Iterable<MediaMetadataCompat> shuffled = musicProvider.getShuffledMusic();
         for (MediaMetadataCompat metadata: shuffled) {
             if (result.size() == numSongs) {
@@ -267,6 +268,13 @@ public class QueueHelper {
             }
             result.add(metadata);
         }
+        */
+        MediaMetadataCompat randomlyCohosenTrack;
+        for (int i = 0 ; i < numSongs ; i++) {
+            randomlyCohosenTrack = musicProvider.getRandomSongFromAllSongsOnDevice();
+            result.add(randomlyCohosenTrack);
+        }
+
         LogHelper.i(TAG, "getRandomQueue: result.size=", result.size());
 
         return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, "random");

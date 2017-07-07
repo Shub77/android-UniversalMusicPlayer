@@ -21,6 +21,9 @@ import java.util.Iterator;
  * Utility class to get a list of MusicTracks from the phone media
  * interface MusicProviderSource means that it must provide an iterator
  */
+// WE DON'T REALLY USE THIS ANY MORE
+// (IT HAS A REFERENCE FROM THE mUSICpROVIDEReXAMPLE, BUT THAT ISN'T USED
+// INSTEAD OUR MUSIC PROVIDER ACCESSES THE DB DIRECTLY
 public class StorageMusicSource implements MusicProviderSource  {
 
     private static final String TAG = LogHelper.makeLogTag(StorageMusicSource.class);

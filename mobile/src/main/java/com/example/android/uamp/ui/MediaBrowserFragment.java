@@ -114,7 +114,7 @@ public class MediaBrowserFragment extends Fragment {
             public void onChildrenLoaded(@NonNull String parentId,
                                          @NonNull List<MediaBrowserCompat.MediaItem> children) {
                 try {
-                    //LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
+                    LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
                     checkForUserVisibleErrors(children.isEmpty());
                     mBrowserAdapter.clear();
                     for (MediaBrowserCompat.MediaItem item : children) {
