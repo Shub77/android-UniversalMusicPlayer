@@ -20,6 +20,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import com.example.android.uamp.AlbumArtCache;
@@ -29,10 +30,7 @@ import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Simple data provider for queues. Keeps track of a current queue and a current index in the
@@ -238,6 +236,45 @@ public class QueueManager {
         }
         updateMetadata();
     }
+
+    /**
+     * Added by me to allow removal of tracks from the playqueue
+     * Relies on the matching media id in the description
+     * Will remove ALL tracks from the queue which have matching media IDs
+     * i.e. clicking 'Blue Suede Shoes' removes all instances of blue suede shoes
+     * - Actually not quite. If one was added by artist, and another by album (or randomly chosen)
+     * - then only the complete match would be removed, so this could be confusing behaviour
+     * Could be improved to use some unique queue id. Or the media URI
+     * Here we have to use part of the MediaDescriptionCompat because we are using the standard callback
+     * MediaSessionCallback.onRemoveQueueItem(MediaDescriptionCompat description)
+     * (The standard implementation replaces the queue)
+     * @param description
+     */
+    public void removeQueueItemByDescription(MediaDescriptionCompat description) {
+        String mediaID = description.getMediaId();
+        String itemMediaID;
+        LogHelper.i(TAG, "removeQueueItemByDescription ", mediaID);
+        Iterator<MediaSessionCompat.QueueItem> it = mPlayingQueue.iterator();
+        // safe removal from list (don't use for)
+        boolean hasChanged = false;
+        while (it.hasNext()) {
+            MediaSessionCompat.QueueItem item = it.next();
+            MediaDescriptionCompat itemDescription = item.getDescription();
+            itemMediaID = itemDescription.getMediaId();
+            LogHelper.i(TAG, "itemMediaID", itemMediaID);
+            if (itemMediaID.equals(mediaID)) {
+                LogHelper.i(TAG, "found item");
+                hasChanged = true;
+                it.remove();
+            }
+        }
+        if (hasChanged) {
+            // if the new queue has less than N items then fill it randomly
+            fillRandomQueue();
+            mListener.onQueueUpdated("title", mPlayingQueue);
+        }
+    }
+
 
     /**
      * My own implementation of the example based on setQueueFromMusic.

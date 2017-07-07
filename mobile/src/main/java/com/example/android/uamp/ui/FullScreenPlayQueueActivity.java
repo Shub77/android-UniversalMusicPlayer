@@ -41,6 +41,7 @@ import android.widget.*;
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
+import com.example.android.uamp.model.PlayQueueAdapter;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.ArrayList;
@@ -56,8 +57,10 @@ import static android.view.View.VISIBLE;
 /**
  * A full screen player that shows the current playing music with a list of the current play queue
  * The activity also has controls to seek/pause/play the audio.
+ * The activity implements PlayQueueAdapter.PlayQueueActionsListener to receive callbacks
+ * from playqueue item buttons (e.g. remove item from playqueue)
  */
-public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
+public class FullScreenPlayQueueActivity extends ActionBarCastActivity implements PlayQueueAdapter.PlayQueueActionsListener {
     private static final String TAG = LogHelper.makeLogTag(FullScreenPlayQueueActivity.class);
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
     private static final long PROGRESS_UPDATE_INITIAL_INTERVAL = 100;
@@ -96,6 +99,8 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
     private PlaybackStateCompat mLastPlaybackState;
 
     private PlayQueueAdapter playQueueAdapter;
+
+    private  MediaControllerCompat mediaController;
 
     private final MediaControllerCompat.Callback mCallback = new MediaControllerCompat.Callback() {
         @Override
@@ -171,6 +176,8 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
         playQueueAdapter = new PlayQueueAdapter(this);
         mPlayqueueList.setAdapter(playQueueAdapter);
 
+
+
         mSkipNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -244,7 +251,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
 
     private void connectToSession(MediaSessionCompat.Token token) throws RemoteException {
         LogHelper.i(TAG, "connectToSession");
-        MediaControllerCompat mediaController = new MediaControllerCompat(
+        /* moved to class MediaControllerCompat */ mediaController = new MediaControllerCompat(
                 FullScreenPlayQueueActivity.this, token);
 
         // get the queue and show in the list
@@ -480,46 +487,20 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity {
         mSeekbar.setProgress((int) currentPosition);
     }
 
-    // An adapter for showing the list of playque items MediaItem's
-    private static class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
-
-        private Context activity;
-        private LayoutInflater songInf;
-
-        private static class ViewHolder{
-            public TextView title;
-            public TextView description;
-            public View view;
-        }
-
-        public PlayQueueAdapter(Activity context) {
-            super(context, R.layout.media_list_item, new ArrayList<MediaSessionCompat.QueueItem>());
-            activity = context;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View vi = convertView;
-            ViewHolder holder;
-            songInf= LayoutInflater.from(activity);
-            if(convertView==null) {
-                vi = songInf.inflate(R.layout.media_list_item, null);
-
-                holder = new ViewHolder();
-                holder.view = vi;
-                holder.title = (TextView) vi.findViewById(R.id.title);
-                holder.description =(TextView)vi.findViewById(R.id.description);
-                vi.setTag( holder );
-            } else {
-                holder=(ViewHolder)vi.getTag();
-            }
-
-            MediaSessionCompat.QueueItem item = getItem(position);
-
-            holder.title.setText(item.getDescription().getTitle());
-            holder.description.setText(item.getDescription().getDescription());
-            return vi;
-        }
+    /**
+     * Implements method from PlayQueueAdapter.PlayQueueActionsListener
+     * Called by the PlayQueueAdapter when remove button is clicked on an item
+     * @param position
+     * @param description
+     */
+    @Override
+    public void onRemoveSongClicked(int position, MediaDescriptionCompat description) {
+        LogHelper.i(TAG, "onRemoveSongClicked ",  position, "description =", description);
+        // this will cause the media session to call MediaSessionCallback.onRemoveQueueItem in PlaybackManager
+        mediaController.removeQueueItem(description);
     }
+
+
+
 
 }

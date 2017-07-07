@@ -21,6 +21,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
@@ -277,6 +278,17 @@ public class PlaybackManager implements Playback.Callback {
 
 
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
+
+        /**
+         * This is called by the session after the media controller removeQueueItem method has been called
+         * @param description
+         */
+        @Override
+        public void onRemoveQueueItem(MediaDescriptionCompat description) {
+            LogHelper.i(TAG, "onRemoveQueueItem ", description);
+            mQueueManager.removeQueueItemByDescription(description);
+        }
+
         @Override
         public void onPlay() {
             LogHelper.i(TAG, "onPlay");
