@@ -916,8 +916,7 @@ public class MusicProvider {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                 .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_ARTIST, artist.id))
                 .setTitle(artist.name)
-                .setSubtitle("Songs by artist " + artist.id)
-//                        resources.getString(R.string.browse_musics_by_genre_subtitle, genre))
+                .setSubtitle(resources.getString(R.string.browse_musics_by_artist_subtitle, artist.name))
                 .build();
         return new MediaBrowserCompat.MediaItem(description,
                 MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
@@ -929,8 +928,7 @@ public class MusicProvider {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                 .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_ALBUM, album.id))
                 .setTitle(album.name)
-                .setSubtitle("By " + album.artist)
-//                        resources.getString(R.string.browse_musics_by_genre_subtitle, genre))
+                .setSubtitle(resources.getString(R.string.browse_musics_by_album_subtitle, album.artist))
                 .build();
         return new MediaBrowserCompat.MediaItem(description,
                 MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
