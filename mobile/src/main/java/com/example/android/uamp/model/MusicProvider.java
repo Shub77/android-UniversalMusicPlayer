@@ -84,6 +84,49 @@ public class MusicProvider {
 
     }
 
+    //TODO: this is actually ALBUMS
+    public Iterable<Genre> getGenreObjects() {
+
+        if (mCurrentState != State.INITIALIZED) {
+            return Collections.emptyList();
+        }
+
+        // original imlementation : return mMusicListByGenre.keySet();
+        final Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
+        final String _ID = MediaStore.Audio.Albums._ID;
+        final String NUM_ITEMS_COLUMN = MediaStore.Audio.Albums.NUMBER_OF_SONGS;
+
+        final String NAME_COLUMN = MediaStore.Audio.Albums.ALBUM;
+
+        final String[] cursorColumns={_ID, NUM_ITEMS_COLUMN, NAME_COLUMN};
+        final String orderby = NAME_COLUMN + " COLLATE NOCASE";
+
+        final String where = null;
+        ContentResolver cr = context.getContentResolver();
+        Cursor genresCursor =  cr.query(uri, cursorColumns, where, null, orderby);
+        ArrayList<Genre> genres = new ArrayList<>();
+        if (genresCursor != null) {
+            Toast.makeText(context, "genres size=" + genresCursor.getCount(), Toast.LENGTH_LONG).show();
+        }
+        Genre genre;
+        try {
+            while (genresCursor.moveToNext()) {
+                String id = genresCursor.getString(0);
+                String numItems= genresCursor.getString(1);
+                String name = genresCursor.getString(2);
+                genre = new Genre();
+                genre.id = id;
+                genre.name = name;
+                genres.add(genre);
+            }
+        } finally {
+            genresCursor.close();
+        }
+
+        return genres;
+
+    }
+
     /**
      * Get an iterator over the list of genres
      *
@@ -114,15 +157,13 @@ public class MusicProvider {
             genres.add("Cursorisnull");
         } else {
             Toast.makeText(context, "genres size=" + genresCursor.getCount(), Toast.LENGTH_LONG).show();
-            genres.add("CoolStuff");
         }
-        int count = 0;
+
         try {
-            while (genresCursor.moveToNext() && count++ < 3) {
+            while (genresCursor.moveToNext()) {
                 String id = genresCursor.getString(0);
                 String numItems= genresCursor.getString(1);
                 String name = genresCursor.getString(2);
-                Toast.makeText(context, "genre =" + name, Toast.LENGTH_SHORT).show();
                 genres.add(name);
             }
         } finally {
@@ -138,33 +179,34 @@ public class MusicProvider {
      *
      * @return artists
      */
-    public Iterable<String> getArtists() {
+    public Iterable<Artist> getArtistObjects() {
         if (mCurrentState != State.INITIALIZED) {
             return Collections.emptyList();
         }
         //return mMusicListByArtist.keySet();
-        final Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
+        final Uri uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI;
         final String _ID = MediaStore.Audio.Artists._ID;
 
         final String NAME_COLUMN = MediaStore.Audio.Artists.ARTIST;
 
-        final String[] cursorColumns={_ID, NAME_COLUMN};
+        final String[] cursorColumns={_ID, NAME_COLUMN };
         final String orderby = NAME_COLUMN + " COLLATE NOCASE";
 
         final String where = null;
         ContentResolver cr = context.getContentResolver();
-        Cursor albumsCursor =  cr.query(uri, cursorColumns, where, null, orderby);
+        Cursor artistsCursor =  cr.query(uri, cursorColumns, where, null, orderby);
 
-        ArrayList<String> artists = new ArrayList<>();
-
+        ArrayList<Artist> artists = new ArrayList<>();
+        Artist artist;
         try {
-            while (albumsCursor.moveToNext()) {
-                String id = albumsCursor.getString(0);
-                String name = albumsCursor.getString(1);
-                artists.add(name);
+            while (artistsCursor.moveToNext()) {
+                String id = artistsCursor.getString(0);
+                String name = artistsCursor.getString(1);
+                artist = new Artist(id, name);
+                artists.add(artist);
             }
         } finally {
-            albumsCursor.close();
+            artistsCursor.close();
         }
 
         return artists;
@@ -176,7 +218,7 @@ public class MusicProvider {
      *
      * @return albums
      */
-    public Iterable<String> getAlbums() {
+    public Iterable<Album> getAlbumObjects() {
         if (mCurrentState != State.INITIALIZED) {
             return Collections.emptyList();
         }
@@ -185,27 +227,29 @@ public class MusicProvider {
         final Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
         final String _ID = MediaStore.Audio.Albums._ID;
         final String NUM_ITEMS_COLUMN = MediaStore.Audio.Albums.NUMBER_OF_SONGS;
-
+        final String ARTIST_COLUMN = MediaStore.Audio.Albums.ARTIST;
         final String NAME_COLUMN = MediaStore.Audio.Albums.ALBUM;
 
-        final String[] cursorColumns={_ID, NUM_ITEMS_COLUMN, NAME_COLUMN};
+        final String[] cursorColumns={_ID, NUM_ITEMS_COLUMN, NAME_COLUMN, ARTIST_COLUMN};
         final String orderby = NAME_COLUMN + " COLLATE NOCASE";
 
         final String where = null;
         ContentResolver cr = context.getContentResolver();
-        Cursor artistsCursor =  cr.query(uri, cursorColumns, where, null, orderby);
+        Cursor albumsCursor =  cr.query(uri, cursorColumns, where, null, orderby);
 
-        ArrayList<String> albums = new ArrayList<>();
-
+        ArrayList<Album> albums = new ArrayList<>();
+        Album album;
         try {
-            while (artistsCursor.moveToNext()) {
-                String id = artistsCursor.getString(0);
-                String numItems= artistsCursor.getString(1);
-                String name = artistsCursor.getString(2);
-                albums.add(name);
+            while (albumsCursor.moveToNext()) {
+                album = new Album();
+                album.id = albumsCursor.getString(0);
+                String numItems= albumsCursor.getString(1);
+                album.name = albumsCursor.getString(2);
+                album.artist = albumsCursor.getString(3);
+                albums.add(album);
             }
         } finally {
-            artistsCursor.close();
+            albumsCursor.close();
         }
 
         return albums;
@@ -261,7 +305,59 @@ public class MusicProvider {
         //LogHelper.i(TAG, "shuffled size = ", shuffled.size());
         return shuffled;
     }
+    /**
+     * Get music tracks of the given genre
+     *
+     */
+    // TODO: this is actually albums
+    public Iterable<MediaMetadataCompat> getMusicsByGenreById(String id) {
+        if (mCurrentState != State.INITIALIZED /*|| !mMusicListByGenre.containsKey(genre)*/) {
+            return Collections.emptyList();
+        }
+        //return mMusicListByGenre.get(genre);
 
+        final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+        final String _ID = MediaStore.Audio.Media._ID;
+        final String TITLE = MediaStore.Audio.Media.TITLE;
+        final String ARTIST = MediaStore.Audio.Albums.ARTIST;
+        final String ALBUM = MediaStore.Audio.Albums.ALBUM;
+        final String ALBUM_ID = MediaStore.Audio.Albums.ALBUM_ID;
+        final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
+        final String TRACK_NO = MediaStore.Audio.Media.TRACK;
+
+        final String[] cursorColumns={_ID, TITLE, ARTIST, ALBUM, ALBUM_ID, DURATION_IN_MS, TRACK_NO};
+        final String orderby = TITLE + " COLLATE NOCASE";
+
+        String selection = null;
+        String[] selectionArgs = null;
+        if (id != null && !id.isEmpty()) {
+            selection = MediaStore.Audio.Media.ALBUM_ID + "=?";
+            selectionArgs = new String [1];
+            selectionArgs[0] = id;
+        }
+        ContentResolver cr = context.getContentResolver();
+        Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
+        ArrayList<MediaMetadataCompat> tracks = new ArrayList<>();
+
+        try {
+            while (tracksCursor.moveToNext()) {
+                String trackid = tracksCursor.getString(0);
+                String title= tracksCursor.getString(1);
+                String artist = tracksCursor.getString(2);
+                String album = tracksCursor.getString(3);
+                String albumId = tracksCursor.getString(4);
+                Long durationInMs = tracksCursor.getLong(5);
+                Long trackNo = tracksCursor.getLong(6);
+
+                tracks.add(buildMetadataFromProperties(trackid,title,artist, album, durationInMs, trackNo));
+            }
+        } finally {
+            tracksCursor.close();
+        }
+
+        return tracks;
+    }
     /**
      * Get music tracks of the given genre
      *
@@ -316,9 +412,10 @@ public class MusicProvider {
 
     /**
      * Get music tracks of the given artist
+     * By the supplied artist ID, not the artist name
      *
      */
-    public Iterable<MediaMetadataCompat> getMusicsByArtist(String artistName) {
+    public Iterable<MediaMetadataCompat> getMusicsByArtist(String artistId) {
         if (mCurrentState != State.INITIALIZED /*|| !mMusicListByArtist.containsKey(artist)*/) {
             return Collections.emptyList();
         }
@@ -328,20 +425,21 @@ public class MusicProvider {
 
         final String _ID = MediaStore.Audio.Media._ID;
         final String TITLE = MediaStore.Audio.Media.TITLE;
-        final String ARTIST = MediaStore.Audio.Albums.ARTIST;
+        final String ARTIST = MediaStore.Audio.Media.ARTIST;
+        final String ARTIST_ID = MediaStore.Audio.Media.ARTIST_ID;
         final String ALBUM = MediaStore.Audio.Albums.ALBUM;
         final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
         final String TRACK_NO = MediaStore.Audio.Media.TRACK;
 
-        final String[] cursorColumns={_ID,TITLE, ARTIST, ALBUM, DURATION_IN_MS, TRACK_NO};
+        final String[] cursorColumns={_ID,TITLE, ARTIST, ARTIST_ID, ALBUM, DURATION_IN_MS, TRACK_NO};
         final String orderby = TITLE + " COLLATE NOCASE";
 
         String selection = null;
         String[] selectionArgs = null;
-        if (artistName != null && !artistName.isEmpty()) {
-            selection = MediaStore.Audio.Media.ARTIST + "=?";
+        if (artistId != null && !artistId.isEmpty()) {
+            selection = MediaStore.Audio.Media.ARTIST_ID + "=?";
             selectionArgs = new String [1];
-            selectionArgs[0] = artistName;
+            selectionArgs[0] = artistId;
         }
         ContentResolver cr = context.getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
@@ -352,10 +450,11 @@ public class MusicProvider {
                 String id = tracksCursor.getString(0);
                 String title= tracksCursor.getString(1);
                 String artist = tracksCursor.getString(2);
-                String album = tracksCursor.getString(3);
-                Long durationInMs = tracksCursor.getLong(4);
-                Long trackNo = tracksCursor.getLong(5);
-
+                String artist_id = tracksCursor.getString(3);
+                String album = tracksCursor.getString(4);
+                Long durationInMs = tracksCursor.getLong(5);
+                Long trackNo = tracksCursor.getLong(6);
+                LogHelper.i(TAG, "Track ", id, " artist id=",artist_id );
                 tracks.add(buildMetadataFromProperties(id,title,artist, album, durationInMs, trackNo));
             }
         } finally {
@@ -390,10 +489,10 @@ public class MusicProvider {
     }
 
     /**
-     * Get music tracks of the given artist
+     * Get music tracks of the given album
      *
      */
-    public Iterable<MediaMetadataCompat> getMusicsByAlbum(String albumName) {
+    public Iterable<MediaMetadataCompat> getMusicsByAlbum(String albumId) {
         if (mCurrentState != State.INITIALIZED /* || !mMusicListByAlbum.containsKey(album)*/) {
             return Collections.emptyList();
         }
@@ -405,6 +504,8 @@ public class MusicProvider {
         final String TITLE = MediaStore.Audio.Media.TITLE;
         final String ARTIST = MediaStore.Audio.Albums.ARTIST;
         final String ALBUM = MediaStore.Audio.Albums.ALBUM;
+        final String ALBUM_ID = MediaStore.Audio.Albums.ALBUM_ID;
+
         final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
         final String TRACK_NO = MediaStore.Audio.Media.TRACK;
 
@@ -413,10 +514,10 @@ public class MusicProvider {
 
         String selection = null;
         String[] selectionArgs = null;
-        if (albumName != null && !albumName.isEmpty()) {
-            selection = MediaStore.Audio.Media.ALBUM + "=?";
+        if (albumId != null && !albumId.isEmpty()) {
+            selection = MediaStore.Audio.Albums.ALBUM_ID + "=?";
             selectionArgs = new String [1];
-            selectionArgs[0] = albumName;
+            selectionArgs[0] = albumId;
         }
         ContentResolver cr = context.getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
@@ -709,23 +810,25 @@ public class MusicProvider {
             mediaItems.add(createBrowsableMediaItemAlbumForRoot(resources));
         } else if (MEDIA_ID_MUSICS_BY_GENRE.equals(mediaId)) {
             //LogHelper.i(TAG, "The Genre item, add all Genres ...");
-            for (String genre : getGenres()) {
-                mediaItems.add(createBrowsableMediaItemForGenre(genre, resources));
+            for (Genre genre : getGenreObjects()) {
+                mediaItems.add(createBrowsableMediaItemForGenreWithId(genre.name, genre.id, resources));
+
             }
         } else if (MEDIA_ID_MUSICS_BY_ARTIST.equals(mediaId)) {
             //LogHelper.i(TAG, "The Genre item, add all Artists ...");
-            for (String artist : getArtists()) {
+            for (Artist artist : getArtistObjects()) {
                 mediaItems.add(createBrowsableMediaItemForArtist(artist, resources));
             }
         } else if (MEDIA_ID_MUSICS_BY_ALBUM.equals(mediaId)) {
             //LogHelper.i(TAG, "The Genre item, add all albums...");
-            for (String album : getAlbums()) {
+            for (Album album : getAlbumObjects()) {
                 mediaItems.add(createBrowsableMediaItemForAlbum(album, resources));
             }
         } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_GENRE)) {
             String genre = MediaIDHelper.getHierarchy(mediaId)[1];
+            Toast.makeText(context, "genre = "+genre, Toast.LENGTH_LONG).show();
             //LogHelper.i(TAG, "Genre ", genre, " add all the songs");
-            for (MediaMetadataCompat metadata : getMusicsByGenre(genre)) {
+            for (MediaMetadataCompat metadata : getMusicsByGenreById(genre)) {
                 mediaItems.add(createMediaItem(metadata, MediaMetadataCompat.METADATA_KEY_GENRE, MEDIA_ID_MUSICS_BY_GENRE));
             }
         } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_ARTIST)) {
@@ -786,7 +889,19 @@ public class MusicProvider {
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemForGenre(String genre,
                                                                           Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, genre))
+                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, "NOTREALTEMPGENRE"/*genre*/))
+                .setTitle(genre)
+                .setSubtitle(resources.getString(
+                        R.string.browse_musics_by_genre_subtitle, genre))
+                .build();
+        return new MediaBrowserCompat.MediaItem(description,
+                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+    }
+
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForGenreWithId(String genre, String id,
+                                                                          Resources resources) {
+        MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
+                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, id/*genre*/))
                 .setTitle(genre)
                 .setSubtitle(resources.getString(
                         R.string.browse_musics_by_genre_subtitle, genre))
@@ -796,12 +911,12 @@ public class MusicProvider {
     }
 
 
-    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForArtist(String artist,
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForArtist(Artist artist,
                                                                            Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_ARTIST, artist))
-                .setTitle(artist)
-                .setSubtitle("Songs by " + artist)
+                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_ARTIST, artist.id))
+                .setTitle(artist.name)
+                .setSubtitle("Songs by artist " + artist.id)
 //                        resources.getString(R.string.browse_musics_by_genre_subtitle, genre))
                 .build();
         return new MediaBrowserCompat.MediaItem(description,
@@ -809,12 +924,12 @@ public class MusicProvider {
     }
 
 
-    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForAlbum(String album,
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForAlbum(Album album,
                                                                            Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_ALBUM, album))
-                .setTitle(album)
-                .setSubtitle("Songs on " + album)
+                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_ALBUM, album.id))
+                .setTitle(album.name)
+                .setSubtitle("By " + album.artist)
 //                        resources.getString(R.string.browse_musics_by_genre_subtitle, genre))
                 .build();
         return new MediaBrowserCompat.MediaItem(description,

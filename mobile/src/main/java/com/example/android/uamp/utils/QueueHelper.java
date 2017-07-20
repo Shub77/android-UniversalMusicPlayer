@@ -77,7 +77,7 @@ public class QueueHelper {
 
         // This sample only supports genre and by_search category types.
         if (categoryType.equals(MEDIA_ID_MUSICS_BY_GENRE)) {
-            tracks = musicProvider.getMusicsByGenre(categoryValue);
+            tracks = musicProvider.getMusicsByGenreById(categoryValue);
         } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_ALBUM)) {
             tracks = musicProvider.getMusicsByAlbum(categoryValue);
         } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_ARTIST)) {
