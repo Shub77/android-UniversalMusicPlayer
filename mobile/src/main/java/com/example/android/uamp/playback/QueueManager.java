@@ -275,7 +275,21 @@ public class QueueManager {
         }
     }
 
+    public void addTrackToQueue(long trackId) {
+        String stringTrackId = Long.toString(trackId);
+        MediaMetadataCompat track = mMusicProvider.getMusic(stringTrackId);
 
+        MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "TRACK/TRACK|"+trackId)
+                .build();
+
+
+        MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
+                trackCopy.getDescription(), QueueHelper.count++);
+        LogHelper.i(TAG, "adding title", track.getDescription().getTitle());
+        mPlayingQueue.add(item);
+        mListener.onQueueUpdated("title", mPlayingQueue);
+    }
     /**
      * My own implementation of the example based on setQueueFromMusic.
      * Takes an input media ID from the 'music browser' and adds songs to the queue

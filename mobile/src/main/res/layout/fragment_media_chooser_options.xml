@@ -41,11 +41,13 @@
             android:textColor="@android:color/white"
             android:textStyle="bold"/>
     </android.support.v7.widget.CardView>
-    <ListView
-        android:id="@+id/list_view"
+    <Button
+        android:id="@+id/btnChooseSong"
+        android:text="@string/choose_song"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-        android:layout_below="@id/playback_error">
-    </ListView>
+        android:layout_below="@id/playback_error"
+        android:onClick="onChooseSongCliecked">
+    </Button>
 </RelativeLayout>

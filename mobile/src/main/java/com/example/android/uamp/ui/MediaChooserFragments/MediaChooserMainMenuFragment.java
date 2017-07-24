@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp.ui;
+package com.example.android.uamp.ui.MediaChooserFragments;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -21,26 +21,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-
 import com.example.android.uamp.R;
+import com.example.android.uamp.model.MediaChooserFragmentListener;
+import com.example.android.uamp.ui.MediaItemViewHolder;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.NetworkHelper;
@@ -56,17 +51,19 @@ import java.util.List;
  * Once connected, the fragment subscribes to get all the children.
  * All {@link MediaBrowserCompat.MediaItem}'s that can be browsed are shown in a ListView.
  */
-public class MediaBrowserFragment extends Fragment {
+public class MediaChooserMainMenuFragment extends Fragment {
 
-    private static final String TAG = LogHelper.makeLogTag(MediaBrowserFragment.class);
+    private static final String TAG = LogHelper.makeLogTag(MediaChooserMainMenuFragment.class);
 
     private static final String ARG_MEDIA_ID = "media_id";
 
     private BrowseAdapter mBrowserAdapter;
     private String mMediaId;
-    private MediaFragmentListener mMediaFragmentListener;
+    private MediaChooserFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
+
+    private String[] mCategories = {"Artist","Album","Tracks" };
 
     private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
@@ -142,7 +139,7 @@ public class MediaBrowserFragment extends Fragment {
         super.onAttach(activity);
         // If used on an activity that doesn't implement MediaFragmentListener, it
         // will throw an exception as expected:
-        mMediaFragmentListener = (MediaFragmentListener) activity;
+        mMediaFragmentListener = (MediaChooserFragmentListener) activity;
 
     }
 
@@ -151,15 +148,18 @@ public class MediaBrowserFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         //LogHelper.i(TAG, "fragment.onCreateView");
-        View rootView = inflater.inflate(R.layout.fragment_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_media_chooser_mainmenu, container, false);
 
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
 
-        mBrowserAdapter = new BrowseAdapter(getActivity());
+        //mBrowserAdapter = new BrowseAdapter(getActivity());
+
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,mCategories);
 
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
-        listView.setAdapter(mBrowserAdapter);
+        listView.setAdapter(adapter);
 
         // This onclick listener for the list item.
         // The click could come from the list item background -> means browse
@@ -179,7 +179,7 @@ public class MediaBrowserFragment extends Fragment {
                 if (viewId == R.id.plus_eq) {
                     LogHelper.i(TAG, "Add button clicked for item", item.getMediaId());
                     // This is a callback to the Music Player Activity
-                    mMediaFragmentListener.onAddMediaToQueue(item);
+                    //mMediaFragmentListener.onAddMediaToQueue(item);
                     // click has been handled by the add button. Nothing else to do
                     return;
                 }
@@ -243,7 +243,7 @@ public class MediaBrowserFragment extends Fragment {
 
     public void setMediaId(String mediaId) {
         Bundle args = new Bundle(1);
-        args.putString(MediaBrowserFragment.ARG_MEDIA_ID, mediaId);
+        args.putString(MediaChooserMainMenuFragment.ARG_MEDIA_ID, mediaId);
         setArguments(args);
     }
 
@@ -349,11 +349,11 @@ public class MediaBrowserFragment extends Fragment {
         }
 
     }
-
+/*
     public interface MediaFragmentListener extends MediaBrowserProvider {
         void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item);
         void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
         void setToolbarTitle(CharSequence title);
     }
-
+*/
 }

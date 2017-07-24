@@ -203,12 +203,12 @@ public class QueueHelper {
         return -1;
     }
 
-
     private static List<MediaSessionCompat.QueueItem> convertToQueue(
             MediaMetadataCompat track, String... categories) {
         List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
         // TODO : THIS COUNT IS PROBABLY QRONG IN OUR IMPLEMENTATION (NOT UNIQUE)
         int count = 0;
+
 
         String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
                 track.getDescription().getMediaId(), categories);
@@ -225,11 +225,13 @@ public class QueueHelper {
         return queue;
     }
 
+    public static int count = 0;
+
     private static List<MediaSessionCompat.QueueItem> convertToQueue(
             Iterable<MediaMetadataCompat> tracks, String... categories) {
         List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
         // TODO : THIS COUNT IS PROBABLY QRONG IN OUR IMPLEMENTATION (NOT UNIQUE)
-        int count = 0;
+//        int count = 0;
         for (MediaMetadataCompat track : tracks) {
 
             // We create a hierarchy-aware mediaID, so we know what the queue is about by looking
@@ -260,19 +262,11 @@ public class QueueHelper {
      */
     public static List<MediaSessionCompat.QueueItem> getRandomQueue(MusicProvider musicProvider, int numSongs) {
         List<MediaMetadataCompat> result = new ArrayList<>(numSongs);
-        /*
-        Iterable<MediaMetadataCompat> shuffled = musicProvider.getShuffledMusic();
-        for (MediaMetadataCompat metadata: shuffled) {
-            if (result.size() == numSongs) {
-                break;
-            }
-            result.add(metadata);
-        }
-        */
-        MediaMetadataCompat randomlyCohosenTrack;
+
+        MediaMetadataCompat randomlyChosenTrack;
         for (int i = 0 ; i < numSongs ; i++) {
-            randomlyCohosenTrack = musicProvider.getRandomSongFromAllSongsOnDevice();
-            result.add(randomlyCohosenTrack);
+            randomlyChosenTrack = musicProvider.getRandomSongFromAllSongsOnDevice();
+            result.add(randomlyChosenTrack);
         }
 
         LogHelper.i(TAG, "getRandomQueue: result.size=", result.size());

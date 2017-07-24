@@ -64,6 +64,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Main activity for choosing music on phone -->
+        <activity
+                android:name=".ui.MusicChooserActivity"
+                android:label="@string/browse">
+        </activity>
+
         <!-- Placeholder activity for phone UI -->
         <activity
             android:name=".ui.PlaceholderActivity"

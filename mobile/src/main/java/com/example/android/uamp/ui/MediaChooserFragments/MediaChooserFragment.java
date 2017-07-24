@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp.ui;
+package com.example.android.uamp.ui.MediaChooserFragments;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
+import android.content.*;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -39,13 +35,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-
 import com.example.android.uamp.R;
+import com.example.android.uamp.model.MediaChooserFragmentListener;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.NetworkHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,17 +51,18 @@ import java.util.List;
  * Once connected, the fragment subscribes to get all the children.
  * All {@link MediaBrowserCompat.MediaItem}'s that can be browsed are shown in a ListView.
  */
-public class MediaBrowserFragment extends Fragment {
+public class MediaChooserFragment extends Fragment {
 
-    private static final String TAG = LogHelper.makeLogTag(MediaBrowserFragment.class);
+    private static final String TAG = LogHelper.makeLogTag(MediaChooserFragment.class);
 
     private static final String ARG_MEDIA_ID = "media_id";
 
-    private BrowseAdapter mBrowserAdapter;
+    private MusicCursorAdapter mCursorAdapter;
     private String mMediaId;
-    private MediaFragmentListener mMediaFragmentListener;
+    private MediaChooserFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
+    private EditText etSearchText;
 
     private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
@@ -80,7 +76,7 @@ public class MediaBrowserFragment extends Fragment {
                     oldOnline = isOnline;
                     checkForUserVisibleErrors(false);
                     if (isOnline) {
-                        mBrowserAdapter.notifyDataSetChanged();
+                        mCursorAdapter.notifyDataSetChanged();
                     }
                 }
             }
@@ -99,7 +95,7 @@ public class MediaBrowserFragment extends Fragment {
             }
             LogHelper.d(TAG, "Received metadata change to media ",
                     metadata.getDescription().getMediaId());
-            mBrowserAdapter.notifyDataSetChanged();
+//            mBrowserAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -107,7 +103,7 @@ public class MediaBrowserFragment extends Fragment {
             super.onPlaybackStateChanged(state);
             LogHelper.d(TAG, "Received state change: ", state);
             checkForUserVisibleErrors(false);
-            mBrowserAdapter.notifyDataSetChanged();
+//            mBrowserAdapter.notifyDataSetChanged();
         }
     };
 
@@ -119,11 +115,11 @@ public class MediaBrowserFragment extends Fragment {
                 try {
                     LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
                     checkForUserVisibleErrors(children.isEmpty());
-                    mBrowserAdapter.clear();
+ //                   mBrowserAdapter.clear();
                     for (MediaBrowserCompat.MediaItem item : children) {
-                        mBrowserAdapter.add(item);
+//                        mBrowserAdapter.add(item);
                     }
-                    mBrowserAdapter.notifyDataSetChanged();
+//                    mBrowserAdapter.notifyDataSetChanged();
                 } catch (Throwable t) {
                     LogHelper.e(TAG, "Error on childrenloaded", t);
                 }
@@ -142,7 +138,7 @@ public class MediaBrowserFragment extends Fragment {
         super.onAttach(activity);
         // If used on an activity that doesn't implement MediaFragmentListener, it
         // will throw an exception as expected:
-        mMediaFragmentListener = (MediaFragmentListener) activity;
+        mMediaFragmentListener = (MediaChooserFragmentListener) activity;
 
     }
 
@@ -151,15 +147,37 @@ public class MediaBrowserFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         //LogHelper.i(TAG, "fragment.onCreateView");
-        View rootView = inflater.inflate(R.layout.fragment_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_media_chooser, container, false);
+
+        final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+        final String _ID = MediaStore.Audio.Media._ID;
+        final String TITLE = MediaStore.Audio.Media.TITLE;
+        final String ARTIST = MediaStore.Audio.Media.ARTIST;
+        final String ARTIST_ID = MediaStore.Audio.Media.ARTIST_ID;
+        final String ALBUM = MediaStore.Audio.Albums.ALBUM;
+        final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
+        final String TRACK_NO = MediaStore.Audio.Media.TRACK;
+
+        final String[] cursorColumns={_ID,TITLE, ARTIST, ARTIST_ID, ALBUM, DURATION_IN_MS, TRACK_NO};
+        final String orderby = TITLE + " COLLATE NOCASE";
+
 
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
 
-        mBrowserAdapter = new BrowseAdapter(getActivity());
+
+
+        String selection = null;
+        String[] selectionArgs = null;
+
+        ContentResolver cr = getActivity().getContentResolver();
+        Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
+
+        mCursorAdapter = new MusicCursorAdapter(getActivity(), tracksCursor);
 
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
-        listView.setAdapter(mBrowserAdapter);
+        listView.setAdapter(mCursorAdapter);
 
         // This onclick listener for the list item.
         // The click could come from the list item background -> means browse
@@ -173,7 +191,11 @@ public class MediaBrowserFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 checkForUserVisibleErrors(false);
-                MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
+                LogHelper.i(TAG, "clicked item with position", position, "and id ", id);
+
+                mMediaFragmentListener.onAddTrackToQueue(id);
+                /*
+                MediaBrowserCompat.MediaItem item = mCursorAdapter.getItem(position);
 
                 long viewId = view.getId();
                 if (viewId == R.id.plus_eq) {
@@ -186,10 +208,50 @@ public class MediaBrowserFragment extends Fragment {
 
                 // This is a callback to the Music Player Activity to browse (NOT add)
                 mMediaFragmentListener.onBrowseMediaItemSelected(item);
+                */
+
+            }
+        });
+        etSearchText = (EditText) rootView.findViewById(R.id.searchText);
+
+        etSearchText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                LogHelper.i(TAG, "search for ", s.toString());
+                mCursorAdapter.getFilter().filter(s.toString());
+                //dataAdapter.getFilter().filter(s.toString());
 
             }
         });
 
+        mCursorAdapter.setFilterQueryProvider(new FilterQueryProvider() {
+            @Override
+            public Cursor runQuery(CharSequence constraint) {
+                String partialValue = constraint.toString();
+                LogHelper.i (TAG, "filtering on ", partialValue);
+
+                final String selection = TITLE +" LIKE ?";
+                final String [] selectionArgs = {"%" + partialValue + "%"};
+
+                ContentResolver cr = getActivity().getContentResolver();
+                Cursor filteredCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
+                return filteredCursor;
+            }
+        });
         return rootView;
     }
 
@@ -243,7 +305,7 @@ public class MediaBrowserFragment extends Fragment {
 
     public void setMediaId(String mediaId) {
         Bundle args = new Bundle(1);
-        args.putString(MediaBrowserFragment.ARG_MEDIA_ID, mediaId);
+        args.putString(MediaChooserFragment.ARG_MEDIA_ID, mediaId);
         setArguments(args);
     }
 
@@ -327,33 +389,67 @@ public class MediaBrowserFragment extends Fragment {
     }
 
     // An adapter for showing the list of browsed MediaItem's
-    private static class BrowseAdapter extends ArrayAdapter<MediaBrowserCompat.MediaItem>  {
+    private static class MusicCursorAdapter extends CursorAdapter  {
 
-        public BrowseAdapter(Activity context) {
-            super(context, R.layout.media_list_item_with_plus, new ArrayList<MediaBrowserCompat.MediaItem>());
+        public MusicCursorAdapter(Activity context, Cursor tracksCursor) {
+            super(context, tracksCursor, 0);
         }
 
-        /**
-         * This is the important call of the adapter which returns the view for the item
-         * All calls from this are just 'helpers'
-         * @param position
-         * @param convertView
-         * @param parent
-         * @return
-         */
+        public static class ViewHolder{
+            public TextView title;
+            public ImageButton btnAddToPlayqueue;
+            public View view;
+        }
+
+        // The bindView method is used to bind all data to a given view
+        // such as setting the text on a TextView.
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            MediaBrowserCompat.MediaItem item = getItem(position);
-            View vi = MediaItemViewHolder.getListItemViewView((Activity) getContext(), convertView, parent, item, position);
-            return vi;
+        public void bindView(View view, Context context, Cursor cursor) {
+            ViewHolder viewHolder = (ViewHolder) view.getTag();
+            String trackTitle = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
+            viewHolder.title.setText(trackTitle);
+        }
+
+        // The newView method is used to inflate a new view and return it,
+        // you don't bind any data to the view at this point.
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            View view =  LayoutInflater.from(context).inflate(R.layout.media_list_item_with_plus, parent, false);
+            ViewHolder viewHolder = new ViewHolder();
+            viewHolder.title = (TextView) view.findViewById(R.id.title);
+            viewHolder.btnAddToPlayqueue = (ImageButton) view.findViewById(R.id.plus_eq);
+
+            String title = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
+            //viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(title));
+            view.setTag(viewHolder);
+            return view;
+        }
+
+        class btnAddToPlayqueueClickListener implements View.OnClickListener {
+            int position;
+            String title;
+            // constructor
+            public btnAddToPlayqueueClickListener(String title) {
+                this.title = title;
+            }
+            @Override
+            public void onClick(View v) {
+                // checkbox clicked
+                LogHelper.i(TAG, "add track ",title);
+                /*
+                if (artistListActionsListener != null)
+                    artistListActionsListener.onAddArtistToPlaylistClicked(artistName);
+                    */
+            }
         }
 
     }
-
-    public interface MediaFragmentListener extends MediaBrowserProvider {
+/*
+    public interface MediaChooserFragmentListener extends MediaBrowserProvider {
         void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item);
-        void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
+//        void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
+        void onAddTrackToQueue(long trackId);
         void setToolbarTitle(CharSequence title);
     }
-
+*/
 }

@@ -464,6 +464,56 @@ public class MusicProvider {
         return tracks;
     }
 
+    /**
+     * Get music tracks of the given artist
+     * By the supplied artist ID, not the artist name
+     *
+     */
+    public Iterable<MediaMetadataCompat> getAllSongs() {
+        if (mCurrentState != State.INITIALIZED /*|| !mMusicListByArtist.containsKey(artist)*/) {
+            return Collections.emptyList();
+        }
+        // return mMusicListByArtist.get(artist);
+
+        final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+        final String _ID = MediaStore.Audio.Media._ID;
+        final String TITLE = MediaStore.Audio.Media.TITLE;
+        final String ARTIST = MediaStore.Audio.Media.ARTIST;
+        final String ARTIST_ID = MediaStore.Audio.Media.ARTIST_ID;
+        final String ALBUM = MediaStore.Audio.Albums.ALBUM;
+        final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
+        final String TRACK_NO = MediaStore.Audio.Media.TRACK;
+
+        final String[] cursorColumns={_ID,TITLE, ARTIST, ARTIST_ID, ALBUM, DURATION_IN_MS, TRACK_NO};
+        final String orderby = TITLE + " COLLATE NOCASE";
+
+        String selection = null;
+        String[] selectionArgs = null;
+
+        ContentResolver cr = context.getContentResolver();
+        Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
+        ArrayList<MediaMetadataCompat> tracks = new ArrayList<>();
+
+        try {
+            while (tracksCursor.moveToNext()) {
+                String id = tracksCursor.getString(0);
+                String title= tracksCursor.getString(1);
+                String artist = tracksCursor.getString(2);
+                String artist_id = tracksCursor.getString(3);
+                String album = tracksCursor.getString(4);
+                Long durationInMs = tracksCursor.getLong(5);
+                Long trackNo = tracksCursor.getLong(6);
+                LogHelper.i(TAG, "Track ", id, " artist id=",artist_id );
+                tracks.add(buildMetadataFromProperties(id,title,artist, album, durationInMs, trackNo));
+            }
+        } finally {
+            tracksCursor.close();
+        }
+
+        return tracks;
+    }
+
     private MediaMetadataCompat buildMetadataFromProperties(String id, String title, String artist, String album, Long durationInMs, Long trackNumber) {
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
@@ -570,22 +620,53 @@ public class MusicProvider {
     }
 
     Iterable<MediaMetadataCompat> searchMusic(String metadataField, String query) {
-        if (mCurrentState != State.INITIALIZED) {
+        if (mCurrentState != State.INITIALIZED /*|| !mMusicListByArtist.containsKey(artist)*/) {
             return Collections.emptyList();
         }
-        // TODO: implement search
-        return Collections.emptyList();
-        /*
-        ArrayList<MediaMetadataCompat> result = new ArrayList<>();
-        query = query.toLowerCase(Locale.US);
-        for (MutableMediaMetadata track : mMusicListById.values()) {
-            if (track.metadata.getString(metadataField).toLowerCase(Locale.US)
-                .contains(query)) {
-                result.add(track.metadata);
-            }
+        // return mMusicListByArtist.get(artist);
+
+        final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+        final String _ID = MediaStore.Audio.Media._ID;
+        final String TITLE = MediaStore.Audio.Media.TITLE;
+        final String ARTIST = MediaStore.Audio.Media.ARTIST;
+        final String ARTIST_ID = MediaStore.Audio.Media.ARTIST_ID;
+        final String ALBUM = MediaStore.Audio.Albums.ALBUM;
+        final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
+        final String TRACK_NO = MediaStore.Audio.Media.TRACK;
+
+        final String[] cursorColumns={_ID,TITLE, ARTIST, ARTIST_ID, ALBUM, DURATION_IN_MS, TRACK_NO};
+        final String orderby = TITLE + " COLLATE NOCASE";
+
+        String selection = null;
+        String[] selectionArgs = null;
+        if (query != null && !query.isEmpty()) {
+            selection = MediaStore.Audio.Media.TITLE + " LIKE ?";
+            selectionArgs = new String [1];
+            selectionArgs[0] = "%" + query + "%";
         }
-        return result;
-        */
+
+        ContentResolver cr = context.getContentResolver();
+        Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
+        ArrayList<MediaMetadataCompat> tracks = new ArrayList<>();
+
+        try {
+            while (tracksCursor.moveToNext()) {
+                String id = tracksCursor.getString(0);
+                String title= tracksCursor.getString(1);
+                String artist = tracksCursor.getString(2);
+                String artist_id = tracksCursor.getString(3);
+                String album = tracksCursor.getString(4);
+                Long durationInMs = tracksCursor.getLong(5);
+                Long trackNo = tracksCursor.getLong(6);
+                LogHelper.i(TAG, "Track ", id, " artist id=",artist_id );
+                tracks.add(buildMetadataFromProperties(id,title,artist, album, durationInMs, trackNo));
+            }
+        } finally {
+            tracksCursor.close();
+        }
+
+        return tracks;
     }
 
 
@@ -808,11 +889,11 @@ public class MusicProvider {
             mediaItems.add(createBrowsableMediaItemGenreForRoot(resources));
             mediaItems.add(createBrowsableMediaItemArtistForRoot(resources));
             mediaItems.add(createBrowsableMediaItemAlbumForRoot(resources));
+            mediaItems.add(createBrowsableMediaItemSongForRoot(resources));
         } else if (MEDIA_ID_MUSICS_BY_GENRE.equals(mediaId)) {
             //LogHelper.i(TAG, "The Genre item, add all Genres ...");
             for (Genre genre : getGenreObjects()) {
                 mediaItems.add(createBrowsableMediaItemForGenreWithId(genre.name, genre.id, resources));
-
             }
         } else if (MEDIA_ID_MUSICS_BY_ARTIST.equals(mediaId)) {
             //LogHelper.i(TAG, "The Genre item, add all Artists ...");
@@ -823,6 +904,11 @@ public class MusicProvider {
             //LogHelper.i(TAG, "The Genre item, add all albums...");
             for (Album album : getAlbumObjects()) {
                 mediaItems.add(createBrowsableMediaItemForAlbum(album, resources));
+            }
+        } else if (MEDIA_ID_MUSICS_BY_SONG.equals(mediaId)) {
+            LogHelper.i(TAG, "The Song item ...");
+            for (MediaMetadataCompat metadata : getAllSongs()) {
+                mediaItems.add(createMediaItem(metadata, MediaMetadataCompat.METADATA_KEY_ALBUM, MEDIA_ID_MUSICS_BY_ALBUM));
             }
         } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_GENRE)) {
             String genre = MediaIDHelper.getHierarchy(mediaId)[1];
@@ -873,6 +959,17 @@ public class MusicProvider {
                 MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
     }
 
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemSongForRoot(Resources resources) {
+        MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
+                .setMediaId(MEDIA_ID_MUSICS_BY_SONG)
+                .setTitle(resources.getString(R.string.browse_songs))
+                .setSubtitle(resources.getString(R.string.browse_song_subtitle))
+                .setIconUri(Uri.parse("android.resource://" +
+                        "com.example.android.uamp/drawable/ic_by_genre"))
+                .build();
+        return new MediaBrowserCompat.MediaItem(description,
+                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+    }
 
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemAlbumForRoot(Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()

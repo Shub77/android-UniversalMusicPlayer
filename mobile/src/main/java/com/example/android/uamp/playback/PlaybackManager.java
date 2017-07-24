@@ -42,6 +42,8 @@ public class PlaybackManager implements Playback.Callback {
     private static final String CUSTOM_ACTION_THUMBS_UP = "com.example.android.uamp.THUMBS_UP";
     public static final String CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE = "uk.me.asbridge.uamp.ADD_MUSIC_TO_QUEUE";
     public static final String CUSTOM_EXTRA_MEDIA_ID = "uk.me.asbridge.uamp.CUSTOM_EXTRA_MEDIA_ID";
+    public static final String CUSTOM_ACTION_ADD_TRACK_TO_QUEUE = "uk.me.asbridge.uamp.ADD_TRACK_TO_QUEUE";
+    public static final String CUSTOM_EXTRA_TRACK_ID = "uk.me.asbridge.uamp.CUSTOM_EXTRA_TRACK_ID";
 
     private MusicProvider mMusicProvider;
     private QueueManager mQueueManager;
@@ -162,6 +164,7 @@ public class PlaybackManager implements Playback.Callback {
             return;
         }
         String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
+        LogHelper.i(TAG, "for mediaId = ", mediaId, " musicId = ", musicId);
         int favoriteIcon = mMusicProvider.isFavorite(musicId) ?
                 R.drawable.ic_star_on : R.drawable.ic_star_off;
         LogHelper.d(TAG, "updatePlaybackState, setting Favorite custom action of music ",
@@ -374,6 +377,11 @@ public class PlaybackManager implements Playback.Callback {
                 String mediaId = extras.getString(CUSTOM_EXTRA_MEDIA_ID);
                 LogHelper.i(TAG, "onCustomAction: ADD_MUSIC_TO_QUEUE, medaiId =",mediaId);
                 mQueueManager.addMusicToQueue(mediaId);
+            } else if (CUSTOM_ACTION_ADD_TRACK_TO_QUEUE.equals(action)) {
+                // New custom action to set the queue, without starting to play any media
+                long trackId = extras.getLong(CUSTOM_EXTRA_TRACK_ID);
+                LogHelper.i(TAG, "onCustomAction: ADD_TRACK_TO_QUEUE, medaiId =",trackId);
+                mQueueManager.addTrackToQueue(trackId);
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
             }
