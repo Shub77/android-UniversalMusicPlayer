@@ -171,7 +171,7 @@ public class QueueHelper {
         // Artist (podcast author). Then, we can instead do an unstructured search.
         if (params.isUnstructured || result == null || !result.iterator().hasNext()) {
             // To keep it simple for this example, we do unstructured searches on the
-            // song title only. A real world application could search on other fields as well.
+            // song AlbumTitle only. A real world application could search on other fields as well.
             result = musicProvider.searchMusicBySongTitle(query);
         }
 

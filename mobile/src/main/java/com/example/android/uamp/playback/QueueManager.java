@@ -213,7 +213,7 @@ public class QueueManager {
             // Add the new songs
             mPlayingQueue.addAll(newTracks);
         }
-        mListener.onQueueUpdated("title", mPlayingQueue);
+        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
 
     public void setQueueFromMusic(String mediaId) {
@@ -271,7 +271,7 @@ public class QueueManager {
         if (hasChanged) {
             // if the new queue has less than N items then fill it randomly
             fillRandomQueue();
-            mListener.onQueueUpdated("title", mPlayingQueue);
+            mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
         }
     }
 
@@ -286,9 +286,9 @@ public class QueueManager {
 
         MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
                 trackCopy.getDescription(), QueueHelper.count++);
-        LogHelper.i(TAG, "adding title", track.getDescription().getTitle());
+        LogHelper.i(TAG, "adding AlbumTitle", track.getDescription().getTitle());
         mPlayingQueue.add(item);
-        mListener.onQueueUpdated("title", mPlayingQueue);
+        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
     /**
      * My own implementation of the example based on setQueueFromMusic.
@@ -341,7 +341,7 @@ public class QueueManager {
 
         // This communicates the changed queue. It allows the queue to be shown in
         // in the player activity
-        mListener.onQueueUpdated("title", mPlayingQueue);
+        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
 
     public void updateMetadata() {
@@ -361,7 +361,7 @@ public class QueueManager {
 
         mListener.onMetadataChanged(metadata);
         // call onqueue updated, as well as on metadata changed
-        mListener.onQueueUpdated("title", mPlayingQueue);
+        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
 
         // The rest of this is all about artwork, so we aren't so bothered here
         // Set the proper album artwork on the media session, so it can be shown in the
@@ -406,7 +406,7 @@ public class QueueManager {
         }
         */
         // TEST looks like we don't need this here. It is called from elsewhere ...!!!! uncomnet this updateMetadata(); // TEST instead of next 2 lines TEST
-        // mListener.onQueueUpdated(title, mPlayingQueue);
+        // mListener.onQueueUpdated(AlbumTitle, mPlayingQueue);
         //mListener.onNowPlayingChanged(mNowPlaying); // we need to call this so the player gets created.
     }
 
@@ -455,9 +455,9 @@ public class QueueManager {
     }
 
     protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
-        LogHelper.i(TAG, "setCurrentQueue: title=", title);
+        LogHelper.i(TAG, "setCurrentQueue: AlbumTitle=", title);
         mPlayingQueue = newQueue;
-        // setCurrentQueue(title, newQueue, null);
+        // setCurrentQueue(AlbumTitle, newQueue, null);
     }
 
 

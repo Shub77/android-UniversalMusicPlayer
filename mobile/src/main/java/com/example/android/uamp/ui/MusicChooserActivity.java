@@ -27,10 +27,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.example.android.uamp.R;
+import com.example.android.uamp.constants.Constants;
 import com.example.android.uamp.model.MediaChooserFragmentListener;
 import com.example.android.uamp.playback.PlaybackManager;
+import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserGroupsFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserFragment;
-import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserMainMenuFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserOptionsFragment;
 import com.example.android.uamp.utils.LogHelper;
 
@@ -111,6 +112,15 @@ public class MusicChooserActivity extends BaseActivity
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_TRACK_TO_QUEUE,bundle);
     }
 
+    @Override
+    public void onBrowseGroup(String searchType, long albumId) {
+        if (Constants.SEARCH_TYPE_ALBUM.equals(searchType)) {
+            browseAlbum(albumId);
+        } else {
+            browseArtist(albumId);
+        }
+    }
+
     /**
      * A callback from the MediaBrowserFragment
      * We have clicked on the background of a list item.
@@ -144,7 +154,7 @@ public class MusicChooserActivity extends BaseActivity
 
     @Override
     public void setToolbarTitle(CharSequence title) {
-        LogHelper.d(TAG, "Setting toolbar title to ", title);
+        LogHelper.d(TAG, "Setting toolbar AlbumTitle to ", title);
         if (title == null) {
             title = getString(R.string.app_name);
         }
@@ -203,6 +213,85 @@ public class MusicChooserActivity extends BaseActivity
         transaction.addToBackStack(null);
         transaction.commit();
     }
+
+    /**
+     * Show 'tracks list' fragment.
+     * Filtered by album with specified id
+     * @param albumId
+     */
+    public void browseAlbum(long albumId) {
+        LogHelper.i(TAG, "browseAlbum with id=", albumId);
+        MediaChooserFragment fragment = null;
+        fragment = new MediaChooserFragment();
+        fragment.setSearchParams(Constants.SEARCH_TYPE_ALBUM, Long.toString(albumId));
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    /**
+     * Show 'tracks list' fragment.
+     * Filtered by artist with specified id
+     * @param artistId
+     */
+    public void browseArtist(long artistId) {
+        LogHelper.i(TAG, "browseArtist with id=", artistId);
+        MediaChooserFragment fragment = null;
+        fragment = new MediaChooserFragment();
+        fragment.setSearchParams(Constants.SEARCH_TYPE_ARTIST, Long.toString(artistId));
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    /**
+     * Show 'groups' list fragment, where groups are albums
+     */
+    public void onChooseAlbum() {
+        LogHelper.i(TAG, "onChooseAlbum");
+        MediaChooserGroupsFragment fragment = new MediaChooserGroupsFragment();
+        fragment.setSearchType(Constants.SEARCH_TYPE_ALBUM);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    /**
+     * Show 'groups' list fragment, where groups are artists
+     */
+    public void onChooseArtist() {
+        LogHelper.i(TAG, "onChooseArtist");
+        MediaChooserGroupsFragment fragment = new MediaChooserGroupsFragment();
+        fragment.setSearchType(Constants.SEARCH_TYPE_ARTIST);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
 
     private void navigateToBrowser(String mediaId) {
         LogHelper.i(TAG, "navigateToBrowser, mediaId=" + mediaId);

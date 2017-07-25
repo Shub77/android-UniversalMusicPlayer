@@ -44,7 +44,7 @@ public class RemoteJSONSource implements MusicProviderSource {
         "http://storage.googleapis.com/automotive-media/music.json";
 
     private static final String JSON_MUSIC = "music";
-    private static final String JSON_TITLE = "title";
+    private static final String JSON_TITLE = "AlbumTitle";
     private static final String JSON_ALBUM = "album";
     private static final String JSON_ARTIST = "artist";
     private static final String JSON_GENRE = "genre";

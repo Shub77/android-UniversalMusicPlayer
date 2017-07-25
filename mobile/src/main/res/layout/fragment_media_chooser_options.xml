@@ -42,12 +42,27 @@
             android:textStyle="bold"/>
     </android.support.v7.widget.CardView>
     <Button
-        android:id="@+id/btnChooseSong"
-        android:text="@string/choose_song"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@id/playback_error"
-        android:onClick="onChooseSongCliecked">
+            android:id="@+id/btnChooseSong"
+            android:text="@string/choose_song"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_below="@id/playback_error">
+    </Button>
+
+    <Button
+            android:id="@+id/btnChooseAlbum"
+            android:text="@string/choose_album"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btnChooseSong">
+    </Button>
+
+    <Button
+            android:id="@+id/btnChooseArtist"
+            android:text="@string/choose_artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btnChooseAlbum">
     </Button>
 </RelativeLayout>

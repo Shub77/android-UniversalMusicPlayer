@@ -215,7 +215,7 @@ public class ListManager {
     }
 
     protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
-        LogHelper.i(TAG, "setCurrentQueue: title=", title);
+        LogHelper.i(TAG, "setCurrentQueue: AlbumTitle=", title);
         setCurrentQueue(title, newQueue, null);
     }
 

@@ -53,7 +53,7 @@ public class PlaybackControlsFragment extends Fragment {
     private ImageView mAlbumArt;
     private String mArtUrl;
     // Receive callbacks from the MediaController. Here we update our state such as which queue
-    // is being shown, the current title and description and the PlaybackState.
+    // is being shown, the current AlbumTitle and description and the PlaybackState.
     private final MediaControllerCompat.Callback mCallback = new MediaControllerCompat.Callback() {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {

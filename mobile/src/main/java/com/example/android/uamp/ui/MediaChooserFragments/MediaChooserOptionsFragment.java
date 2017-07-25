@@ -57,7 +57,6 @@ public class MediaChooserOptionsFragment extends Fragment implements View.OnClic
 
     private static final String ARG_MEDIA_ID = "media_id";
 
-    private String mMediaId;
     private MediaChooserFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
@@ -83,7 +82,7 @@ public class MediaChooserOptionsFragment extends Fragment implements View.OnClic
     };
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
-    // is being shown, the current title and description and the PlaybackState.
+    // is being shown, the current AlbumTitle and description and the PlaybackState.
     private final MediaControllerCompat.Callback mMediaControllerCallback =
             new MediaControllerCompat.Callback() {
         @Override
@@ -151,7 +150,12 @@ public class MediaChooserOptionsFragment extends Fragment implements View.OnClic
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
 
-        Button b = (Button) rootView.findViewById(R.id.btnChooseSong);
+        Button b;
+        b = (Button) rootView.findViewById(R.id.btnChooseSong);
+        b.setOnClickListener(this);
+        b = (Button) rootView.findViewById(R.id.btnChooseAlbum);
+        b.setOnClickListener(this);
+        b = (Button) rootView.findViewById(R.id.btnChooseArtist);
         b.setOnClickListener(this);
 
         return rootView;
@@ -164,7 +168,18 @@ public class MediaChooserOptionsFragment extends Fragment implements View.OnClic
                 LogHelper.i(TAG, "btnChooseSongClicked");
                 mMediaFragmentListener.onChooseTrack();
                 break;
+
+            case R.id.btnChooseAlbum:
+                LogHelper.i(TAG, "btnChooseAlbumClicked");
+                mMediaFragmentListener.onChooseAlbum();
+                break;
+
+            case R.id.btnChooseArtist:
+                LogHelper.i(TAG, "btnChooseArtist");
+                mMediaFragmentListener.onChooseArtist();
+                break;
         }
+
     }
 
     @Override

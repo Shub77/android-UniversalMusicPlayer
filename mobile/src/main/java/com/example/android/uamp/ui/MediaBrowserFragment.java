@@ -88,7 +88,7 @@ public class MediaBrowserFragment extends Fragment {
     };
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
-    // is being shown, the current title and description and the PlaybackState.
+    // is being shown, the current AlbumTitle and description and the PlaybackState.
     private final MediaControllerCompat.Callback mMediaControllerCallback =
             new MediaControllerCompat.Callback() {
         @Override

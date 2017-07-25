@@ -166,7 +166,7 @@ public class MusicProviderExample {
     }
 
     /**
-     * Very basic implementation of a search that filter music tracks with title containing
+     * Very basic implementation of a search that filter music tracks with AlbumTitle containing
      * the given query.
      *
      */

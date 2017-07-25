@@ -36,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import com.example.android.uamp.R;
+import com.example.android.uamp.constants.Constants;
 import com.example.android.uamp.model.MediaChooserFragmentListener;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
@@ -54,8 +55,6 @@ import java.util.List;
 public class MediaChooserFragment extends Fragment {
 
     private static final String TAG = LogHelper.makeLogTag(MediaChooserFragment.class);
-
-    private static final String ARG_MEDIA_ID = "media_id";
 
     private MusicCursorAdapter mCursorAdapter;
     private String mMediaId;
@@ -84,7 +83,7 @@ public class MediaChooserFragment extends Fragment {
     };
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
-    // is being shown, the current title and description and the PlaybackState.
+    // is being shown, the current AlbumTitle and description and the PlaybackState.
     private final MediaControllerCompat.Callback mMediaControllerCallback =
             new MediaControllerCompat.Callback() {
         @Override
@@ -142,34 +141,104 @@ public class MediaChooserFragment extends Fragment {
 
     }
 
+    private FilterQueryProvider getAlbumsFilterQueryProvider() {
+        return new FilterQueryProvider() {
+            @Override
+            public Cursor runQuery(CharSequence constraint) {
+                String partialValue = constraint.toString();
+                LogHelper.i(TAG, "filtering on ", partialValue);
+                String albumId = getSearchId();
+                String selection;
+                String[] selectionArgs;
+                if (albumId == null) {
+                    selectionArgs = new String[1];
+                } else {
+                    selectionArgs = new String[2];
+                }
+
+                selection = TITLE +" LIKE ?";
+                selectionArgs[0]= "%" + partialValue + "%";
+                if (albumId != null) {
+                    selection = TITLE + " LIKE ? AND " +  MediaStore.Audio.Media.ALBUM_ID  + "=?"; ;
+                    selectionArgs[1] = albumId;
+                }
+
+                ContentResolver cr = getActivity().getContentResolver();
+                Cursor filteredCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
+                return filteredCursor;
+            }
+        };
+    }
+
+
+    private FilterQueryProvider getArtistsFilterQueryProvider() {
+        return new FilterQueryProvider() {
+            @Override
+            public Cursor runQuery(CharSequence constraint) {
+                String partialValue = constraint.toString();
+                LogHelper.i(TAG, "filtering on ", partialValue);
+                String albumId = getSearchId();
+                String selection;
+                String[] selectionArgs;
+                if (albumId == null) {
+                    selectionArgs = new String[1];
+                } else {
+                    selectionArgs = new String[2];
+                }
+
+                selection = TITLE +" LIKE ?";
+                selectionArgs[0]= "%" + partialValue + "%";
+                if (albumId != null) {
+                    selection = TITLE + " LIKE ? AND " +  MediaStore.Audio.Media.ARTIST_ID  + "=?"; ;
+                    selectionArgs[1] = albumId;
+                }
+
+                ContentResolver cr = getActivity().getContentResolver();
+                Cursor filteredCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
+                return filteredCursor;
+            }
+        };
+    }
+
+    final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+    final String _ID = MediaStore.Audio.Media._ID;
+    final String TITLE = MediaStore.Audio.Media.TITLE;
+    final String ARTIST = MediaStore.Audio.Media.ARTIST;
+    final String ARTIST_ID = MediaStore.Audio.Media.ARTIST_ID;
+    final String ALBUM = MediaStore.Audio.Albums.ALBUM;
+    final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
+    final String TRACK_NO = MediaStore.Audio.Media.TRACK;
+    final String[] cursorColumns={_ID,TITLE, ARTIST, ARTIST_ID, ALBUM, DURATION_IN_MS, TRACK_NO};
+    final String orderby = TITLE + " COLLATE NOCASE";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        //LogHelper.i(TAG, "fragment.onCreateView");
+
         View rootView = inflater.inflate(R.layout.fragment_media_chooser, container, false);
-
-        final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-
-        final String _ID = MediaStore.Audio.Media._ID;
-        final String TITLE = MediaStore.Audio.Media.TITLE;
-        final String ARTIST = MediaStore.Audio.Media.ARTIST;
-        final String ARTIST_ID = MediaStore.Audio.Media.ARTIST_ID;
-        final String ALBUM = MediaStore.Audio.Albums.ALBUM;
-        final String DURATION_IN_MS = MediaStore.Audio.Media.DURATION;
-        final String TRACK_NO = MediaStore.Audio.Media.TRACK;
-
-        final String[] cursorColumns={_ID,TITLE, ARTIST, ARTIST_ID, ALBUM, DURATION_IN_MS, TRACK_NO};
-        final String orderby = TITLE + " COLLATE NOCASE";
-
 
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
 
-
-
         String selection = null;
         String[] selectionArgs = null;
+
+        String searchId = getSearchId();
+        String searchType = getSearchType();
+        if (searchType != null)
+        {
+            selectionArgs = new String [1];
+            selectionArgs[0] = searchId;
+            switch (searchType) {
+                case Constants.SEARCH_TYPE_ALBUM:
+                    selection = MediaStore.Audio.Media.ALBUM_ID + "=?";
+                    break;
+                case Constants.SEARCH_TYPE_ARTIST:
+                    selection = MediaStore.Audio.Media.ARTIST_ID + "=?";
+                    break;
+            }
+        }
 
         ContentResolver cr = getActivity().getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
@@ -233,28 +302,20 @@ public class MediaChooserFragment extends Fragment {
             public void afterTextChanged(Editable s) {
                 LogHelper.i(TAG, "search for ", s.toString());
                 mCursorAdapter.getFilter().filter(s.toString());
-                //dataAdapter.getFilter().filter(s.toString());
-
             }
         });
 
-        mCursorAdapter.setFilterQueryProvider(new FilterQueryProvider() {
-            @Override
-            public Cursor runQuery(CharSequence constraint) {
-                String partialValue = constraint.toString();
-                LogHelper.i (TAG, "filtering on ", partialValue);
+        FilterQueryProvider filter;
+        if (Constants.SEARCH_TYPE_ALBUM.equals(getSearchType()))
+        {
+            filter = getAlbumsFilterQueryProvider();
+        } else {
+            filter = getArtistsFilterQueryProvider();
+        }
 
-                final String selection = TITLE +" LIKE ?";
-                final String [] selectionArgs = {"%" + partialValue + "%"};
-
-                ContentResolver cr = getActivity().getContentResolver();
-                Cursor filteredCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
-                return filteredCursor;
-            }
-        });
+        mCursorAdapter.setFilterQueryProvider(filter);
         return rootView;
     }
-
 
     @Override
     public void onStart() {
@@ -298,15 +359,40 @@ public class MediaChooserFragment extends Fragment {
     public String getMediaId() {
         Bundle args = getArguments();
         if (args != null) {
-            return args.getString(ARG_MEDIA_ID);
+            return args.getString(Constants.ARG_MEDIA_ID);
         }
         return null;
     }
 
     public void setMediaId(String mediaId) {
+        LogHelper.i(TAG, "SET MEDIA ID!!!");
         Bundle args = new Bundle(1);
-        args.putString(MediaChooserFragment.ARG_MEDIA_ID, mediaId);
+        args.putString(Constants.ARG_MEDIA_ID, mediaId);
         setArguments(args);
+    }
+
+    public void setSearchParams(String searchType, String id) {
+        LogHelper.i(TAG, "setSearchId, ",id);
+        Bundle args = new Bundle(2);
+        args.putString(Constants.ARG_ID, id);
+        args.putString(Constants.ARG_SEARCH_TYPE, searchType);
+        setArguments(args);
+    }
+
+    public String getSearchId() {
+        Bundle args = getArguments();
+        if (args != null) {
+            return args.getString(Constants.ARG_ID);
+        }
+        return null;
+    }
+
+    public String getSearchType() {
+        Bundle args = getArguments();
+        if (args != null) {
+            return args.getString(Constants.ARG_SEARCH_TYPE);
+        }
+        return null;
     }
 
     // Called when the MediaBrowser is connected. This method is either called by the
@@ -373,19 +459,22 @@ public class MediaChooserFragment extends Fragment {
     }
 
     private void updateTitle() {
-        if (MediaIDHelper.MEDIA_ID_ROOT.equals(mMediaId)) {
-            mMediaFragmentListener.setToolbarTitle(null);
-            return;
-        }
+        String searchType = getSearchType();
+        LogHelper.i(TAG, "update tile search type = ", searchType);
+        if (searchType == null)
+            mMediaFragmentListener.setToolbarTitle("All music");
+        else
+        {
+            switch (searchType) {
+                case Constants.SEARCH_TYPE_ALBUM:
+                    mMediaFragmentListener.setToolbarTitle("Music on album");
+                    break;
+                case Constants.SEARCH_TYPE_ARTIST:
+                    mMediaFragmentListener.setToolbarTitle("Music by artist");
+                    break;
 
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-        mediaBrowser.getItem(mMediaId, new MediaBrowserCompat.ItemCallback() {
-            @Override
-            public void onItemLoaded(MediaBrowserCompat.MediaItem item) {
-                mMediaFragmentListener.setToolbarTitle(
-                        item.getDescription().getTitle());
             }
-        });
+        }
     }
 
     // An adapter for showing the list of browsed MediaItem's
@@ -420,7 +509,7 @@ public class MediaChooserFragment extends Fragment {
             viewHolder.btnAddToPlayqueue = (ImageButton) view.findViewById(R.id.plus_eq);
 
             String title = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
-            //viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(title));
+            //viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(AlbumTitle));
             view.setTag(viewHolder);
             return view;
         }
@@ -449,7 +538,7 @@ public class MediaChooserFragment extends Fragment {
         void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item);
 //        void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
         void onAddTrackToQueue(long trackId);
-        void setToolbarTitle(CharSequence title);
+        void setToolbarTitle(CharSequence AlbumTitle);
     }
 */
 }

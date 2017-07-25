@@ -27,10 +27,10 @@ import java.util.Iterator;
 public class StorageMusicSource implements MusicProviderSource  {
 
     private static final String TAG = LogHelper.makeLogTag(StorageMusicSource.class);
-    private static final String JSonString = "{\"music\" : [{ \"title\" : \"Jazz in Paris\", \"album\" : \"Jazz & Blues\", \"artist\" : \"Media Right Productions\", \"genre\" : \"Jazz & Blues\", \"source\" : \"Jazz_In_Paris.mp3\", \"image\" : \"album_art.jpg\",\"trackNumber\" : 1, \"totalTrackCount\" : 6, \"duration\" : 103, \"site\" : \"https://www.youtube.com/audiolibrary/music\"}]}";
+    private static final String JSonString = "{\"music\" : [{ \"AlbumTitle\" : \"Jazz in Paris\", \"album\" : \"Jazz & Blues\", \"artist\" : \"Media Right Productions\", \"genre\" : \"Jazz & Blues\", \"source\" : \"Jazz_In_Paris.mp3\", \"image\" : \"album_art.jpg\",\"trackNumber\" : 1, \"totalTrackCount\" : 6, \"duration\" : 103, \"site\" : \"https://www.youtube.com/audiolibrary/music\"}]}";
 
     private static final String JSON_MUSIC = "music";
-    private static final String JSON_TITLE = "title";
+    private static final String JSON_TITLE = "AlbumTitle";
     private static final String JSON_ALBUM = "album";
     private static final String JSON_ARTIST = "artist";
     private static final String JSON_GENRE = "genre";

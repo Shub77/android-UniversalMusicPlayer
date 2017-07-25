@@ -139,7 +139,7 @@ public class MusicPlayerActivity extends BaseActivity
 
     @Override
     public void setToolbarTitle(CharSequence title) {
-        LogHelper.d(TAG, "Setting toolbar title to ", title);
+        LogHelper.d(TAG, "Setting toolbar AlbumTitle to ", title);
         if (title == null) {
             title = getString(R.string.app_name);
         }
