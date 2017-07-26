@@ -38,6 +38,7 @@ import android.widget.*;
 import com.example.android.uamp.R;
 import com.example.android.uamp.constants.Constants;
 import com.example.android.uamp.model.MediaChooserFragmentListener;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.NetworkHelper;
@@ -221,21 +222,26 @@ public class MediaChooserFragment extends Fragment {
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
 
-        String selection = null;
+        String selection = DURATION_IN_MS + " > ?";
         String[] selectionArgs = null;
-
         String searchId = getSearchId();
         String searchType = getSearchType();
+        if (searchType == null) {
+            selectionArgs = new String [1];
+        } else {
+            selectionArgs = new String [2];
+        }
+        selectionArgs[0] = Integer.toString(Settings.getMinDurationInSeconds(getActivity())*1000);
+        LogHelper.i(TAG, selectionArgs[0]);
         if (searchType != null)
         {
-            selectionArgs = new String [1];
-            selectionArgs[0] = searchId;
+            selectionArgs[1] = searchId;
             switch (searchType) {
                 case Constants.SEARCH_TYPE_ALBUM:
-                    selection = MediaStore.Audio.Media.ALBUM_ID + "=?";
+                    selection += " AND " + MediaStore.Audio.Media.ALBUM_ID + "=?";
                     break;
                 case Constants.SEARCH_TYPE_ARTIST:
-                    selection = MediaStore.Audio.Media.ARTIST_ID + "=?";
+                    selection += " AND " + MediaStore.Audio.Media.ARTIST_ID + "=?";
                     break;
             }
         }

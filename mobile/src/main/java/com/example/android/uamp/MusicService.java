@@ -36,6 +36,7 @@ import android.support.v7.media.MediaRouter;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.playback.*;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.ui.NowPlayingActivity;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
@@ -170,7 +171,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         // Any changes to the queue (current queue index updated or queue changed will be called back to this service
         // (using QueueManager.MetadataUpdateListener)
         // So in effect the sevice holds the queue, via the queuemanager
-        QueueManager queueManager = new QueueManager(mMusicProvider, getResources(),
+        QueueManager queueManager = new QueueManager(mMusicProvider, getResources(), getApplicationContext(),
                 new QueueManager.MetadataUpdateListener() {
                     @Override
                     public void onMetadataChanged(MediaMetadataCompat metadata) {

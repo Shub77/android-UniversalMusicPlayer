@@ -416,6 +416,7 @@ public class MusicProvider {
      *
      */
     public Iterable<MediaMetadataCompat> getMusicsByArtist(String artistId) {
+        LogHelper.i(TAG, "getMusicsByArtist" , artistId);
         if (mCurrentState != State.INITIALIZED /*|| !mMusicListByArtist.containsKey(artist)*/) {
             return Collections.emptyList();
         }
@@ -434,13 +435,11 @@ public class MusicProvider {
         final String[] cursorColumns={_ID,TITLE, ARTIST, ARTIST_ID, ALBUM, DURATION_IN_MS, TRACK_NO};
         final String orderby = TITLE + " COLLATE NOCASE";
 
-        String selection = null;
-        String[] selectionArgs = null;
-        if (artistId != null && !artistId.isEmpty()) {
-            selection = MediaStore.Audio.Media.ARTIST_ID + "=?";
-            selectionArgs = new String [1];
-            selectionArgs[0] = artistId;
-        }
+        String selection = ARTIST_ID + "=? AND " + DURATION_IN_MS + " > ?";;
+        String[] selectionArgs = new String [2];
+        selectionArgs[0] = artistId;
+        selectionArgs[1] = "3000000";
+
         ContentResolver cr = context.getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
         ArrayList<MediaMetadataCompat> tracks = new ArrayList<>();

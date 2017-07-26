@@ -66,4 +66,12 @@
     <string name="choose_song">Choose a song</string>
     <string name="choose_album">Browse albums</string>
     <string name="choose_artist">Browse artists</string>
+
+    <string name="drawer_settings_title">Settings</string>
+
+    <string name="minimumsonglength_summary">Minimum song length</string>
+    <string name="minimumsonglength__title">Minimum song length (in seconds)</string>
+    <string name="playqueuesize_summary">Playqueue size</string>
+    <string name="playqueuesize__title">Number of tracks in the play queue</string>
+
 </resources>

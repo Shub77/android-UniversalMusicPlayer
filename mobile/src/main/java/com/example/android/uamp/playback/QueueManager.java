@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.playback;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.R;
 import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
@@ -42,11 +44,10 @@ import java.util.*;
 public class QueueManager {
     private static final String TAG = LogHelper.makeLogTag(QueueManager.class);
 
-    private static final int RANDOM_QUEUE_SIZE = 4;
-
     private MusicProvider mMusicProvider;
     private MetadataUpdateListener mListener;
     private Resources mResources;
+    private Context mContext;
 
     // "Now playing" queue:
     private List<MediaSessionCompat.QueueItem> mPlayingQueue;
@@ -58,12 +59,16 @@ public class QueueManager {
     // private int mCurrentIndex;
     private MediaSessionCompat.QueueItem mNowPlaying;
 
+
+
     public QueueManager(@NonNull MusicProvider musicProvider,
                         @NonNull Resources resources,
+                        @NonNull Context context,
                         @NonNull MetadataUpdateListener listener) {
         this.mMusicProvider = musicProvider;
         this.mListener = listener;
         this.mResources = resources;
+        this.mContext = context;
 
         mPlayingQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
 
@@ -207,9 +212,9 @@ public class QueueManager {
     public void fillRandomQueue() {
         int currentQueueSize = mPlayingQueue.size();
         LogHelper.i(TAG, "fillRandomQueue, current size = ", mPlayingQueue.size());
-        if (currentQueueSize < RANDOM_QUEUE_SIZE)
+        if (currentQueueSize < Settings.getPlayQueueSize(mContext))
         {
-            List<MediaSessionCompat.QueueItem> newTracks =  QueueHelper.getRandomQueue(mMusicProvider, RANDOM_QUEUE_SIZE - currentQueueSize);
+            List<MediaSessionCompat.QueueItem> newTracks =  QueueHelper.getRandomQueue(mMusicProvider, Settings.getPlayQueueSize(mContext) - currentQueueSize);
             // Add the new songs
             mPlayingQueue.addAll(newTracks);
         }

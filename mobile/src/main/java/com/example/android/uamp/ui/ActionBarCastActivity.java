@@ -33,6 +33,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.android.uamp.R;
+import com.example.android.uamp.settings.SettingsActivity;
 import com.example.android.uamp.utils.LogHelper;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
@@ -100,6 +101,9 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
                         break;
                     case R.id.navigation_playlists:
                         activityClass = PlaceholderActivity.class;
+                        break;
+                    case R.id.navigation_settings:
+                        activityClass = SettingsActivity.class;
                         break;
                 }
                 if (activityClass != null) {

@@ -224,13 +224,16 @@ public class MediaChooserGroupsFragment extends Fragment {
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
 
         Cursor cursor;
-        if (Constants.SEARCH_TYPE_ALBUM.equals(getSearchType()))
-            cursor= getAlbumsCursor();
-        else {
+        int subtitleColumnIndex;
+        if (Constants.SEARCH_TYPE_ALBUM.equals(getSearchType())) {
+            cursor = getAlbumsCursor();
+            subtitleColumnIndex = 2;
+        } else {
             cursor= getArtistsCursor();
+            subtitleColumnIndex = -1;
         }
 
-        mCursorAdapter = new AlbumCursorAdapter(getActivity(), cursor);
+        mCursorAdapter = new AlbumCursorAdapter(getActivity(), cursor, 1,  subtitleColumnIndex);
 
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
         listView.setAdapter(mCursorAdapter);
@@ -449,12 +452,18 @@ public class MediaChooserGroupsFragment extends Fragment {
     // An adapter for showing the list of browsed MediaItem's
     private static class AlbumCursorAdapter extends CursorAdapter  {
 
-        public AlbumCursorAdapter(Activity context, Cursor tracksCursor) {
-            super(context, tracksCursor, 0);
+        private static int titleColumnIndex;
+        private static int subtitleColumnIndex;
+
+        public AlbumCursorAdapter(Activity context, Cursor cursor, int titleColumnIndex, int subtitleColumnIndex) {
+            super(context, cursor, 0);
+            this.titleColumnIndex = titleColumnIndex;
+            this.subtitleColumnIndex = subtitleColumnIndex;
         }
 
-        public static class ViewHolder{
-            public TextView AlbumTitle;
+        public static class GroupViewHolder {
+            public TextView title;
+            public TextView subtitle;
             public ImageButton btnAddToPlayqueue;
             public View view;
         }
@@ -463,10 +472,13 @@ public class MediaChooserGroupsFragment extends Fragment {
         // such as setting the text on a TextView.
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
-            ViewHolder viewHolder = (ViewHolder) view.getTag();
-            String trackTitle = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
-            viewHolder.AlbumTitle.setText(trackTitle);
-
+            GroupViewHolder viewHolder = (GroupViewHolder) view.getTag();
+            String title = cursor.getString(titleColumnIndex /*cursor.getColumnIndexOrThrow(NAME_COLUMN)*/);
+            viewHolder.title.setText(title);
+            if (subtitleColumnIndex >= 0) {
+                String subtitle = cursor.getString(subtitleColumnIndex /*cursor.getColumnIndexOrThrow(NAME_COLUMN)*/);
+                viewHolder.subtitle.setText(subtitle);
+            }
         }
 
         // The newView method is used to inflate a new view and return it,
@@ -474,21 +486,14 @@ public class MediaChooserGroupsFragment extends Fragment {
         @Override
         public View newView(Context context, Cursor cursor, final ViewGroup parent) {
             View view =  LayoutInflater.from(context).inflate(R.layout.media_list_item_with_plus, parent, false);
-            ViewHolder viewHolder = new ViewHolder();
-            viewHolder.AlbumTitle = (TextView) view.findViewById(R.id.title);
+            GroupViewHolder viewHolder = new GroupViewHolder();
+            viewHolder.title = (TextView) view.findViewById(R.id.title);
+            viewHolder.subtitle = (TextView) view.findViewById(R.id.description);
             viewHolder.btnAddToPlayqueue = (ImageButton) view.findViewById(R.id.plus_eq);
 
             String title = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
             long id = cursor.getLong(0);
-            //viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(AlbumTitle));
-/*
-            viewHolder.btnAddToPlayqueue.setOnClickListener(new ViewGroup.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ((ListView) parent).performItemClick(v, 0, 0); // Let the event be handled in onItemClick()
-                }
-            });
-*/
+
             viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, parent, id));
             view.setTag(viewHolder);
             return view;
@@ -517,12 +522,4 @@ public class MediaChooserGroupsFragment extends Fragment {
         }
 
     }
-/*
-    public interface MediaChooserFragmentListener extends MediaBrowserProvider {
-        void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item);
-//        void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
-        void onAddTrackToQueue(long trackId);
-        void setToolbarTitle(CharSequence AlbumTitle);
-    }
-*/
 }
