@@ -280,6 +280,29 @@ public class QueueManager {
         }
     }
 
+    public void removeQueueItemByQueueId(long queueId) {
+        LogHelper.i(TAG, "removeQueueItemByQueueId ", queueId);
+        Iterator<MediaSessionCompat.QueueItem> it = mPlayingQueue.iterator();
+        // safe removal from list (don't use for)
+        boolean hasChanged = false;
+        long itemQueueId;
+        while (it.hasNext()) {
+            MediaSessionCompat.QueueItem item = it.next();
+            MediaDescriptionCompat itemDescription = item.getDescription();
+            itemQueueId = item.getQueueId();
+            LogHelper.i(TAG, "itemQueueId", itemQueueId);
+            if (itemQueueId == queueId) {
+                LogHelper.i(TAG, "found item");
+                hasChanged = true;
+                it.remove();
+            }
+        }
+        if (hasChanged) {
+            // if the new queue has less than N items then fill it randomly
+            fillRandomQueue();
+            mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
+        }
+    }
     /**
      * Add all tracks from a specified album to the queue
      * @param albumId The _ID of the album

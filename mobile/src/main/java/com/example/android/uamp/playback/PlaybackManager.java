@@ -19,6 +19,7 @@ package com.example.android.uamp.playback;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -400,6 +401,7 @@ public class PlaybackManager implements Playback.Callback {
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
             }
+
         }
 
         /**
@@ -427,6 +429,13 @@ public class PlaybackManager implements Playback.Callback {
             } else {
                 updatePlaybackState("Could not find music");
             }
+        }
+
+        @Override
+        public void onCommand(String command, Bundle extras, ResultReceiver cb) {
+            long queueId = extras.getLong(CUSTOM_EXTRA_TRACK_ID);
+            LogHelper.i(TAG, "COMMAND ", command, "queueId=", queueId);
+            mQueueManager.removeQueueItemByQueueId(queueId);
         }
     }
 

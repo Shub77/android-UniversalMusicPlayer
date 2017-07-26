@@ -40,6 +40,7 @@ import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.model.PlayQueueAdapter;
+import com.example.android.uamp.playback.PlaybackManager;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.ArrayList;
@@ -527,17 +528,16 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity implement
     /**
      * Implements method from PlayQueueAdapter.PlayQueueActionsListener
      * Called by the PlayQueueAdapter when remove button is clicked on an item
-     * @param position
+     * @param queueId
      * @param description
      */
     @Override
-    public void onRemoveSongClicked(int position, MediaDescriptionCompat description) {
-        LogHelper.i(TAG, "onRemoveSongClicked ",  position, "description =", description);
+    public void onRemoveSongClicked(long queueId, MediaDescriptionCompat description) {
+        LogHelper.i(TAG, "onRemoveSongClicked ",  queueId, "description =", description);
         // this will cause the media session to call MediaSessionCallback.onRemoveQueueItem in PlaybackManager
-        mediaController.removeQueueItem(description);
+        //mediaController.removeQueueItem(description);
+        Bundle bundle = new Bundle();
+        bundle.putLong(PlaybackManager.CUSTOM_EXTRA_TRACK_ID, queueId);
+        mediaController.sendCommand("ACOMMAND",bundle,null);
     }
-
-
-
-
 }

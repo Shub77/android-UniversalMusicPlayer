@@ -26,7 +26,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
     private static String TAG = "PlayQueueAdapter";
 
     public interface PlayQueueActionsListener  {
-        void onRemoveSongClicked(int Position, MediaDescriptionCompat description);
+        void onRemoveSongClicked(long queueId, MediaDescriptionCompat description);
         //void onMoveSongToTopClicked(int Position);
     }
 
@@ -68,7 +68,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
 
         holder.title.setText(description.getTitle());
         holder.description.setText(description.getDescription());
-        holder.removeItemButton.setOnClickListener(new OnRemoveButtonClickListener(position, item.getDescription().getMediaId(), description));
+        holder.removeItemButton.setOnClickListener(new OnRemoveButtonClickListener(position, item.getDescription().getMediaId(), description, item.getQueueId()));
         return vi;
     }
 
@@ -76,21 +76,23 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
     class OnRemoveButtonClickListener implements View.OnClickListener {
         int position;
         String mediaId;
+        long queueId;
         MediaDescriptionCompat description;
 
         // constructor
-        public OnRemoveButtonClickListener(int position, String mediaId, MediaDescriptionCompat description) {
+        public OnRemoveButtonClickListener(int position, String mediaId, MediaDescriptionCompat description, long queueId) {
             this.position = position;
             this.mediaId = mediaId;
             this.description = description;
+            this.queueId = queueId;
         }
         @Override
         public void onClick(View v) {
             //final Song song = (Song) getItem(songPosition);
-            LogHelper.i(TAG, "remove song, position = ", position, " mediaId=", mediaId);
+            LogHelper.i(TAG, "remove song, queueId = ", queueId, " mediaId=", mediaId);
 
             // Callback to the activity which must implement PlayQueueActionsListener
-            ((PlayQueueActionsListener)activity).onRemoveSongClicked(position, description);
+            ((PlayQueueActionsListener)activity).onRemoveSongClicked(queueId, description);
 
         }
     }
