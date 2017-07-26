@@ -265,9 +265,6 @@ public class MusicPlayerActivity extends BaseActivity
 
                 return true;
 
-            case R.id.action_restartService:
-//                restartIntentService();
-                return true;
         }
 
         return super.onOptionsItemSelected(item);

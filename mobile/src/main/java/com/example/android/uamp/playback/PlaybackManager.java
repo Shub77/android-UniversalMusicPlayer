@@ -44,6 +44,10 @@ public class PlaybackManager implements Playback.Callback {
     public static final String CUSTOM_EXTRA_MEDIA_ID = "uk.me.asbridge.uamp.CUSTOM_EXTRA_MEDIA_ID";
     public static final String CUSTOM_ACTION_ADD_TRACK_TO_QUEUE = "uk.me.asbridge.uamp.ADD_TRACK_TO_QUEUE";
     public static final String CUSTOM_EXTRA_TRACK_ID = "uk.me.asbridge.uamp.CUSTOM_EXTRA_TRACK_ID";
+    public static final String CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE = "uk.me.asbridge.uamp.CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE";
+    public static final String CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE = "uk.me.asbridge.uamp.CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE";
+
+
 
     private MusicProvider mMusicProvider;
     private QueueManager mQueueManager;
@@ -374,6 +378,7 @@ public class PlaybackManager implements Playback.Callback {
                 updatePlaybackState(null);
             } else if (CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE.equals(action)) {
                 // New custom action to set the queue, without starting to play any media
+                // Media ID is the heiracrchy string (not the long track ID)
                 String mediaId = extras.getString(CUSTOM_EXTRA_MEDIA_ID);
                 LogHelper.i(TAG, "onCustomAction: ADD_MUSIC_TO_QUEUE, medaiId =",mediaId);
                 mQueueManager.addMusicToQueue(mediaId);
@@ -382,6 +387,16 @@ public class PlaybackManager implements Playback.Callback {
                 long trackId = extras.getLong(CUSTOM_EXTRA_TRACK_ID);
                 LogHelper.i(TAG, "onCustomAction: ADD_TRACK_TO_QUEUE, medaiId =",trackId);
                 mQueueManager.addTrackToQueue(trackId);
+            } else if (CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE.equals(action)) {
+                // New custom action to set the queue, without starting to play any media
+                long artistId = extras.getLong(CUSTOM_EXTRA_MEDIA_ID);
+                LogHelper.i(TAG, "onCustomAction: CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE, artistId =",artistId);
+                mQueueManager.addArtistToQueue(artistId);
+            } else if (CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE.equals(action)) {
+                // New custom action to set the queue, without starting to play any media
+                long albumId = extras.getLong(CUSTOM_EXTRA_MEDIA_ID);
+                LogHelper.i(TAG, "onCustomAction: CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE, artistId =",albumId);
+                mQueueManager.addAlbumToQueue(albumId);
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
             }

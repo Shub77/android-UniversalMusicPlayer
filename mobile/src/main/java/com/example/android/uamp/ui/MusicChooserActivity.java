@@ -93,9 +93,8 @@ public class MusicChooserActivity extends BaseActivity
      * We have clicked on add button for an item
      * Add all the music in the item's category to the queue
      * - Could be just one song, or a category (e.g. all songs for an artist)
-     * @param item
-     */
-  /*
+     * //@param item
+
     @Override
     public void onAddMediaToQueue(MediaBrowserCompat.MediaItem item) {
         MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
@@ -103,7 +102,24 @@ public class MusicChooserActivity extends BaseActivity
         bundle.putString(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, item.getMediaId());
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE,bundle);
     }
-*/
+     */
+
+    @Override
+    public void onAddAlbumToQueue(long albumId) {
+        MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
+        Bundle bundle = new Bundle();
+        bundle.putLong(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, albumId);
+        controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE,bundle);
+    }
+
+    @Override
+    public void onAddArtistToQueue(long artistID) {
+        MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
+        Bundle bundle = new Bundle();
+        bundle.putLong(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, artistID);
+        controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE,bundle);
+    }
+
     @Override
     public void onAddTrackToQueue(long trackId) {
         MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
@@ -358,17 +374,21 @@ public class MusicChooserActivity extends BaseActivity
             return true;
         }
 */
-        Intent intent;
+        Intent fullScreenIntent;
         switch (item.getItemId()) {
             case R.id.action_show_now_playing:
-                Intent fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
+                fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
                         .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
                                 Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(fullScreenIntent);
 
                 return true;
-            case R.id.action_restartService:
-//                restartIntentService();
+            case R.id.action_show_browse:
+                fullScreenIntent = new Intent(this, MusicPlayerActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(fullScreenIntent);
+
                 return true;
         }
 

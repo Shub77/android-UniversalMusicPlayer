@@ -7,9 +7,5 @@
     <item
             android:id="@+id/action_show_browse"
             android:orderInCategory="120"
-            android:title="Choose Music"/>
-    <item
-            android:id="@+id/action_restartService"
-            android:orderInCategory="130"
-            android:title="Resume"/>
+            android:title="Browse Music"/>
 </menu>

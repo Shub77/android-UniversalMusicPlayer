@@ -248,24 +248,22 @@ public class MediaChooserGroupsFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 checkForUserVisibleErrors(false);
                 LogHelper.i(TAG, "clicked group with position", position, "and id ", id);
-
-                mMediaFragmentListener.onBrowseGroup(getSearchType(), id);
-                /*
-                MediaBrowserCompat.MediaItem item = mCursorAdapter.getItem(position);
-
                 long viewId = view.getId();
                 if (viewId == R.id.plus_eq) {
-                    LogHelper.i(TAG, "Add button clicked for item", item.getMediaId());
+                    LogHelper.i(TAG, "Add button clicked for item");//, item.getMediaId());
                     // This is a callback to the Music Player Activity
-                    mMediaFragmentListener.onAddMediaToQueue(item);
-                    // click has been handled by the add button. Nothing else to do
+                    switch (getSearchType()) {
+                        case Constants.SEARCH_TYPE_ALBUM:
+                            mMediaFragmentListener.onAddAlbumToQueue(id);
+                            break;
+                        case Constants.SEARCH_TYPE_ARTIST:
+                            mMediaFragmentListener.onAddArtistToQueue(id);
+                            break;
+                    }
                     return;
                 }
 
-                // This is a callback to the Music Player Activity to browse (NOT add)
-                mMediaFragmentListener.onBrowseMediaItemSelected(item);
-                */
-
+                mMediaFragmentListener.onBrowseGroup(getSearchType(), id);
             }
         });
         etSearchText = (EditText) rootView.findViewById(R.id.searchText);
@@ -468,34 +466,49 @@ public class MediaChooserGroupsFragment extends Fragment {
             ViewHolder viewHolder = (ViewHolder) view.getTag();
             String trackTitle = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
             viewHolder.AlbumTitle.setText(trackTitle);
+
         }
 
         // The newView method is used to inflate a new view and return it,
         // you don't bind any data to the view at this point.
         @Override
-        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        public View newView(Context context, Cursor cursor, final ViewGroup parent) {
             View view =  LayoutInflater.from(context).inflate(R.layout.media_list_item_with_plus, parent, false);
             ViewHolder viewHolder = new ViewHolder();
             viewHolder.AlbumTitle = (TextView) view.findViewById(R.id.title);
             viewHolder.btnAddToPlayqueue = (ImageButton) view.findViewById(R.id.plus_eq);
 
             String title = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
+            long id = cursor.getLong(0);
             //viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(AlbumTitle));
+/*
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new ViewGroup.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((ListView) parent).performItemClick(v, 0, 0); // Let the event be handled in onItemClick()
+                }
+            });
+*/
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, parent, id));
             view.setTag(viewHolder);
             return view;
         }
 
         class btnAddToPlayqueueClickListener implements View.OnClickListener {
             int position;
-            String title;
+            long id;
+            ViewGroup parent;
             // constructor
-            public btnAddToPlayqueueClickListener(String title) {
-                this.title = title;
+            public btnAddToPlayqueueClickListener(int position, ViewGroup parent, long id) {
+                this.position = position;
+                this.parent = parent;
+                this.id = id;
             }
             @Override
             public void onClick(View v) {
                 // checkbox clicked
-                LogHelper.i(TAG, "add track ",title);
+                LogHelper.i(TAG, "add group pos ",position);
+                ((ListView) parent).performItemClick(v, position, id); // Let the event be handled in onItemClick()
                 /*
                 if (artistListActionsListener != null)
                     artistListActionsListener.onAddArtistToPlaylistClicked(artistName);

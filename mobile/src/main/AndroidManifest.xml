@@ -52,10 +52,7 @@
         <activity
             android:name=".ui.MusicPlayerActivity"
             android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+
 
             <!-- Use this intent filter to get voice searches, like "Play The Beatles" -->
             <intent-filter>
@@ -68,6 +65,10 @@
         <activity
                 android:name=".ui.MusicChooserActivity"
                 android:label="@string/browse">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <!-- Placeholder activity for phone UI -->
@@ -174,6 +175,7 @@
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".ui.MusicPlayerActivity"/>
+
         </activity>
 
         <!-- A receiver that will receive media buttons and send as

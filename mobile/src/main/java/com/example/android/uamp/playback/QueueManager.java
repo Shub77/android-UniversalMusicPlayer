@@ -275,6 +275,60 @@ public class QueueManager {
         }
     }
 
+    /**
+     * Add all tracks from a specified album to the queue
+     * @param albumId The _ID of the album
+     */
+    public void addAlbumToQueue(long albumId) {
+        LogHelper.i(TAG, "addAlbumToQueue id=", albumId);
+        // get all the new tracks to add. Will add all tracks in the same category as the chosen track
+        Iterable<MediaMetadataCompat> tracks;
+        tracks = mMusicProvider.getMusicsByAlbum(Long.toString(albumId));
+
+        List<MediaSessionCompat.QueueItem> newQueueItems = new ArrayList<>();
+        int count = 0;
+        for (MediaMetadataCompat track : tracks) {
+            MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ALBUM/ALBUM|"+Long.toString(albumId))
+                    .build();
+
+            // We don't expect queues to change after created, so we use the item index as the
+            // queueId. Any other number unique in the queue would work.
+            MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
+                    trackCopy.getDescription(), count++);
+            newQueueItems.add(item);
+        }
+
+        LogHelper.i(TAG, newQueueItems.size(), " new tracks");
+        mPlayingQueue.addAll(newQueueItems);
+        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
+    }
+
+    public void addArtistToQueue(long artistId) {
+        LogHelper.i(TAG, "addArtistToQueue id=", artistId);
+        // get all the new tracks to add. Will add all tracks in the same category as the chosen track
+        Iterable<MediaMetadataCompat> tracks;
+        tracks = mMusicProvider.getMusicsByArtist(Long.toString(artistId));
+
+        List<MediaSessionCompat.QueueItem> newQueueItems = new ArrayList<>();
+        int count = 0;
+        for (MediaMetadataCompat track : tracks) {
+            MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ALBUM/ALBUM|"+Long.toString(artistId))
+                    .build();
+
+            // We don't expect queues to change after created, so we use the item index as the
+            // queueId. Any other number unique in the queue would work.
+            MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
+                    trackCopy.getDescription(), count++);
+            newQueueItems.add(item);
+        }
+
+        LogHelper.i(TAG, newQueueItems.size(), " new tracks");
+        mPlayingQueue.addAll(newQueueItems);
+        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
+    }
+
     public void addTrackToQueue(long trackId) {
         String stringTrackId = Long.toString(trackId);
         MediaMetadataCompat track = mMusicProvider.getMusic(stringTrackId);

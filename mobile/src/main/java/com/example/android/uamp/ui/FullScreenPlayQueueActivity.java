@@ -34,9 +34,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.format.DateUtils;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.MusicService;
@@ -146,6 +144,45 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity implement
             LogHelper.i(TAG, "onConnected: Connected to media controller");
         }
     };
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        LogHelper.d(TAG, "onCreateOptionsMenu");
+        super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.player_toolbar, menu);
+
+        return true;
+    }
+
+    // handle user interaction with the menu
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+/*
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+*/
+        Intent fullScreenIntent;
+        switch (item.getItemId()) {
+            case R.id.action_show_now_playing:
+                fullScreenIntent= new Intent(this, FullScreenPlayQueueActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(fullScreenIntent);
+
+                return true;
+            case R.id.action_show_choose:
+                fullScreenIntent = new Intent(this, MusicChooserActivity.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(fullScreenIntent);
+
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

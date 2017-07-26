@@ -8,7 +8,10 @@ import com.example.android.uamp.ui.MediaBrowserProvider;
  */
 public interface MediaChooserFragmentListener extends MediaBrowserProvider {
     void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item);
-    //        void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
+    //    void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
+    void onAddAlbumToQueue(long id);
+    void onAddArtistToQueue(long id);
+
     void onAddTrackToQueue(long trackId);
     void setToolbarTitle(CharSequence title);
     void onBrowseGroup(String type, long ID);

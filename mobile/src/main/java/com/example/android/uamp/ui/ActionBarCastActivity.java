@@ -252,6 +252,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
     }
 
     protected void initializeToolbar() {
+        LogHelper.i(TAG, "init toolbar");
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         if (mToolbar == null) {
             throw new IllegalStateException("Layout is required to include a Toolbar with id " +
@@ -261,6 +262,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (mDrawerLayout != null) {
+            LogHelper.i(TAG, "mDrawerLayout != null");
             NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
             if (navigationView == null) {
                 throw new IllegalStateException("Layout requires a NavigationView " +
@@ -275,6 +277,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
             setSupportActionBar(mToolbar);
             updateDrawerToggle();
         } else {
+            LogHelper.i(TAG, "mDrawerLayout == null");
             setSupportActionBar(mToolbar);
         }
 
