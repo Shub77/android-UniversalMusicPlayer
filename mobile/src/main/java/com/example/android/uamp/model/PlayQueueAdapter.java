@@ -68,28 +68,26 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
 
         holder.title.setText(description.getTitle());
         holder.description.setText(description.getDescription());
-        holder.removeItemButton.setOnClickListener(new OnRemoveButtonClickListener(position, item.getDescription().getMediaId(), description, item.getQueueId()));
+        holder.removeItemButton.setOnClickListener(new OnRemoveButtonClickListener(position, description, item.getQueueId()));
         return vi;
     }
 
 
     class OnRemoveButtonClickListener implements View.OnClickListener {
         int position;
-        String mediaId;
         long queueId;
         MediaDescriptionCompat description;
 
         // constructor
-        public OnRemoveButtonClickListener(int position, String mediaId, MediaDescriptionCompat description, long queueId) {
+        public OnRemoveButtonClickListener(int position, MediaDescriptionCompat description, long queueId) {
             this.position = position;
-            this.mediaId = mediaId;
             this.description = description;
             this.queueId = queueId;
         }
         @Override
         public void onClick(View v) {
             //final Song song = (Song) getItem(songPosition);
-            LogHelper.i(TAG, "remove song, queueId = ", queueId, " mediaId=", mediaId);
+            LogHelper.i(TAG, "remove song, queueId = ", queueId);
 
             // Callback to the activity which must implement PlayQueueActionsListener
             ((PlayQueueActionsListener)activity).onRemoveSongClicked(queueId, description);

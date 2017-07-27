@@ -16,8 +16,10 @@
 package com.example.android.uamp.ui;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -33,6 +35,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.app.AlertDialog;
 import android.text.format.DateUtils;
 import android.view.*;
 import android.widget.*;
@@ -41,6 +44,7 @@ import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.model.PlayQueueAdapter;
 import com.example.android.uamp.playback.PlaybackManager;
+import com.example.android.uamp.ui.dialogs.SetTimerDialog;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.ArrayList;
@@ -59,7 +63,10 @@ import static android.view.View.VISIBLE;
  * The activity implements PlayQueueAdapter.PlayQueueActionsListener to receive callbacks
  * from playqueue item buttons (e.g. remove item from playqueue)
  */
-public class FullScreenPlayQueueActivity extends ActionBarCastActivity implements PlayQueueAdapter.PlayQueueActionsListener {
+public class FullScreenPlayQueueActivity extends ActionBarCastActivity
+        implements PlayQueueAdapter.PlayQueueActionsListener,
+        SetTimerDialog.OnSleepTimerChangedListener
+{
     private static final String TAG = LogHelper.makeLogTag(FullScreenPlayQueueActivity.class);
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
     private static final long PROGRESS_UPDATE_INITIAL_INTERVAL = 100;
@@ -153,6 +160,10 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity implement
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.player_toolbar, menu);
 
+        MenuItem sleepIcon = menu.findItem(R.id.action_zzz);
+            long secsTillSleep = -1;
+            sleepIcon.setVisible(secsTillSleep > 0);
+
         return true;
     }
 
@@ -178,9 +189,10 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity implement
                         .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
                                 Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(fullScreenIntent);
-
                 return true;
-        }
+            case R.id.action_timer:
+                showTimerDialog();
+                return true;        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -537,7 +549,69 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity implement
         // this will cause the media session to call MediaSessionCallback.onRemoveQueueItem in PlaybackManager
         //mediaController.removeQueueItem(description);
         Bundle bundle = new Bundle();
-        bundle.putLong(PlaybackManager.CUSTOM_EXTRA_TRACK_ID, queueId);
-        mediaController.sendCommand("ACOMMAND",bundle,null);
+        bundle.putLong(PlaybackManager.COMMAND_EXTRA_PARAMETER, queueId);
+        mediaController.sendCommand(PlaybackManager.COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID,bundle,null);
+    }
+
+    // For the sleep timer dialog
+    public void showTimerDialog() {
+        long secsTillSleep;
+        boolean isSleepTimerActive;
+        FragmentManager fm = getFragmentManager();
+        isSleepTimerActive = false/*retainFragment.serviceReference.isSleepTimerActive()*/;
+        secsTillSleep = -1/*retainFragment.serviceReference.getSecsTillSleep()*/;
+
+        if (!isSleepTimerActive) {
+            SetTimerDialog setSleepTimerDialog = new SetTimerDialog();
+            setSleepTimerDialog.setOnSetSleepTimerListener(this);
+            setSleepTimerDialog.show(fm, "fragment_settimer_dialog");
+        } else {
+            // sleep timer is active ... allow user to cancel
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            String msg;
+            if (secsTillSleep < 0) {
+                msg = "Sleep at end of playing song";
+            } else if (secsTillSleep < 60) {
+                msg = "Sleep in less than one minute";
+            } else {
+                long minsTillSleep = secsTillSleep / 60;
+                msg = "Sleep in " + Long.toString(minsTillSleep) + " minutes";
+            }
+
+            builder.setTitle("Cancel sleep timer")
+                    .setMessage(msg + "\nCancel?")
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Do nothing
+                            dialog.dismiss();
+                        }
+                    })
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            LogHelper.i(TAG, "Positive button onClick: ");
+                            /*
+                            sleepIcon.setVisible(false);
+                            retainFragment.serviceReference.cancelSleepTimer();
+                            */
+                            dialog.dismiss();
+                        }
+                    });
+
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+    }
+
+    @Override
+    public void onSleepTimerChanged(int minsTillSleep) {
+        LogHelper.i(TAG, "onSleepTimerChanged: ", minsTillSleep);
+        Bundle bundle = new Bundle();
+        bundle.putInt(PlaybackManager.COMMAND_EXTRA_PARAMETER, minsTillSleep);
+        mediaController.sendCommand(PlaybackManager.COMMAND_SET_SLEEP_TIMER,bundle,null);
+        //retainFragment.serviceReference.setSleepTimer(minsTillSleep);
+        //sleepIcon.setVisible(true);
     }
 }

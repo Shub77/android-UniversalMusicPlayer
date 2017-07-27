@@ -33,6 +33,8 @@ import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.WearHelper;
 
+import java.util.Calendar;
+
 /**
  * Manage the interactions among the container service, the queue manager and the actual playback.
  */
@@ -48,7 +50,9 @@ public class PlaybackManager implements Playback.Callback {
     public static final String CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE = "uk.me.asbridge.uamp.CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE";
     public static final String CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE = "uk.me.asbridge.uamp.CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE";
 
-
+    public static final String COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID= "uk.me.asbridge.uamp.COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID";
+    public static final String COMMAND_SET_SLEEP_TIMER = "uk.me.asbridge.uamp.COMMAND_SET_SLEEP_TIMER";
+    public static final String COMMAND_EXTRA_PARAMETER = "uk.me.asbridge.uamp.COMMAND_EXTRA_PARAMETER";
 
     private MusicProvider mMusicProvider;
     private QueueManager mQueueManager;
@@ -206,22 +210,17 @@ public class PlaybackManager implements Playback.Callback {
         // The media player finished playing the current song, so we go ahead
         // and start the next. Use our new call 'go to next song' instead of skip(1)
         if (mQueueManager.goToNextSong()) {
-            handlePlayRequest();
+            if (timeToGoToSleep()) {
+                handleStopRequest(null);
+                sleepTime = null;
+            } else {
+                handlePlayRequest();
+            }
             mQueueManager.updateMetadata();
         } else {
             // If skipping was not possible, we stop and release the resources:
             handleStopRequest(null);
         }
-
-        /*
-        if (mQueueManager.skipQueuePosition(1)) {
-            handlePlayRequest();
-            mQueueManager.updateMetadata();
-        } else {
-            // If skipping was not possible, we stop and release the resources:
-            handleStopRequest(null);
-        }
-        */
     }
 
     @Override
@@ -433,12 +432,57 @@ public class PlaybackManager implements Playback.Callback {
 
         @Override
         public void onCommand(String command, Bundle extras, ResultReceiver cb) {
-            long queueId = extras.getLong(CUSTOM_EXTRA_TRACK_ID);
-            LogHelper.i(TAG, "COMMAND ", command, "queueId=", queueId);
-            mQueueManager.removeQueueItemByQueueId(queueId);
+            LogHelper.i(TAG, "COMMAND ", command);
+            switch (command) {
+                case COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID:
+                    long queueId = extras.getLong(COMMAND_EXTRA_PARAMETER);
+                    mQueueManager.removeQueueItemByQueueId(queueId);
+                    break;
+                case COMMAND_SET_SLEEP_TIMER:
+                    int minsTillSleep = extras.getInt(COMMAND_EXTRA_PARAMETER);
+                    setSleepTime(minsTillSleep);
+            }
         }
     }
 
+    private Calendar sleepTime = null;
+
+    public void setSleepTime(int mins) {
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MINUTE, mins);
+        sleepTime = c;
+    }
+
+    public long getSecsTillSleep() {
+        if (sleepTime == null) return -1;
+        Calendar currentTime = Calendar.getInstance();
+        long diff = sleepTime.getTimeInMillis() - currentTime.getTimeInMillis();
+        long mins = diff / 1000;
+        return mins;
+    }
+
+    public boolean isSleepTimerActive() {
+        return (sleepTime != null);
+    }
+
+    public void cancelSleepTimer() {
+        LogHelper.v(TAG, "cancel sleep timer");
+        sleepTime = null;
+    }
+
+    private boolean timeToGoToSleep() {
+        LogHelper.i(TAG, "timeToGoToSleep ",((sleepTime==null)?" null":sleepTime.getTimeInMillis()));
+        if (sleepTime == null)
+            return false; // no sleep timer set
+        Calendar currentTime = Calendar.getInstance();
+        LogHelper.i(TAG, "timeToGoToSleep: sleeptime = ",sleepTime.getTimeInMillis(), " current=", currentTime.getTimeInMillis() );
+        if (currentTime.after(sleepTime)) {
+            LogHelper.i(TAG, "Bedtime!");
+            return true;
+        }
+        LogHelper.i(TAG, "timeToGoToSleep - not time yet");
+        return false;
+    }
 
     public interface PlaybackServiceCallback {
         void onPlaybackStart();
