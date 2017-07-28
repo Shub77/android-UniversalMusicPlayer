@@ -93,7 +93,6 @@ public class MediaChooserGroupsFragment extends Fragment {
             }
             LogHelper.d(TAG, "Received metadata change to media ",
                     metadata.getDescription().getMediaId());
-//            mBrowserAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -101,7 +100,6 @@ public class MediaChooserGroupsFragment extends Fragment {
             super.onPlaybackStateChanged(state);
             LogHelper.d(TAG, "Received state change: ", state);
             checkForUserVisibleErrors(false);
-//            mBrowserAdapter.notifyDataSetChanged();
         }
     };
 
@@ -113,7 +111,6 @@ public class MediaChooserGroupsFragment extends Fragment {
                 try {
                     LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
                     checkForUserVisibleErrors(children.isEmpty());
- //                   mBrowserAdapter.clear();
                     for (MediaBrowserCompat.MediaItem item : children) {
 //                        mBrowserAdapter.add(item);
                     }
@@ -218,7 +215,7 @@ public class MediaChooserGroupsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         //LogHelper.i(TAG, "fragment.onCreateView");
-        View rootView = inflater.inflate(R.layout.fragment_media_groups_chooser, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_media_chooser_groups, container, false);
 
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
@@ -485,7 +482,7 @@ public class MediaChooserGroupsFragment extends Fragment {
         // you don't bind any data to the view at this point.
         @Override
         public View newView(Context context, Cursor cursor, final ViewGroup parent) {
-            View view =  LayoutInflater.from(context).inflate(R.layout.media_list_item_with_plus, parent, false);
+            View view =  LayoutInflater.from(context).inflate(R.layout.list_item_group, parent, false);
             GroupViewHolder viewHolder = new GroupViewHolder();
             viewHolder.title = (TextView) view.findViewById(R.id.title);
             viewHolder.subtitle = (TextView) view.findViewById(R.id.description);

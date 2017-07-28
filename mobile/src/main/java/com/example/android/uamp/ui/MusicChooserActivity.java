@@ -31,7 +31,7 @@ import com.example.android.uamp.constants.Constants;
 import com.example.android.uamp.model.MediaChooserFragmentListener;
 import com.example.android.uamp.playback.PlaybackManager;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserGroupsFragment;
-import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserFragment;
+import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserTracksFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserOptionsFragment;
 import com.example.android.uamp.utils.LogHelper;
 
@@ -216,8 +216,8 @@ public class MusicChooserActivity extends BaseActivity
 
     public void onChooseTrack() {
         LogHelper.i(TAG, "onChooseTrack");
-        MediaChooserFragment fragment = null;
-        fragment = new MediaChooserFragment();
+        MediaChooserTracksFragment fragment = null;
+        fragment = new MediaChooserTracksFragment();
         //fragment.setMediaId(mediaId);
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.setCustomAnimations(
@@ -237,8 +237,8 @@ public class MusicChooserActivity extends BaseActivity
      */
     public void browseAlbum(long albumId) {
         LogHelper.i(TAG, "browseAlbum with id=", albumId);
-        MediaChooserFragment fragment = null;
-        fragment = new MediaChooserFragment();
+        MediaChooserTracksFragment fragment = null;
+        fragment = new MediaChooserTracksFragment();
         fragment.setSearchParams(Constants.SEARCH_TYPE_ALBUM, Long.toString(albumId));
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.setCustomAnimations(
@@ -258,8 +258,8 @@ public class MusicChooserActivity extends BaseActivity
      */
     public void browseArtist(long artistId) {
         LogHelper.i(TAG, "browseArtist with id=", artistId);
-        MediaChooserFragment fragment = null;
-        fragment = new MediaChooserFragment();
+        MediaChooserTracksFragment fragment = null;
+        fragment = new MediaChooserTracksFragment();
         fragment.setSearchParams(Constants.SEARCH_TYPE_ARTIST, Long.toString(artistId));
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.setCustomAnimations(
@@ -331,15 +331,15 @@ public class MusicChooserActivity extends BaseActivity
     }
 
     public String getMediaId() {
-        MediaChooserFragment fragment = getBrowseFragment();
+        MediaChooserTracksFragment fragment = getBrowseFragment();
         if (fragment == null) {
             return null;
         }
         return fragment.getMediaId();
     }
 
-    private MediaChooserFragment getBrowseFragment() {
-        return (MediaChooserFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+    private MediaChooserTracksFragment getBrowseFragment() {
+        return (MediaChooserTracksFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
     }
 
     @Override

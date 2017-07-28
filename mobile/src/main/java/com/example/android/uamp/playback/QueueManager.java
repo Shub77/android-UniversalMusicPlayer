@@ -368,7 +368,7 @@ public class QueueManager {
 
         MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
                 trackCopy.getDescription(), QueueHelper.count++);
-        LogHelper.i(TAG, "adding AlbumTitle", track.getDescription().getTitle());
+
         mPlayingQueue.add(item);
         mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }

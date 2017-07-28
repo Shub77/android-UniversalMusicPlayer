@@ -41,7 +41,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
     }
 
     public PlayQueueAdapter(Activity context) {
-        super(context, R.layout.playqueue_list_item, new ArrayList<MediaSessionCompat.QueueItem>());
+        super(context, R.layout.list_item_playqueue, new ArrayList<MediaSessionCompat.QueueItem>());
         activity = context;
     }
 
@@ -51,7 +51,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
         ViewHolder holder;
         songInf= LayoutInflater.from(activity);
         if(convertView==null) {
-            vi = songInf.inflate(R.layout.playqueue_list_item, null);
+            vi = songInf.inflate(R.layout.list_item_playqueue, null);
 
             holder = new ViewHolder();
             holder.view = vi;
@@ -65,13 +65,11 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
 
         MediaSessionCompat.QueueItem item = getItem(position);
         MediaDescriptionCompat description = item.getDescription();
-
         holder.title.setText(description.getTitle());
-        holder.description.setText(description.getDescription());
+        holder.description.setText(description.getSubtitle());
         holder.removeItemButton.setOnClickListener(new OnRemoveButtonClickListener(position, description, item.getQueueId()));
         return vi;
     }
-
 
     class OnRemoveButtonClickListener implements View.OnClickListener {
         int position;
