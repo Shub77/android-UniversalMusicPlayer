@@ -27,7 +27,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
 
     public interface PlayQueueActionsListener  {
         void onRemoveSongClicked(long queueId, MediaDescriptionCompat description);
-        //void onMoveSongToTopClicked(int Position);
+        void onMoveSongToTopClicked(long queueId);
     }
 
     private Context activity; // this activity must implement PlayQueueActionsListener
@@ -35,6 +35,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
 
     private static class ViewHolder{
         public ImageButton removeItemButton;
+        public ImageButton moveItemToTopButton;
         public TextView title;
         public TextView description;
         public View view;
@@ -56,6 +57,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
             holder = new ViewHolder();
             holder.view = vi;
             holder.removeItemButton = (ImageButton) vi.findViewById(R.id.playqueue_remove_item);
+            holder.moveItemToTopButton = (ImageButton) vi.findViewById(R.id.playqueue_move_item_to_top);
             holder.title = (TextView) vi.findViewById(R.id.title);
             holder.description =(TextView)vi.findViewById(R.id.description);
             vi.setTag( holder );
@@ -68,6 +70,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
         holder.title.setText(description.getTitle());
         holder.description.setText(description.getSubtitle());
         holder.removeItemButton.setOnClickListener(new OnRemoveButtonClickListener(position, description, item.getQueueId()));
+        holder.moveItemToTopButton.setOnClickListener(new OnMoveItemToTopButtonClickListener(item.getQueueId()));
         return vi;
     }
 
@@ -89,6 +92,25 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
 
             // Callback to the activity which must implement PlayQueueActionsListener
             ((PlayQueueActionsListener)activity).onRemoveSongClicked(queueId, description);
+
+        }
+    }
+
+    class OnMoveItemToTopButtonClickListener implements View.OnClickListener {
+
+        long queueId;
+
+        // constructor
+        public OnMoveItemToTopButtonClickListener(long queueId) {
+            this.queueId = queueId;
+        }
+        @Override
+        public void onClick(View v) {
+            //final Song song = (Song) getItem(songPosition);
+            LogHelper.i(TAG, "remove song, queueId = ", queueId);
+
+            // Callback to the activity which must implement PlayQueueActionsListener
+            ((PlayQueueActionsListener)activity).onMoveSongToTopClicked(queueId);
 
         }
     }

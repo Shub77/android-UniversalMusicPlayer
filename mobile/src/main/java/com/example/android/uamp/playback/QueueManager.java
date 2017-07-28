@@ -280,13 +280,39 @@ public class QueueManager {
         }
     }
 
+    public void moveQueueItemToTopByQueueId(long queueId) {
+        LogHelper.i(TAG, "moveQueueItemToTopByQueueId ", queueId);
+        Iterator<MediaSessionCompat.QueueItem> it = mPlayingQueue.iterator();
+        MediaSessionCompat.QueueItem item = null;
+        // safe removal from list (don't use for)
+        boolean hasChanged = false;
+        long itemQueueId;
+        while (hasChanged == false && it.hasNext()) {
+            item = it.next();
+            MediaDescriptionCompat itemDescription = item.getDescription();
+            itemQueueId = item.getQueueId();
+            LogHelper.i(TAG, "itemQueueId", itemQueueId);
+            if (itemQueueId == queueId) {
+                LogHelper.i(TAG, "found item");
+                hasChanged = true;
+                it.remove();
+            }
+        }
+        if (hasChanged) {
+            mPlayingQueue.add(0, item);
+
+            // if the new queue has less than N items then fill it randomly
+            fillRandomQueue();
+            mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
+        }
+    }
+
     public void removeQueueItemByQueueId(long queueId) {
-        LogHelper.i(TAG, "removeQueueItemByQueueId ", queueId);
         Iterator<MediaSessionCompat.QueueItem> it = mPlayingQueue.iterator();
         // safe removal from list (don't use for)
         boolean hasChanged = false;
         long itemQueueId;
-        while (it.hasNext()) {
+        while (hasChanged == false && it.hasNext()) {
             MediaSessionCompat.QueueItem item = it.next();
             MediaDescriptionCompat itemDescription = item.getDescription();
             itemQueueId = item.getQueueId();
@@ -369,7 +395,7 @@ public class QueueManager {
         MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
                 trackCopy.getDescription(), QueueHelper.count++);
 
-        mPlayingQueue.add(item);
+        mPlayingQueue.add(0,item);
         mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
     /**

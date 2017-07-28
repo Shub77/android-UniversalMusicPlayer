@@ -21,17 +21,30 @@
     android:descendantFocusability="blocksDescendants">
 
     <ImageButton
-        android:id="@+id/playqueue_remove_item"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="@dimen/media_item_icon_margin_start"
-        android:tintMode="src_in"
-        android:tint="@color/media_item_icon_not_playing"
-        android:contentDescription="@string/play_item"
-        android:src="@drawable/ic_play_arrow_black_36dp"
-        android:focusable="false"/>
+            android:id="@+id/playqueue_remove_item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/media_item_icon_margin_start"
+            android:tintMode="src_in"
+            android:tint="@color/media_item_icon_not_playing"
+            android:contentDescription="@string/remove_item"
+            android:src="@drawable/ic_play_arrow_black_36dp"
+            android:focusable="false"/>
+
+    <ImageButton
+            android:id="@+id/playqueue_move_item_to_top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/playqueue_remove_item"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/media_item_icon_margin_start"
+            android:tintMode="src_in"
+            android:tint="@color/media_item_icon_not_playing"
+            android:contentDescription="@string/move_item_to_top"
+            android:src="@drawable/ic_pause_black_36dp"
+            android:focusable="false"/>
 
     <LinearLayout
         android:layout_width="match_parent"

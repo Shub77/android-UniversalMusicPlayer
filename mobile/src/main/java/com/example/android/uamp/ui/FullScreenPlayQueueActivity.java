@@ -553,6 +553,21 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         mediaController.sendCommand(PlaybackManager.COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID,bundle,null);
     }
 
+    /**
+     * Implements method from PlayQueueAdapter.PlayQueueActionsListener
+     * Called by the PlayQueueAdapter when move to top button is clicked on an item
+     * @param queueId
+
+     */
+    @Override
+    public void onMoveSongToTopClicked(long queueId) {
+        LogHelper.i(TAG, "onMoveSongToTopClicked ",  queueId);
+        // this will cause the media session to call MediaSessionCallback.onMoveQueueItemToTop in PlaybackManager
+        Bundle bundle = new Bundle();
+        bundle.putLong(PlaybackManager.COMMAND_EXTRA_PARAMETER, queueId);
+        mediaController.sendCommand(PlaybackManager.COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID,bundle,null);
+    }
+
     // For the sleep timer dialog
     public void showTimerDialog() {
         long secsTillSleep;

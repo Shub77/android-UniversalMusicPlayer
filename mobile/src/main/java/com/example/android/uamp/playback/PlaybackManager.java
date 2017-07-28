@@ -51,6 +51,8 @@ public class PlaybackManager implements Playback.Callback {
     public static final String CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE = "uk.me.asbridge.uamp.CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE";
 
     public static final String COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID= "uk.me.asbridge.uamp.COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID";
+    public static final String COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID= "uk.me.asbridge.uamp.COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID";
+
     public static final String COMMAND_SET_SLEEP_TIMER = "uk.me.asbridge.uamp.COMMAND_SET_SLEEP_TIMER";
     public static final String COMMAND_EXTRA_PARAMETER = "uk.me.asbridge.uamp.COMMAND_EXTRA_PARAMETER";
 
@@ -433,10 +435,15 @@ public class PlaybackManager implements Playback.Callback {
         @Override
         public void onCommand(String command, Bundle extras, ResultReceiver cb) {
             LogHelper.i(TAG, "COMMAND ", command);
+            long queueId;
             switch (command) {
                 case COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID:
-                    long queueId = extras.getLong(COMMAND_EXTRA_PARAMETER);
+                    queueId = extras.getLong(COMMAND_EXTRA_PARAMETER);
                     mQueueManager.removeQueueItemByQueueId(queueId);
+                    break;
+                case COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID:
+                    queueId = extras.getLong(COMMAND_EXTRA_PARAMETER);
+                    mQueueManager.moveQueueItemToTopByQueueId(queueId);
                     break;
                 case COMMAND_SET_SLEEP_TIMER:
                     int minsTillSleep = extras.getInt(COMMAND_EXTRA_PARAMETER);

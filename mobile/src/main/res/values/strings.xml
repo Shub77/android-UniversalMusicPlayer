@@ -74,4 +74,7 @@
     <string name="playqueuesize_summary">Playqueue size</string>
     <string name="playqueuesize__title">Number of tracks in the play queue</string>
 
+    <string name="move_item_to_top">move to top</string>
+    <string name="remove_item">remove</string>
+
 </resources>
