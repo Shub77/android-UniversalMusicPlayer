@@ -17,6 +17,7 @@ package com.example.android.uamp.ui;
 
 import android.app.ActivityOptions;
 import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.MediaRouteButton;
 import android.support.v7.widget.Toolbar;
@@ -33,7 +35,9 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.android.uamp.R;
+import com.example.android.uamp.playback.PlaybackManager;
 import com.example.android.uamp.settings.SettingsActivity;
+import com.example.android.uamp.ui.dialogs.SetTimerDialog;
 import com.example.android.uamp.utils.LogHelper;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
@@ -53,7 +57,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
  * a {@link android.support.v4.widget.DrawerLayout} with id 'drawerLayout' and
  * a {@link android.widget.ListView} with id 'drawerList'.
  */
-public abstract class ActionBarCastActivity extends AppCompatActivity {
+public abstract class ActionBarCastActivity extends AppCompatActivity  {
 
     private static final String TAG = LogHelper.makeLogTag(ActionBarCastActivity.class);
 
@@ -86,6 +90,10 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         }
     };
 
+    public void handleExtraDrawerItems(int itemToOpenWhenDrawerCloses) {
+        LogHelper.i(TAG, "handleExtraDrawerItems ");
+    }
+
     private final DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerClosed(View drawerView) {
@@ -108,10 +116,15 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
                 }
                 if (activityClass != null) {
                     startActivity(new Intent(ActionBarCastActivity.this, activityClass), extras);
-                    finish();
+                    //finish();
+                } else {
+                    handleExtraDrawerItems(mItemToOpenWhenDrawerCloses);
                 }
+                mItemToOpenWhenDrawerCloses = -1;
             }
         }
+
+
 
         @Override
         public void onDrawerStateChanged(int newState) {
@@ -337,4 +350,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
             overlay.show();
         }
     }
+
+
 }

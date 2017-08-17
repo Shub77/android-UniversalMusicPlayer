@@ -397,7 +397,7 @@ public class PlaybackManager implements Playback.Callback {
             } else if (CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE.equals(action)) {
                 // New custom action to set the queue, without starting to play any media
                 long albumId = extras.getLong(CUSTOM_EXTRA_MEDIA_ID);
-                LogHelper.i(TAG, "onCustomAction: CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE, artistId =",albumId);
+                LogHelper.i(TAG, "onCustomAction: CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE, albumId =",albumId);
                 mQueueManager.addAlbumToQueue(albumId);
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);

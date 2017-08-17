@@ -251,9 +251,9 @@ public class MediaChooserTracksFragment extends Fragment {
         ContentResolver cr = getActivity().getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
 
-        mCursorAdapter = new MusicCursorAdapter(getActivity(), tracksCursor);
-
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
+        mCursorAdapter = new MusicCursorAdapter(getActivity(), tracksCursor, listView);
+
         listView.setAdapter(mCursorAdapter);
 
         // This onclick listener for the list item.
@@ -269,14 +269,16 @@ public class MediaChooserTracksFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 checkForUserVisibleErrors(false);
                 LogHelper.i(TAG, "clicked item with position", position, "and id ", id);
-
-                mMediaFragmentListener.onAddTrackToQueue(id);
+                long viewId = view.getId();
+                if (viewId == R.id.plus_eq) {
+                    LogHelper.i(TAG, "Add button clicked for track", id);
+                    mMediaFragmentListener.onAddTrackToQueue(id);
+                }
                 /*
                 MediaBrowserCompat.MediaItem item = mCursorAdapter.getItem(position);
 
                 long viewId = view.getId();
                 if (viewId == R.id.plus_eq) {
-                    LogHelper.i(TAG, "Add button clicked for item", item.getMediaId());
                     // This is a callback to the Music Player Activity
                     mMediaFragmentListener.onAddMediaToQueue(item);
                     // click has been handled by the add button. Nothing else to do
@@ -488,8 +490,11 @@ public class MediaChooserTracksFragment extends Fragment {
     // An adapter for showing the list of browsed MediaItem's
     private static class MusicCursorAdapter extends CursorAdapter  {
 
-        public MusicCursorAdapter(Activity context, Cursor tracksCursor) {
+        private static ListView listView;
+
+        public MusicCursorAdapter(Activity context, Cursor tracksCursor, ListView listView) {
             super(context, tracksCursor, 0);
+            this.listView = listView;
         }
 
         public static class ViewHolder{
@@ -508,6 +513,9 @@ public class MediaChooserTracksFragment extends Fragment {
             String trackArtist = cursor.getString(2/*cursor.getColumnIndexOrThrow(nameColumn)*/);
             viewHolder.title.setText(trackTitle);
             viewHolder.artist.setText(trackArtist);
+            long id = cursor.getLong(0);
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, null, id));
+
         }
 
         // The newView method is used to inflate a new view and return it,
@@ -520,36 +528,29 @@ public class MediaChooserTracksFragment extends Fragment {
             viewHolder.artist = (TextView) view.findViewById(R.id.artist);
             viewHolder.btnAddToPlayqueue = (ImageButton) view.findViewById(R.id.plus_eq);
 
-            //viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(AlbumTitle));
+            long id = cursor.getLong(0);
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, parent, id));
             view.setTag(viewHolder);
             return view;
         }
 
         class btnAddToPlayqueueClickListener implements View.OnClickListener {
             int position;
-            String title;
+            long id;
+            ViewGroup parent;
+
             // constructor
-            public btnAddToPlayqueueClickListener(String title) {
-                this.title = title;
+            public btnAddToPlayqueueClickListener(int position, ViewGroup parent, long id) {
+                this.position = position;
+                this.parent = parent;
+                this.id = id;
             }
             @Override
             public void onClick(View v) {
                 // checkbox clicked
-                LogHelper.i(TAG, "add track ",title);
-                /*
-                if (artistListActionsListener != null)
-                    artistListActionsListener.onAddArtistToPlaylistClicked(artistName);
-                    */
+                LogHelper.i(TAG, "add group pos ",position);
+                ((ListView) listView).performItemClick(v, position, id); // Let the event be handled in onItemClick()
             }
         }
-
     }
-/*
-    public interface MediaChooserFragmentListener extends MediaBrowserProvider {
-        void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item);
-//        void onAddMediaToQueue(MediaBrowserCompat.MediaItem item);
-        void onAddTrackToQueue(long trackId);
-        void setToolbarTitle(CharSequence AlbumTitle);
-    }
-*/
 }

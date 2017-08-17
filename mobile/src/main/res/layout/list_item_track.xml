@@ -43,7 +43,7 @@
             android:tintMode="src_in"
             android:tint="@color/media_item_icon_not_playing"
             android:contentDescription="@string/add_item_to_queue"
-            android:src="@drawable/ic_pause_black_36dp"
+            android:src="@drawable/ic_plus_black_24dp"
             android:focusable="false"/>
     <LinearLayout
         android:layout_width="match_parent"

@@ -31,6 +31,7 @@ import android.support.v4.media.MediaMetadataCompat;
 
 import android.widget.Toast;
 import com.example.android.uamp.R;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 
@@ -438,7 +439,7 @@ public class MusicProvider {
         String selection = ARTIST_ID + "=? AND " + DURATION_IN_MS + " > ?";;
         String[] selectionArgs = new String [2];
         selectionArgs[0] = artistId;
-        selectionArgs[1] = "3000000";
+        selectionArgs[1] = Integer.toString(Settings.getMinDurationInSeconds(context));
 
         ContentResolver cr = context.getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
@@ -561,13 +562,11 @@ public class MusicProvider {
         final String[] cursorColumns={_ID,TITLE, ARTIST, ALBUM, DURATION_IN_MS, TRACK_NO};
         final String orderby = TITLE + " COLLATE NOCASE";
 
-        String selection = null;
-        String[] selectionArgs = null;
-        if (albumId != null && !albumId.isEmpty()) {
-            selection = MediaStore.Audio.Albums.ALBUM_ID + "=?";
-            selectionArgs = new String [1];
-            selectionArgs[0] = albumId;
-        }
+        String selection = ALBUM_ID + "=? AND " + DURATION_IN_MS + " > ?";;
+        String[] selectionArgs = new String [2];
+        selectionArgs[0] = albumId;
+        selectionArgs[1] = Integer.toString(Settings.getMinDurationInSeconds(context));
+
         ContentResolver cr = context.getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
         ArrayList<MediaMetadataCompat> tracks = new ArrayList<>();

@@ -354,7 +354,7 @@ public class QueueManager {
         }
 
         LogHelper.i(TAG, newQueueItems.size(), " new tracks");
-        mPlayingQueue.addAll(newQueueItems);
+        mPlayingQueue.addAll(0,newQueueItems); // add at front of queue
         mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
 
@@ -379,7 +379,7 @@ public class QueueManager {
         }
 
         LogHelper.i(TAG, newQueueItems.size(), " new tracks");
-        mPlayingQueue.addAll(newQueueItems);
+        mPlayingQueue.addAll(0, newQueueItems);
         mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
 
@@ -395,7 +395,7 @@ public class QueueManager {
         MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
                 trackCopy.getDescription(), QueueHelper.count++);
 
-        mPlayingQueue.add(0,item);
+        mPlayingQueue.add(0,item); // Add at top of queue
         mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
     /**

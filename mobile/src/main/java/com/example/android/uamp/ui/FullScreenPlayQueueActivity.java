@@ -66,6 +66,7 @@ import static android.view.View.VISIBLE;
 public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         implements PlayQueueAdapter.PlayQueueActionsListener,
         SetTimerDialog.OnSleepTimerChangedListener
+
 {
     private static final String TAG = LogHelper.makeLogTag(FullScreenPlayQueueActivity.class);
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
@@ -159,11 +160,11 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.player_toolbar, menu);
-
+/*
         MenuItem sleepIcon = menu.findItem(R.id.action_zzz);
             long secsTillSleep = -1;
             sleepIcon.setVisible(secsTillSleep > 0);
-
+*/
         return true;
     }
 
@@ -190,9 +191,11 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
                                 Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(fullScreenIntent);
                 return true;
+                /*
             case R.id.action_timer:
                 showTimerDialog();
-                return true;        }
+                return true;*/
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -568,8 +571,19 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         mediaController.sendCommand(PlaybackManager.COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID,bundle,null);
     }
 
+    @Override
+    public void handleExtraDrawerItems(int itemToOpenWhenDrawerCloses) {
+        LogHelper.i(TAG, "handleExtraDrawerItems ");
+        switch (itemToOpenWhenDrawerCloses) {
+            case R.id.navigation_sleep:
+                showTimerDialog();
+                break;
+        }
+    }
+
     // For the sleep timer dialog
     public void showTimerDialog() {
+        LogHelper.i(TAG, "showTimerDialog: ");
         long secsTillSleep;
         boolean isSleepTimerActive;
         FragmentManager fm = getFragmentManager();

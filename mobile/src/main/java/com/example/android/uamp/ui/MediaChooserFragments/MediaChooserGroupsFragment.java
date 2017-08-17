@@ -230,9 +230,8 @@ public class MediaChooserGroupsFragment extends Fragment {
             subtitleColumnIndex = -1;
         }
 
-        mCursorAdapter = new AlbumCursorAdapter(getActivity(), cursor, 1,  subtitleColumnIndex);
-
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
+        mCursorAdapter = new AlbumCursorAdapter(getActivity(), cursor, 1,  subtitleColumnIndex, listView);
         listView.setAdapter(mCursorAdapter);
 
         // This onclick listener for the list item.
@@ -451,11 +450,13 @@ public class MediaChooserGroupsFragment extends Fragment {
 
         private static int titleColumnIndex;
         private static int subtitleColumnIndex;
+        private static ListView listView;
 
-        public AlbumCursorAdapter(Activity context, Cursor cursor, int titleColumnIndex, int subtitleColumnIndex) {
+        public AlbumCursorAdapter(Activity context, Cursor cursor, int titleColumnIndex, int subtitleColumnIndex, ListView listView) {
             super(context, cursor, 0);
             this.titleColumnIndex = titleColumnIndex;
             this.subtitleColumnIndex = subtitleColumnIndex;
+            this.listView = listView;
         }
 
         public static class GroupViewHolder {
@@ -476,6 +477,9 @@ public class MediaChooserGroupsFragment extends Fragment {
                 String subtitle = cursor.getString(subtitleColumnIndex /*cursor.getColumnIndexOrThrow(NAME_COLUMN)*/);
                 viewHolder.subtitle.setText(subtitle);
             }
+            long id = cursor.getLong(0);
+
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, null, id));
         }
 
         // The newView method is used to inflate a new view and return it,
@@ -510,7 +514,7 @@ public class MediaChooserGroupsFragment extends Fragment {
             public void onClick(View v) {
                 // checkbox clicked
                 LogHelper.i(TAG, "add group pos ",position);
-                ((ListView) parent).performItemClick(v, position, id); // Let the event be handled in onItemClick()
+                ((ListView) listView).performItemClick(v, position, id); // Let the event be handled in onItemClick()
                 /*
                 if (artistListActionsListener != null)
                     artistListActionsListener.onAddArtistToPlaylistClicked(artistName);

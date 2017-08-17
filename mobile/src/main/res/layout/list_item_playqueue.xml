@@ -17,7 +17,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/media_item_height"
+    android:layout_height="@dimen/playqueue_item_height"
     android:descendantFocusability="blocksDescendants">
 
     <ImageButton
@@ -26,11 +26,11 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:layout_marginStart="@dimen/media_item_icon_margin_start"
+            android:layout_marginStart="@dimen/playqueue_item_icon_margin_start"
             android:tintMode="src_in"
-            android:tint="@color/media_item_icon_not_playing"
+            android:tint="@color/playqueue_button_color"
             android:contentDescription="@string/remove_item"
-            android:src="@drawable/ic_play_arrow_black_36dp"
+            android:src="@drawable/ic_close_black_24dp"
             android:focusable="false"/>
 
     <ImageButton
@@ -39,18 +39,18 @@
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/playqueue_remove_item"
             android:layout_centerVertical="true"
-            android:layout_marginStart="@dimen/media_item_icon_margin_start"
+            android:layout_marginStart="@dimen/playqueue_item_icon_margin_start"
             android:tintMode="src_in"
-            android:tint="@color/media_item_icon_not_playing"
+            android:tint="@color/playqueue_button_color"
             android:contentDescription="@string/move_item_to_top"
-            android:src="@drawable/ic_pause_black_36dp"
+            android:src="@drawable/ic_to_top_black_24dp"
             android:focusable="false"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="@dimen/media_item_text_margin_start"
+        android:layout_marginStart="@dimen/playqueue_item_text_margin_start"
         android:layout_centerVertical="true"
         android:orientation="vertical">
 
@@ -62,7 +62,7 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/mediaListTextColorPrimary"/>
+            android:textColor="@color/playqueueListTextColorPrimary"/>
 
         <TextView
             android:id="@+id/description"
@@ -72,7 +72,7 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/mediaListTextColorSecondary"/>
+            android:textColor="@color/playqueueListTextColorSecondary"/>
 
     </LinearLayout>
 

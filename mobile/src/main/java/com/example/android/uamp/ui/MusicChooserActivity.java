@@ -381,14 +381,6 @@ public class MusicChooserActivity extends BaseActivity
                         .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
                                 Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(fullScreenIntent);
-
-                return true;
-            case R.id.action_show_browse:
-                fullScreenIntent = new Intent(this, MusicPlayerActivity.class)
-                        .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
-                                Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(fullScreenIntent);
-
                 return true;
         }
 

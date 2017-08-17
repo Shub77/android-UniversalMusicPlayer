@@ -4,15 +4,16 @@
             android:id="@+id/action_show_choose"
             android:orderInCategory="120"
             android:icon="@drawable/ic_playlist_music_black_24dp"
+            app:showAsAction="always"
             android:title="Choose Music"/>
-    <item
+    <!--item
             android:id="@+id/action_timer"
             android:orderInCategory="200"
-            android:title="Sleep timer"/>
-    <item
+            android:title="Sleep timer"/-->
+    <!--item
             android:id="@+id/action_zzz"
             android:orderInCategory="2"
             android:title="Sleep on"
             android:visible="false"
-    />
+    /-->
 </menu>

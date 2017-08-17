@@ -65,10 +65,9 @@
         <activity
                 android:name=".ui.MusicChooserActivity"
                 android:label="@string/browse">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value=".ui.FullScreenPlayQueueActivity"/>
         </activity>
 
         <!-- Placeholder activity for phone UI -->
@@ -81,6 +80,9 @@
         <activity
                 android:name=".settings.SettingsActivity"
                 android:label="@string/app_name">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value=".ui.FullScreenPlayQueueActivity"/>
         </activity>
 
         <!-- Proxy activity that opens either the NowPlaying TV or the mobile UI, depending on
@@ -178,10 +180,10 @@
                 android:label="@string/app_name"
                 android:launchMode="singleTop"
                 android:parentActivityName=".ui.MusicPlayerActivity">
-            <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".ui.MusicPlayerActivity"/>
-
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <!-- A receiver that will receive media buttons and send as

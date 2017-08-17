@@ -33,4 +33,8 @@
     <color name="default_background">#0096a6</color>
     <color name="mediaListTextColorPrimary">@color/white</color>
     <color name="mediaListTextColorSecondary">@color/light_grey</color>
+
+    <color name="playqueue_button_color">#333</color>
+    <color name="playqueueListTextColorPrimary">@color/white</color>
+    <color name="playqueueListTextColorSecondary">@color/light_grey</color>
 </resources>
