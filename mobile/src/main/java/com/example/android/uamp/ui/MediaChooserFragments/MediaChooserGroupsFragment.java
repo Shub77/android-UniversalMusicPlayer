@@ -472,14 +472,15 @@ public class MediaChooserGroupsFragment extends Fragment {
         public void bindView(View view, Context context, Cursor cursor) {
             GroupViewHolder viewHolder = (GroupViewHolder) view.getTag();
             String title = cursor.getString(titleColumnIndex /*cursor.getColumnIndexOrThrow(NAME_COLUMN)*/);
+            long id = cursor.getLong(0);
+
             viewHolder.title.setText(title);
             if (subtitleColumnIndex >= 0) {
                 String subtitle = cursor.getString(subtitleColumnIndex /*cursor.getColumnIndexOrThrow(NAME_COLUMN)*/);
                 viewHolder.subtitle.setText(subtitle);
             }
-            long id = cursor.getLong(0);
 
-            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, null, id));
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, id));
         }
 
         // The newView method is used to inflate a new view and return it,
@@ -491,11 +492,6 @@ public class MediaChooserGroupsFragment extends Fragment {
             viewHolder.title = (TextView) view.findViewById(R.id.title);
             viewHolder.subtitle = (TextView) view.findViewById(R.id.description);
             viewHolder.btnAddToPlayqueue = (ImageButton) view.findViewById(R.id.plus_eq);
-
-            String title = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
-            long id = cursor.getLong(0);
-
-            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, parent, id));
             view.setTag(viewHolder);
             return view;
         }
@@ -503,11 +499,9 @@ public class MediaChooserGroupsFragment extends Fragment {
         class btnAddToPlayqueueClickListener implements View.OnClickListener {
             int position;
             long id;
-            ViewGroup parent;
             // constructor
-            public btnAddToPlayqueueClickListener(int position, ViewGroup parent, long id) {
+            public btnAddToPlayqueueClickListener(int position, long id) {
                 this.position = position;
-                this.parent = parent;
                 this.id = id;
             }
             @Override
@@ -515,10 +509,6 @@ public class MediaChooserGroupsFragment extends Fragment {
                 // checkbox clicked
                 LogHelper.i(TAG, "add group pos ",position);
                 ((ListView) listView).performItemClick(v, position, id); // Let the event be handled in onItemClick()
-                /*
-                if (artistListActionsListener != null)
-                    artistListActionsListener.onAddArtistToPlaylistClicked(artistName);
-                    */
             }
         }
 

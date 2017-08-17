@@ -274,21 +274,6 @@ public class MediaChooserTracksFragment extends Fragment {
                     LogHelper.i(TAG, "Add button clicked for track", id);
                     mMediaFragmentListener.onAddTrackToQueue(id);
                 }
-                /*
-                MediaBrowserCompat.MediaItem item = mCursorAdapter.getItem(position);
-
-                long viewId = view.getId();
-                if (viewId == R.id.plus_eq) {
-                    // This is a callback to the Music Player Activity
-                    mMediaFragmentListener.onAddMediaToQueue(item);
-                    // click has been handled by the add button. Nothing else to do
-                    return;
-                }
-
-                // This is a callback to the Music Player Activity to browse (NOT add)
-                mMediaFragmentListener.onBrowseMediaItemSelected(item);
-                */
-
             }
         });
         etSearchText = (EditText) rootView.findViewById(R.id.searchText);
@@ -511,11 +496,10 @@ public class MediaChooserTracksFragment extends Fragment {
             ViewHolder viewHolder = (ViewHolder) view.getTag();
             String trackTitle = cursor.getString(1/*cursor.getColumnIndexOrThrow(nameColumn)*/);
             String trackArtist = cursor.getString(2/*cursor.getColumnIndexOrThrow(nameColumn)*/);
+            long id = cursor.getLong(0);
             viewHolder.title.setText(trackTitle);
             viewHolder.artist.setText(trackArtist);
-            long id = cursor.getLong(0);
-            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, null, id));
-
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, id));
         }
 
         // The newView method is used to inflate a new view and return it,
@@ -527,9 +511,6 @@ public class MediaChooserTracksFragment extends Fragment {
             viewHolder.title = (TextView) view.findViewById(R.id.title);
             viewHolder.artist = (TextView) view.findViewById(R.id.artist);
             viewHolder.btnAddToPlayqueue = (ImageButton) view.findViewById(R.id.plus_eq);
-
-            long id = cursor.getLong(0);
-            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, parent, id));
             view.setTag(viewHolder);
             return view;
         }
@@ -537,12 +518,10 @@ public class MediaChooserTracksFragment extends Fragment {
         class btnAddToPlayqueueClickListener implements View.OnClickListener {
             int position;
             long id;
-            ViewGroup parent;
 
             // constructor
-            public btnAddToPlayqueueClickListener(int position, ViewGroup parent, long id) {
+            public btnAddToPlayqueueClickListener(int position, long id) {
                 this.position = position;
-                this.parent = parent;
                 this.id = id;
             }
             @Override
