@@ -286,7 +286,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
                         "with id 'nav_view'");
             }
 
-            // Create an ActionBarDrawerToggle that will handle opening/closing of the drawer:
+            // Create an ActionBarDrawerToggle that will handle opening/closing of the player_drawer:
             mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 mToolbar, R.string.open_content_drawer, R.string.close_content_drawer);
             mDrawerLayout.setDrawerListener(mDrawerListener);
