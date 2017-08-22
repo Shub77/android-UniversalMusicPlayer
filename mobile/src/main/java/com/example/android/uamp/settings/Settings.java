@@ -14,6 +14,7 @@ public class Settings {
 
     public static final String PREF_PLAYQUEUE_SIZE = "playqueuesize";
     public static final String PREF_MINDURATIONINSECONDS = "minsonglength";
+    public static final String PREF_TIME_TO_GO_TO_SLEEP = "timetogotosleep";
 
     public static int getPlayQueueSize(Context context) {
 
@@ -30,5 +31,20 @@ public class Settings {
 
         return Integer.parseInt(playQueueSize);
     }
+
+    public static long getTimeToGoToSleep(Context context) {
+        SharedPreferences defaultSharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        long timeToSleep = defaultSharedPref.getLong(PREF_TIME_TO_GO_TO_SLEEP, (long)-1);
+        return timeToSleep;
+    }
+
+    public static void setTimeToGoToSleep(Context context, long t) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putLong(PREF_TIME_TO_GO_TO_SLEEP, t);
+        editor.commit();
+    }
+
+
 
 }

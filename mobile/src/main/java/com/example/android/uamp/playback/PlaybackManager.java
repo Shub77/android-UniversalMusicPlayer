@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.playback;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.WearHelper;
@@ -53,7 +55,6 @@ public class PlaybackManager implements Playback.Callback {
     public static final String COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID= "uk.me.asbridge.uamp.COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID";
     public static final String COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID= "uk.me.asbridge.uamp.COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID";
 
-    public static final String COMMAND_SET_SLEEP_TIMER = "uk.me.asbridge.uamp.COMMAND_SET_SLEEP_TIMER";
     public static final String COMMAND_EXTRA_PARAMETER = "uk.me.asbridge.uamp.COMMAND_EXTRA_PARAMETER";
 
     private MusicProvider mMusicProvider;
@@ -62,10 +63,11 @@ public class PlaybackManager implements Playback.Callback {
     private Playback mPlayback;
     private PlaybackServiceCallback mServiceCallback;
     private MediaSessionCallback mMediaSessionCallback;
+    private Context mContext;
 
     public PlaybackManager(PlaybackServiceCallback serviceCallback, Resources resources,
                            MusicProvider musicProvider, QueueManager queueManager,
-                           Playback playback) {
+                           Playback playback, Context context) {
         mMusicProvider = musicProvider;
         mServiceCallback = serviceCallback;
         mResources = resources;
@@ -73,6 +75,7 @@ public class PlaybackManager implements Playback.Callback {
         mMediaSessionCallback = new MediaSessionCallback();
         mPlayback = playback;
         mPlayback.setCallback(this);
+        mContext = context;
     }
 
     public Playback getPlayback() {
@@ -214,7 +217,7 @@ public class PlaybackManager implements Playback.Callback {
         if (mQueueManager.goToNextSong()) {
             if (timeToGoToSleep()) {
                 handleStopRequest(null);
-                sleepTime = null;
+                Settings.setTimeToGoToSleep(mContext, -1);
             } else {
                 handlePlayRequest();
             }
@@ -445,45 +448,23 @@ public class PlaybackManager implements Playback.Callback {
                     queueId = extras.getLong(COMMAND_EXTRA_PARAMETER);
                     mQueueManager.moveQueueItemToTopByQueueId(queueId);
                     break;
-                case COMMAND_SET_SLEEP_TIMER:
-                    int minsTillSleep = extras.getInt(COMMAND_EXTRA_PARAMETER);
-                    setSleepTime(minsTillSleep);
             }
         }
     }
 
-    private Calendar sleepTime = null;
-
-    public void setSleepTime(int mins) {
-        Calendar c = Calendar.getInstance();
-        c.add(Calendar.MINUTE, mins);
-        sleepTime = c;
-    }
-
-    public long getSecsTillSleep() {
-        if (sleepTime == null) return -1;
-        Calendar currentTime = Calendar.getInstance();
-        long diff = sleepTime.getTimeInMillis() - currentTime.getTimeInMillis();
-        long mins = diff / 1000;
-        return mins;
-    }
-
-    public boolean isSleepTimerActive() {
-        return (sleepTime != null);
-    }
-
-    public void cancelSleepTimer() {
-        LogHelper.v(TAG, "cancel sleep timer");
-        sleepTime = null;
-    }
-
     private boolean timeToGoToSleep() {
-        LogHelper.i(TAG, "timeToGoToSleep ",((sleepTime==null)?" null":sleepTime.getTimeInMillis()));
-        if (sleepTime == null)
+
+        long timeToGoToSleep = Settings.getTimeToGoToSleep(mContext);
+        LogHelper.i(TAG, timeToGoToSleep, " timeToGoToSleep");
+
+        long currentTimeInMS = System.currentTimeMillis();
+        long msTillSleep = timeToGoToSleep - currentTimeInMS;
+
+        LogHelper.i(TAG, "timeToGoToSleep ", timeToGoToSleep);
+        if (timeToGoToSleep == -1)
             return false; // no sleep timer set
-        Calendar currentTime = Calendar.getInstance();
-        LogHelper.i(TAG, "timeToGoToSleep: sleeptime = ",sleepTime.getTimeInMillis(), " current=", currentTime.getTimeInMillis() );
-        if (currentTime.after(sleepTime)) {
+
+        if (msTillSleep < -1) {
             LogHelper.i(TAG, "Bedtime!");
             return true;
         }

@@ -15,18 +15,13 @@
  */
 package com.example.android.uamp.ui;
 
-import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.RemoteException;
-import android.os.SystemClock;
+import android.os.*;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
@@ -44,10 +39,12 @@ import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.model.PlayQueueAdapter;
 import com.example.android.uamp.playback.PlaybackManager;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.ui.dialogs.SetTimerDialog;
 import com.example.android.uamp.utils.LogHelper;
+import android.support.design.widget.NavigationView;
 
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * A full screen player that shows the current playing music with a list of the current play queue
@@ -581,16 +579,38 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         }
     }
 
+    @Override
+    public void handleDrawerOpening() {
+        super.handleDrawerOpening();
+
+        LogHelper.i(TAG, "opening");
+        long timeToGoToSleep = Settings.getTimeToGoToSleep(this);
+        String title;
+
+        if (timeToGoToSleep == -1) {
+            title = "Set sleep timer";
+        } else {
+            title = "Cancel sleep timer";
+        }
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu();
+        menu.findItem(R.id.navigation_sleep).setTitle(title);
+
+    }
     // For the sleep timer dialog
     public void showTimerDialog() {
         LogHelper.i(TAG, "showTimerDialog: ");
-        long secsTillSleep;
-        boolean isSleepTimerActive;
         FragmentManager fm = getFragmentManager();
-        isSleepTimerActive = false/*retainFragment.serviceReference.isSleepTimerActive()*/;
-        secsTillSleep = -1/*retainFragment.serviceReference.getSecsTillSleep()*/;
 
-        if (!isSleepTimerActive) {
+        long timeToGoToSleep = Settings.getTimeToGoToSleep(this);
+        LogHelper.i(TAG, timeToGoToSleep, " timeToGoToSleep");
+
+        long currentTimeInMS = System.currentTimeMillis();
+
+        long msTillSleep = timeToGoToSleep - currentTimeInMS;
+
+        if (msTillSleep < 0) {
             SetTimerDialog setSleepTimerDialog = new SetTimerDialog();
             setSleepTimerDialog.setOnSetSleepTimerListener(this);
             setSleepTimerDialog.show(fm, "fragment_settimer_dialog");
@@ -599,13 +619,12 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
             String msg;
-            if (secsTillSleep < 0) {
+            if (msTillSleep < 0) {
                 msg = "Sleep at end of playing song";
-            } else if (secsTillSleep < 60) {
+            } else if (msTillSleep < 60 * 1000) {
                 msg = "Sleep in less than one minute";
             } else {
-                long minsTillSleep = secsTillSleep / 60;
-                msg = "Sleep in " + Long.toString(minsTillSleep) + " minutes";
+                msg = "Sleep in " + Long.toString(msTillSleep/1000) + " seconds ";
             }
 
             builder.setTitle("Cancel sleep timer")
@@ -621,10 +640,8 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             LogHelper.i(TAG, "Positive button onClick: ");
-                            /*
-                            sleepIcon.setVisible(false);
-                            retainFragment.serviceReference.cancelSleepTimer();
-                            */
+
+                            Settings.setTimeToGoToSleep(FullScreenPlayQueueActivity.this , -1);
                             dialog.dismiss();
                         }
                     });
@@ -637,10 +654,9 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
     @Override
     public void onSleepTimerChanged(int minsTillSleep) {
         LogHelper.i(TAG, "onSleepTimerChanged: ", minsTillSleep);
-        Bundle bundle = new Bundle();
-        bundle.putInt(PlaybackManager.COMMAND_EXTRA_PARAMETER, minsTillSleep);
-        mediaController.sendCommand(PlaybackManager.COMMAND_SET_SLEEP_TIMER,bundle,null);
-        //retainFragment.serviceReference.setSleepTimer(minsTillSleep);
-        //sleepIcon.setVisible(true);
+
+        long currentTimeinMS = System.currentTimeMillis();
+        long timeToGoToSleep = currentTimeinMS + minsTillSleep * 60 * 1000;
+        Settings.setTimeToGoToSleep(this , timeToGoToSleep);
     }
 }

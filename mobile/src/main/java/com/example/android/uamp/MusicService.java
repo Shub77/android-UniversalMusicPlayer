@@ -217,10 +217,11 @@ public class MusicService extends MediaBrowserServiceCompat implements
                 });
 
 
+        Context context = getApplicationContext();
 
         StoragePlayback /*LocalPlayback*/ playback = new StoragePlayback /*LocalPlayback*/ (this, mMusicProvider);
         mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, queueManager,
-                playback);
+                playback, context);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(this, "MusicService");
@@ -230,7 +231,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
                 | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
 
-        Context context = getApplicationContext();
+
         Intent intent = new Intent(context, NowPlayingActivity.class);
         PendingIntent pi = PendingIntent.getActivity(context, 99 /*request code*/,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);

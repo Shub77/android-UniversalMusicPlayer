@@ -36,6 +36,7 @@ import android.view.View;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.playback.PlaybackManager;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.settings.SettingsActivity;
 import com.example.android.uamp.ui.dialogs.SetTimerDialog;
 import com.example.android.uamp.utils.LogHelper;
@@ -91,10 +92,19 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
     };
 
     public void handleExtraDrawerItems(int itemToOpenWhenDrawerCloses) {
-        LogHelper.i(TAG, "handleExtraDrawerItems ");
+        LogHelper.i(TAG, "handleExtraDrawerItems (base, empty)");
+    }
+
+    public void handleDrawerOpening() {
+        LogHelper.i(TAG, "handleDrawerOpening (base, empty)");
     }
 
     private final DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
+
+        // used to detect whether drawer is opening or closing (we animate the label for the sleep timer)
+        private float lastPos = 0;
+        private boolean drawerIsClosed = true;
+
         @Override
         public void onDrawerClosed(View drawerView) {
             if (mDrawerToggle != null) mDrawerToggle.onDrawerClosed(drawerView);
@@ -122,9 +132,8 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
                 }
                 mItemToOpenWhenDrawerCloses = -1;
             }
+            drawerIsClosed = true;
         }
-
-
 
         @Override
         public void onDrawerStateChanged(int newState) {
@@ -134,6 +143,13 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
         @Override
         public void onDrawerSlide(View drawerView, float slideOffset) {
             if (mDrawerToggle != null) mDrawerToggle.onDrawerSlide(drawerView, slideOffset);
+            boolean opening = slideOffset  > lastPos;
+            lastPos = slideOffset;
+
+            if (opening && drawerIsClosed) {
+                handleDrawerOpening();
+                drawerIsClosed = false;
+            }
         }
 
         @Override
@@ -302,6 +318,8 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
     }
 
     private void populateDrawerItems(NavigationView navigationView) {
+        Menu menu = navigationView.getMenu();
+        menu.findItem(R.id.navigation_sleep).setTitle("My Account");
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
