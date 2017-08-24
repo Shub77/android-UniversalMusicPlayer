@@ -318,8 +318,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
     }
 
     private void populateDrawerItems(NavigationView navigationView) {
-        Menu menu = navigationView.getMenu();
-        menu.findItem(R.id.navigation_sleep).setTitle("My Account");
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
