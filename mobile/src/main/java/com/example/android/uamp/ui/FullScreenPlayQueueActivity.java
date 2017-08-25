@@ -81,9 +81,9 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
     private TextView mLine3;
     private ProgressBar mLoading;
     private View mControllers;
+    private TextView mSleepIndicator;
     private Drawable mPauseDrawable;
     private Drawable mPlayDrawable;
-//    private ImageView mBackgroundImage;
     private ListView mPlayqueueList;
 
     private String mCurrentArtUrl;
@@ -158,22 +158,13 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.player_toolbar, menu);
-/*
-        MenuItem sleepIcon = menu.findItem(R.id.action_zzz);
-            long secsTillSleep = -1;
-            sleepIcon.setVisible(secsTillSleep > 0);
-*/
         return true;
     }
 
     // handle user interaction with the menu
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-/*
-        if (drawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-*/
+
         Intent fullScreenIntent;
         switch (item.getItemId()) {
             case R.id.action_show_now_playing:
@@ -208,7 +199,6 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-//        mBackgroundImage = (ImageView) findViewById(R.id.background_image);
         mPlayqueueList = (ListView) findViewById(R.id.playqueuelist);
         mPauseDrawable = ContextCompat.getDrawable(this, R.drawable.uamp_ic_pause_white_48dp);
         mPlayDrawable = ContextCompat.getDrawable(this, R.drawable.uamp_ic_play_arrow_white_48dp);
@@ -223,6 +213,14 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         mLine3 = (TextView) findViewById(R.id.line3);
         mLoading = (ProgressBar) findViewById(R.id.progressBar1);
         mControllers = findViewById(R.id.controllers);
+
+        mSleepIndicator = (TextView) findViewById(R.id.sleepIndicator);
+        if (getMsTillSleep() < 0) {
+            mSleepIndicator.setVisibility(View.INVISIBLE);
+        } else {
+            mSleepIndicator.setVisibility(View.VISIBLE);
+        }
+
 
         playQueueAdapter = new PlayQueueAdapter(this);
         mPlayqueueList.setAdapter(playQueueAdapter);
@@ -598,17 +596,24 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         menu.findItem(R.id.navigation_sleep).setTitle(title);
 
     }
+
+    /**
+     * Returns the number of ms until we should sleep
+     * @return -1 if no sleep timer set
+     */
+    private long getMsTillSleep() {
+        long timeToGoToSleep = Settings.getTimeToGoToSleep(this);
+        long currentTimeInMS = System.currentTimeMillis();
+        long msTillSleep = timeToGoToSleep - currentTimeInMS;
+        return msTillSleep;
+    }
+
     // For the sleep timer dialog
     public void showTimerDialog() {
         LogHelper.i(TAG, "showTimerDialog: ");
         FragmentManager fm = getFragmentManager();
 
-        long timeToGoToSleep = Settings.getTimeToGoToSleep(this);
-        LogHelper.i(TAG, timeToGoToSleep, " timeToGoToSleep");
-
-        long currentTimeInMS = System.currentTimeMillis();
-
-        long msTillSleep = timeToGoToSleep - currentTimeInMS;
+        long msTillSleep = getMsTillSleep();
 
         if (msTillSleep < 0) {
             SetTimerDialog setSleepTimerDialog = new SetTimerDialog();
@@ -642,6 +647,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
                             LogHelper.i(TAG, "Positive button onClick: ");
 
                             Settings.setTimeToGoToSleep(FullScreenPlayQueueActivity.this , -1);
+                            mSleepIndicator.setVisibility(View.INVISIBLE);
                             dialog.dismiss();
                         }
                     });
@@ -658,5 +664,6 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         long currentTimeinMS = System.currentTimeMillis();
         long timeToGoToSleep = currentTimeinMS + minsTillSleep * 60 * 1000;
         Settings.setTimeToGoToSleep(this , timeToGoToSleep);
+        mSleepIndicator.setVisibility(View.VISIBLE);
     }
 }
