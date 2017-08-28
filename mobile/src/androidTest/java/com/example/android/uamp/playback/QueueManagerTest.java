@@ -82,10 +82,15 @@ public class QueueManagerTest {
                 return "";
             }
         };
-        return new QueueManager(provider, resources,
+        return new QueueManager(provider, resources, null,
                 new QueueManager.MetadataUpdateListener() {
                     @Override
                     public void onMetadataChanged(MediaMetadataCompat metadata) {
+                    }
+
+                    @Override
+                    public void onNowPlayingChanged(MediaSessionCompat.QueueItem qi) {
+
                     }
 
                     @Override
@@ -93,13 +98,17 @@ public class QueueManagerTest {
                     }
 
                     @Override
+                    public void onPauseRequest() {
+                    }
+/*
+                    @Override
                     public void onCurrentQueueIndexUpdated(int queueIndex) {
                         if (expectedQueueIndex >= 0) {
                             assertEquals(expectedQueueIndex, queueIndex);
                         }
                         if (latch != null) latch.countDown();
                     }
-
+*/
                     @Override
                     public void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newQueue) {
                         if (expectedNewQueue != null) {

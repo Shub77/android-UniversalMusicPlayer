@@ -34,7 +34,7 @@ public class Settings {
 
     public static long getTimeToGoToSleep(Context context) {
         SharedPreferences defaultSharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        long timeToSleep = defaultSharedPref.getLong(PREF_TIME_TO_GO_TO_SLEEP, (long)-1);
+        long timeToSleep = defaultSharedPref.getLong(PREF_TIME_TO_GO_TO_SLEEP, (long)0);
         return timeToSleep;
     }
 

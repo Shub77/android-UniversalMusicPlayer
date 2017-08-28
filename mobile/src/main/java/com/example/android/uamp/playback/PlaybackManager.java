@@ -217,7 +217,7 @@ public class PlaybackManager implements Playback.Callback {
         if (mQueueManager.goToNextSong()) {
             if (timeToGoToSleep()) {
                 handleStopRequest(null);
-                Settings.setTimeToGoToSleep(mContext, -1);
+                Settings.setTimeToGoToSleep(mContext, 0);
             } else {
                 handlePlayRequest();
             }
@@ -306,6 +306,11 @@ public class PlaybackManager implements Playback.Callback {
             LogHelper.i(TAG, "onPlay");
             if (mQueueManager.getCurrentMusic() == null) {
                 mQueueManager.fillRandomQueue();
+            }
+            // If we have pressed play _after_ the sleep timer has expired (it expired while player stopped)
+            // Then cancel the timer
+            if (timeToGoToSleep()) {
+                Settings.setTimeToGoToSleep(mContext, 0);
             }
             handlePlayRequest();
         }
@@ -461,10 +466,10 @@ public class PlaybackManager implements Playback.Callback {
         long msTillSleep = timeToGoToSleep - currentTimeInMS;
 
         LogHelper.i(TAG, "timeToGoToSleep ", timeToGoToSleep);
-        if (timeToGoToSleep == -1)
+        if (timeToGoToSleep == 0)
             return false; // no sleep timer set
 
-        if (msTillSleep < -1) {
+        if (msTillSleep < 0) {
             LogHelper.i(TAG, "Bedtime!");
             return true;
         }

@@ -585,7 +585,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         long timeToGoToSleep = Settings.getTimeToGoToSleep(this);
         String title;
 
-        if (timeToGoToSleep == -1) {
+        if (timeToGoToSleep == 0) {
             title = "Set sleep timer";
         } else {
             title = "Cancel sleep timer";
@@ -599,10 +599,13 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
 
     /**
      * Returns the number of ms until we should sleep
-     * @return -1 if no sleep timer set
+     * @return 0 if no sleep timer set
      */
     private long getMsTillSleep() {
         long timeToGoToSleep = Settings.getTimeToGoToSleep(this);
+        if (timeToGoToSleep == 0) {
+            return 0;
+        }
         long currentTimeInMS = System.currentTimeMillis();
         long msTillSleep = timeToGoToSleep - currentTimeInMS;
         return msTillSleep;
@@ -646,7 +649,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
                         public void onClick(DialogInterface dialog, int which) {
                             LogHelper.i(TAG, "Positive button onClick: ");
 
-                            Settings.setTimeToGoToSleep(FullScreenPlayQueueActivity.this , -1);
+                            Settings.setTimeToGoToSleep(FullScreenPlayQueueActivity.this , 0);
                             mSleepIndicator.setVisibility(View.INVISIBLE);
                             dialog.dismiss();
                         }
