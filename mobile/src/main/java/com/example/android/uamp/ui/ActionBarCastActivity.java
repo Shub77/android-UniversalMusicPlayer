@@ -114,9 +114,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
 
                 Class activityClass = null;
                 switch (mItemToOpenWhenDrawerCloses) {
-                    case R.id.navigation_allmusic:
-                        activityClass = MusicPlayerActivity.class;
-                        break;
                     case R.id.navigation_playlists:
                         activityClass = PlaceholderActivity.class;
                         break;
@@ -328,9 +325,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
                         return true;
                     }
                 });
-        if (MusicPlayerActivity.class.isAssignableFrom(getClass())) {
-            navigationView.setCheckedItem(R.id.navigation_allmusic);
-        } else if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
+        if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
             navigationView.setCheckedItem(R.id.navigation_playlists);
         }
     }
