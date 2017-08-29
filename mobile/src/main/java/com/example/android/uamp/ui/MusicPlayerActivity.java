@@ -57,7 +57,7 @@ public class MusicPlayerActivity extends BaseActivity
 
     /**
      * Optionally used with {@link #EXTRA_START_FULLSCREEN} to carry a MediaDescription to
-     * the {@link FullScreenPlayerActivity}, speeding up the screen rendering
+     * the {@link FullScreenPlayQueueActivity}, speeding up the screen rendering
      * while the {@link android.support.v4.media.session.MediaControllerCompat} is connecting.
      */
     public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
@@ -155,7 +155,7 @@ public class MusicPlayerActivity extends BaseActivity
 
     private void startFullScreenActivityIfNeeded(Intent intent) {
         if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
-            Intent fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class/*FullScreenPlayerActivity.class*/)
+            Intent fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
                 .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
                     Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 .putExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION,

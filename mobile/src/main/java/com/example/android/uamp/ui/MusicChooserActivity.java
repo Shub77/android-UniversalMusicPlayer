@@ -53,7 +53,7 @@ public class MusicChooserActivity extends BaseActivity
 
     /**
      * Optionally used with {@link #EXTRA_START_FULLSCREEN} to carry a MediaDescription to
-     * the {@link FullScreenPlayerActivity}, speeding up the screen rendering
+     * the {@link FullScreenPlayQueueActivity}, speeding up the screen rendering
      * while the {@link MediaControllerCompat} is connecting.
      */
     public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
