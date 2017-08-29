@@ -52,7 +52,7 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LogHelper.d(TAG, "onCreate");
+        LogHelper.i(TAG, "onCreate");
 
         setupFragment();
     }
@@ -74,7 +74,7 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
     }
 
     protected void setMediaId(String mediaId) {
-        LogHelper.d(TAG, "setMediaId: ", mediaId);
+        LogHelper.i(TAG, "setMediaId: ", mediaId);
         if (TextUtils.equals(mMediaId, mediaId)) {
             return;
         }

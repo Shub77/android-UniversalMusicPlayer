@@ -46,7 +46,7 @@ public class TvBrowseActivity extends FragmentActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LogHelper.d(TAG, "Activity onCreate");
+        LogHelper.i(TAG, "Activity onCreate");
 
         setContentView(R.layout.tv_activity_player);
 
@@ -67,14 +67,14 @@ public class TvBrowseActivity extends FragmentActivity
     @Override
     protected void onStart() {
         super.onStart();
-        LogHelper.d(TAG, "Activity onStart");
+        LogHelper.i(TAG, "Activity onStart");
         mMediaBrowser.connect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        LogHelper.d(TAG, "Activity onStop");
+        LogHelper.i(TAG, "Activity onStop");
         if (mMediaBrowser != null) {
             mMediaBrowser.disconnect();
         }
@@ -87,7 +87,7 @@ public class TvBrowseActivity extends FragmentActivity
     }
 
     protected void navigateToBrowser(String mediaId) {
-        LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
+        LogHelper.i(TAG, "navigateToBrowser, mediaId=" + mediaId);
         TvBrowseFragment fragment =
                 (TvBrowseFragment) getSupportFragmentManager().findFragmentById(R.id.main_browse_fragment);
         fragment.initializeWithMediaId(mediaId);
@@ -107,7 +107,7 @@ public class TvBrowseActivity extends FragmentActivity
             new MediaBrowserCompat.ConnectionCallback() {
                 @Override
                 public void onConnected() {
-                    LogHelper.d(TAG, "onConnected: session token ",
+                    LogHelper.i(TAG, "onConnected: session token ",
                             mMediaBrowser.getSessionToken());
                     try {
                         MediaControllerCompat mediaController = new MediaControllerCompat(
@@ -121,12 +121,12 @@ public class TvBrowseActivity extends FragmentActivity
 
                 @Override
                 public void onConnectionFailed() {
-                    LogHelper.d(TAG, "onConnectionFailed");
+                    LogHelper.i(TAG, "onConnectionFailed");
                 }
 
                 @Override
                 public void onConnectionSuspended() {
-                    LogHelper.d(TAG, "onConnectionSuspended");
+                    LogHelper.i(TAG, "onConnectionSuspended");
                     setSupportMediaController(null);
                 }
             };

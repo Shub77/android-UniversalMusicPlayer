@@ -36,8 +36,7 @@ import android.support.v7.media.MediaRouter;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.playback.*;
-import com.example.android.uamp.settings.Settings;
-import com.example.android.uamp.ui.NowPlayingActivity;
+import com.example.android.uamp.ui.MainLauncherActivity;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.TvHelper;
@@ -232,7 +231,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                 | MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
 
 
-        Intent intent = new Intent(context, NowPlayingActivity.class);
+        Intent intent = new Intent(context, MainLauncherActivity.class);
         PendingIntent pi = PendingIntent.getActivity(context, 99 /*request code*/,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mSession.setSessionActivity(pi);

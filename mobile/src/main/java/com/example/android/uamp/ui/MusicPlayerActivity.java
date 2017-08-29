@@ -68,7 +68,7 @@ public class MusicPlayerActivity extends BaseActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LogHelper.d(TAG, "Activity onCreate");
+        LogHelper.i(TAG, "Activity onCreate");
 
         setContentView(R.layout.activity_player);
 
@@ -139,7 +139,7 @@ public class MusicPlayerActivity extends BaseActivity
 
     @Override
     public void setToolbarTitle(CharSequence title) {
-        LogHelper.d(TAG, "Setting toolbar AlbumTitle to ", title);
+        LogHelper.i(TAG, "Setting toolbar AlbumTitle to ", title);
         if (title == null) {
             title = getString(R.string.app_name);
         }
@@ -148,7 +148,7 @@ public class MusicPlayerActivity extends BaseActivity
 
     @Override
     protected void onNewIntent(Intent intent) {
-        LogHelper.d(TAG, "onNewIntent, intent=" + intent);
+        LogHelper.i(TAG, "onNewIntent, intent=" + intent);
         initializeFromParams(null, intent);
         startFullScreenActivityIfNeeded(intent);
     }
@@ -172,7 +172,7 @@ public class MusicPlayerActivity extends BaseActivity
         if (intent.getAction() != null
             && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)) {
             mVoiceSearchParams = intent.getExtras();
-            LogHelper.d(TAG, "Starting from voice search query=",
+            LogHelper.i(TAG, "Starting from voice search query=",
                 mVoiceSearchParams.getString(SearchManager.QUERY));
         } else {
             if (savedInstanceState != null) {
@@ -232,7 +232,7 @@ public class MusicPlayerActivity extends BaseActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        LogHelper.d(TAG, "onCreateOptionsMenu");
+        LogHelper.i(TAG, "onCreateOptionsMenu");
         super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.browser_toolbar, menu);
