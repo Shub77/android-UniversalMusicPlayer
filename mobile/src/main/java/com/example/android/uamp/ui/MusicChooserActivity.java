@@ -40,11 +40,15 @@ import com.example.android.uamp.utils.LogHelper;
  * This class hold the MediaBrowser and the MediaController instances. It will create a MediaBrowser
  * when it is created and connect/disconnect on start/stop. Thus, a MediaBrowser will be always
  * connected while this activity is running.
+ *
+ * The activity will always be displaying a fragment (root manu, artists, songs etc)
+ * The Fragment calls back to this activity via the MediaChooserFragmentL
  */
 public class MusicChooserActivity extends BaseActivity
         implements MediaChooserFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(MusicChooserActivity.class);
+    // saves the info from a voice search (e.g. play frank zappa) to be used when the media session is conneced
     private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
     private static final String FRAGMENT_TAG = "uamp_list_container";
 
@@ -175,6 +179,11 @@ public class MusicChooserActivity extends BaseActivity
             title = getString(R.string.app_name);
         }
         setTitle(title);
+    }
+
+    @Override
+    public void setToolbarTitle(int resourceStringId) {
+        setTitle(resourceStringId);
     }
 
     @Override

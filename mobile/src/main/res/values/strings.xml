@@ -78,4 +78,15 @@
     <string name="move_item_to_top">move to top</string>
     <string name="remove_item">remove</string>
 
+    <string name="search_artists">Artist</string>
+    <string name="search_albums">Album title</string>
+    <string name="search_tracks">Song title</string>
+
+    <string name="media_chooser_mainmenu_title">Choose music</string>
+    <string name="media_chooser_albums_title">Albums</string>
+    <string name="media_chooser_artists_title">Artists</string>
+    <string name="media_chooser_alltracks_title">All songs</string>
+    <string name="media_chooser_tracks_on_album_title">Music on album</string>
+    <string name="media_chooser_tracks_by_artist_title">Music by artist</string>
+
 </resources>

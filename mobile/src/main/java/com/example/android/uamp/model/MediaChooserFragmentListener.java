@@ -14,6 +14,8 @@ public interface MediaChooserFragmentListener extends MediaBrowserProvider {
 
     void onAddTrackToQueue(long trackId);
     void setToolbarTitle(CharSequence title);
+    void setToolbarTitle(int resourceStringId);
+
     void onBrowseGroup(String type, long ID);
 
     void onChooseTrack();

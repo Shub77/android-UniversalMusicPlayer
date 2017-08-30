@@ -246,7 +246,7 @@ public class MediaChooserOptionsFragment extends Fragment implements View.OnClic
             return;
         }
 
-        mMediaFragmentListener.setToolbarTitle("Root Chooser");
+        mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_mainmenu_title);
 
 /*
         // Unsubscribing before subscribing is required if this mediaId already has a subscriber

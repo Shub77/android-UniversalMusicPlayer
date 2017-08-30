@@ -38,6 +38,7 @@ import android.widget.*;
 import com.example.android.uamp.R;
 import com.example.android.uamp.constants.Constants;
 import com.example.android.uamp.model.MediaChooserFragmentListener;
+import com.example.android.uamp.ui.dialogs.ClearableEditText;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.NetworkHelper;
 
@@ -60,7 +61,7 @@ public class MediaChooserGroupsFragment extends Fragment {
     private MediaChooserFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
-    private EditText etSearchText;
+    private ClearableEditText etSearchText;
 
     private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
@@ -181,8 +182,6 @@ public class MediaChooserGroupsFragment extends Fragment {
             @Override
             public Cursor runQuery(CharSequence constraint) {
                 String partialValue = constraint.toString();
-                LogHelper.i (TAG, "filtering on ", partialValue);
-
                 final String selection = MediaStore.Audio.Artists.ARTIST +" LIKE ?";
                 final String [] selectionArgs = {"%" + partialValue + "%"};
 
@@ -199,8 +198,6 @@ public class MediaChooserGroupsFragment extends Fragment {
             @Override
             public Cursor runQuery(CharSequence constraint) {
                 String partialValue = constraint.toString();
-                LogHelper.i (TAG, "filtering on ", partialValue);
-
                 final String selection = MediaStore.Audio.Albums.ALBUM +" LIKE ?";
                 final String [] selectionArgs = {"%" + partialValue + "%"};
 
@@ -265,26 +262,26 @@ public class MediaChooserGroupsFragment extends Fragment {
                 mMediaFragmentListener.onBrowseGroup(getSearchType(), id);
             }
         });
-        etSearchText = (EditText) rootView.findViewById(R.id.searchText);
+        etSearchText = (ClearableEditText) rootView.findViewById(R.id.searchText);
+        if (Constants.SEARCH_TYPE_ALBUM.equals(getSearchType())) {
+            etSearchText.setHint(R.string.search_albums);
+        } else {
+            etSearchText.setHint(R.string.search_artists);
+        }
 
         etSearchText.addTextChangedListener(new TextWatcher() {
-
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
             }
 
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-                LogHelper.i(TAG, "search for ", s.toString());
                 mCursorAdapter.getFilter().filter(s.toString());
             }
         });
@@ -436,10 +433,10 @@ public class MediaChooserGroupsFragment extends Fragment {
         String searchType = getSearchType();
         switch (searchType) {
             case Constants.SEARCH_TYPE_ALBUM:
-                mMediaFragmentListener.setToolbarTitle("Albums");
+                mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_albums_title);
                 break;
             case Constants.SEARCH_TYPE_ARTIST:
-                mMediaFragmentListener.setToolbarTitle("Artists");
+                mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_artists_title);
                 break;
 
         }
