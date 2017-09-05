@@ -19,12 +19,10 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.*;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -41,7 +39,7 @@ import com.example.android.uamp.model.MediaChooserFragmentListener;
 import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.ui.dialogs.ClearableEditText;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.NetworkHelper;
+
 
 import java.util.List;
 
@@ -63,26 +61,7 @@ public class MediaChooserTracksFragment extends Fragment {
     private View mErrorView;
     private TextView mErrorMessage;
     private ClearableEditText etSearchText;
-
-    private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
-        private boolean oldOnline = false;
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // We don't care about network changes while this fragment is not associated
-            // with a media ID (for example, while it is being initialized)
-            if (mMediaId != null) {
-                boolean isOnline = NetworkHelper.isOnline(context);
-                if (isOnline != oldOnline) {
-                    oldOnline = isOnline;
-                    checkForUserVisibleErrors(false);
-                    if (isOnline) {
-                        mCursorAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-        }
-    };
-
+/*
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current AlbumTitle and description and the PlaybackState.
     private final MediaControllerCompat.Callback mMediaControllerCallback =
@@ -95,44 +74,15 @@ public class MediaChooserTracksFragment extends Fragment {
             }
             LogHelper.d(TAG, "Received metadata change to media ",
                     metadata.getDescription().getMediaId());
-//            mBrowserAdapter.notifyDataSetChanged();
         }
 
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
             super.onPlaybackStateChanged(state);
             LogHelper.d(TAG, "Received state change: ", state);
-            checkForUserVisibleErrors(false);
-//            mBrowserAdapter.notifyDataSetChanged();
         }
     };
-
-    private final MediaBrowserCompat.SubscriptionCallback mSubscriptionCallback =
-        new MediaBrowserCompat.SubscriptionCallback() {
-            @Override
-            public void onChildrenLoaded(@NonNull String parentId,
-                                         @NonNull List<MediaBrowserCompat.MediaItem> children) {
-                try {
-                    LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
-                    checkForUserVisibleErrors(children.isEmpty());
- //                   mBrowserAdapter.clear();
-                    for (MediaBrowserCompat.MediaItem item : children) {
-//                        mBrowserAdapter.add(item);
-                    }
-//                    mBrowserAdapter.notifyDataSetChanged();
-                } catch (Throwable t) {
-                    LogHelper.e(TAG, "Error on childrenloaded", t);
-                }
-            }
-
-            @Override
-            public void onError(@NonNull String id) {
-                LogHelper.e(TAG, "browse fragment subscription onError, id=" + id);
-                Toast.makeText(getActivity(), R.string.error_loading_media, Toast.LENGTH_LONG).show();
-                checkForUserVisibleErrors(true);
-            }
-        };
-
+*/
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -229,13 +179,13 @@ public class MediaChooserTracksFragment extends Fragment {
         String[] selectionArgs = null;
         String searchId = getSearchId();
         String searchType = getSearchType();
-        if (searchType == null) {
+        if (Constants.SEARCH_TYPE_NONE.equals(searchType)) {
             selectionArgs = new String [1];
         } else {
             selectionArgs = new String [2];
         }
         selectionArgs[0] = Integer.toString(Settings.getMinDurationInSeconds(getActivity())*1000);
-        if (searchType != null)
+        if (!Constants.SEARCH_TYPE_NONE.equals(searchType))
         {
             selectionArgs[1] = searchId;
             switch (searchType) {
@@ -267,7 +217,7 @@ public class MediaChooserTracksFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                checkForUserVisibleErrors(false);
+                // checkForUserVisibleErrors(false);
                 LogHelper.i(TAG, "clicked item with position", position, "and id ", id);
                 long viewId = view.getId();
                 if (viewId == R.id.plus_eq) {
@@ -295,49 +245,35 @@ public class MediaChooserTracksFragment extends Fragment {
             }
         });
 
-        FilterQueryProvider filter;
-        if (Constants.SEARCH_TYPE_ALBUM.equals(getSearchType()))
-        {
-            filter = getAlbumsFilterQueryProvider();
-        } else {
-            filter = getArtistsFilterQueryProvider();
+        FilterQueryProvider filter = null;
+        switch (getSearchType()) {
+            case Constants.SEARCH_TYPE_ALBUM:
+                filter = getAlbumsFilterQueryProvider();
+                break;
+            case Constants.SEARCH_TYPE_ARTIST:
+                filter = getArtistsFilterQueryProvider();
+                break;
+            case Constants.SEARCH_TYPE_NONE:
+                filter = getArtistsFilterQueryProvider(); // but with no artist ID this is just filtering on tracks
+            case Constants.SEARCH_TYPE_SEARCH:
+                break;
         }
 
-        mCursorAdapter.setFilterQueryProvider(filter);
+        if (filter != null) {
+            mCursorAdapter.setFilterQueryProvider(filter);
+        }
         return rootView;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        // fetch browsing information to fill the listview:
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-
-        //LogHelper.i(TAG, "fragment.onStart, mediaId=", mMediaId,"  onConnected=" + mediaBrowser.isConnected());
-
-        if (mediaBrowser.isConnected()) {
-            onConnected();
-        }
-
-        // Registers BroadcastReceiver to track network connection changes.
-        this.getActivity().registerReceiver(mConnectivityChangeReceiver,
-            new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        updateTitle();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-        if (mediaBrowser != null && mediaBrowser.isConnected() && mMediaId != null) {
-            mediaBrowser.unsubscribe(mMediaId);
-        }
-        MediaControllerCompat controller = ((FragmentActivity) getActivity())
-                .getSupportMediaController();
-        if (controller != null) {
-            controller.unregisterCallback(mMediaControllerCallback);
-        }
-        this.getActivity().unregisterReceiver(mConnectivityChangeReceiver);
     }
 
     @Override
@@ -361,6 +297,14 @@ public class MediaChooserTracksFragment extends Fragment {
         setArguments(args);
     }
 
+    /**
+     * Called by the activity in the case when we are  not  showing all tracks
+     * e.g. showing tracks for a specific artist
+     * The search will have a type (artist or album) and an id (the specific artist id or album id)
+     * The parameters are stored in the fragment's bundle of parameters
+     * @param searchType
+     * @param id
+     */
     public void setSearchParams(String searchType, String id) {
         LogHelper.i(TAG, "setSearchId, ",id);
         Bundle args = new Bundle(2);
@@ -369,7 +313,12 @@ public class MediaChooserTracksFragment extends Fragment {
         setArguments(args);
     }
 
-    public String getSearchId() {
+    /**
+     * Get the search ID (identifying an album or artist)
+     * stored in the fragments's bundle of parameters
+     * @return
+     */
+    private String getSearchId() {
         Bundle args = getArguments();
         if (args != null) {
             return args.getString(Constants.ARG_ID);
@@ -377,92 +326,35 @@ public class MediaChooserTracksFragment extends Fragment {
         return null;
     }
 
-    public String getSearchType() {
+    /**
+     * Get the search type (identifying an album or artist)
+     * stored in the fragments's bundle of parameters
+     * @return
+     */
+    private String getSearchType() {
         Bundle args = getArguments();
         if (args != null) {
             return args.getString(Constants.ARG_SEARCH_TYPE);
         }
-        return null;
-    }
-
-    // Called when the MediaBrowser is connected. This method is either called by the
-    // fragment.onStart() or explicitly by the activity in the case where the connection
-    // completes after the onStart()
-    public void onConnected() {
-        if (isDetached()) {
-            return;
-        }
-        mMediaId = getMediaId();
-        if (mMediaId == null) {
-            mMediaId = mMediaFragmentListener.getMediaBrowser().getRoot();
-        }
-        updateTitle();
-
-        // Unsubscribing before subscribing is required if this mediaId already has a subscriber
-        // on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
-        // the callback, but won't trigger the initial callback.onChildrenLoaded.
-        //
-        // This is temporary: A bug is being fixed that will make subscribe
-        // consistently call onChildrenLoaded initially, no matter if it is replacing an existing
-        // subscriber or not. Currently this only happens if the mediaID has no previous
-        // subscriber or if the media content changes on the service side, so we need to
-        // unsubscribe first.
-        mMediaFragmentListener.getMediaBrowser().unsubscribe(mMediaId);
-
-        mMediaFragmentListener.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
-
-        // Add MediaController callback so we can redraw the list when metadata changes:
-        MediaControllerCompat controller = ((FragmentActivity) getActivity())
-                .getSupportMediaController();
-        if (controller != null) {
-            controller.registerCallback(mMediaControllerCallback);
-        }
-    }
-
-    private void checkForUserVisibleErrors(boolean forceError) {
-        boolean showError = forceError;
-        // If offline, message is about the lack of connectivity:
-        if (!NetworkHelper.isOnline(getActivity())) {
-            mErrorMessage.setText(R.string.error_no_connection);
-            showError = true;
-        } else {
-            // otherwise, if state is ERROR and metadata!=null, use playback state error message:
-            MediaControllerCompat controller = ((FragmentActivity) getActivity())
-                    .getSupportMediaController();
-            if (controller != null
-                && controller.getMetadata() != null
-                && controller.getPlaybackState() != null
-                && controller.getPlaybackState().getState() == PlaybackStateCompat.STATE_ERROR
-                && controller.getPlaybackState().getErrorMessage() != null) {
-                mErrorMessage.setText(controller.getPlaybackState().getErrorMessage());
-                showError = true;
-            } else if (forceError) {
-                // Finally, if the caller requested to show error, show a generic message:
-                mErrorMessage.setText(R.string.error_loading_media);
-                showError = true;
-            }
-        }
-        mErrorView.setVisibility(showError ? View.VISIBLE : View.GONE);
-        LogHelper.d(TAG, "checkForUserVisibleErrors. forceError=", forceError,
-            " showError=", showError,
-            " isOnline=", NetworkHelper.isOnline(getActivity()));
+        return Constants.SEARCH_TYPE_NONE;
     }
 
     private void updateTitle() {
         String searchType = getSearchType();
-        if (searchType == null)
-            mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_alltracks_title);
-        else
-        {
-            switch (searchType) {
-                case Constants.SEARCH_TYPE_ALBUM:
-                    mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_tracks_on_album_title);
-                    break;
-                case Constants.SEARCH_TYPE_ARTIST:
-                    mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_tracks_by_artist_title);
-                    break;
 
-            }
+        switch (searchType) {
+            case Constants.SEARCH_TYPE_ALBUM:
+                mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_tracks_on_album_title);
+                break;
+            case Constants.SEARCH_TYPE_ARTIST:
+                mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_tracks_by_artist_title);
+                break;
+            case Constants.SEARCH_TYPE_SEARCH:
+                mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_tracks_by_search);
+                break;
+            case Constants.SEARCH_TYPE_NONE:
+                mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_alltracks_title);
+                break;
         }
     }
 

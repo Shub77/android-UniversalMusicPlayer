@@ -88,5 +88,5 @@
     <string name="media_chooser_alltracks_title">All songs</string>
     <string name="media_chooser_tracks_on_album_title">Music on album</string>
     <string name="media_chooser_tracks_by_artist_title">Music by artist</string>
-
+    <string name="media_chooser_tracks_by_search">Music by search</string>
 </resources>

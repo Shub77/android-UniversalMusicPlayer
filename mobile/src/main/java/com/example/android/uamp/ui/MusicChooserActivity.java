@@ -20,9 +20,7 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -42,7 +40,11 @@ import com.example.android.uamp.utils.LogHelper;
  * connected while this activity is running.
  *
  * The activity will always be displaying a fragment (root manu, artists, songs etc)
- * The Fragment calls back to this activity via the MediaChooserFragmentL
+ * The Fragment calls back to this activity via the MediaChooserFragmentListener when something is chosen
+ * - for example "Add track x to playqueue"
+ * - "Add artist y to playqueue"
+ * - "Show list of artists"
+ * - "Show all tracks on album x"
  */
 public class MusicChooserActivity extends BaseActivity
         implements MediaChooserFragmentListener {
@@ -68,14 +70,14 @@ public class MusicChooserActivity extends BaseActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LogHelper.d(TAG, "Activity onCreate");
+        LogHelper.i(TAG, "Activity onCreate");
 
-        setContentView(R.layout.activity_player);
+        setContentView(R.layout.activity_music_chooser);
 
         initializeToolbar();
         initializeFromParams(savedInstanceState, getIntent());
 
-        // Only check if a full screen player is needed on the first time:
+        // Only check if full screen is needed on the first time:
         if (savedInstanceState == null) {
             startFullScreenActivityIfNeeded(getIntent());
         }
@@ -93,21 +95,16 @@ public class MusicChooserActivity extends BaseActivity
     }
 
     /**
-     * A callback from the MediaBrowserFragment
-     * We have clicked on add button for an item
-     * Add all the music in the item's category to the queue
-     * - Could be just one song, or a category (e.g. all songs for an artist)
-     * //@param item
+     * Callbacks from the MediaChooserFragment(s)
+     * We have clicked on add button for an item (track, artist, album)
+     * or clicked on an option to browse further (e.g clicked an album to see all songs)
+    */
 
-    @Override
-    public void onAddMediaToQueue(MediaBrowserCompat.MediaItem item) {
-        MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
-        Bundle bundle = new Bundle();
-        bundle.putString(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, item.getMediaId());
-        controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE,bundle);
-    }
+    /**
+     * Callbacks from the MediaChooserGroupsFragment
+     * Add all songs on the specified album to the playqueue
+     * @param albumId
      */
-
     @Override
     public void onAddAlbumToQueue(long albumId) {
         MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
@@ -116,6 +113,11 @@ public class MusicChooserActivity extends BaseActivity
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE,bundle);
     }
 
+    /**
+     * Callbacks from the MediaChooserGroupsFragment
+     * Add the all songs by the specified artist to the playqueue
+     * @param artistID
+     */
     @Override
     public void onAddArtistToQueue(long artistID) {
         MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
@@ -124,6 +126,11 @@ public class MusicChooserActivity extends BaseActivity
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE,bundle);
     }
 
+    /**
+     * Callbacks from the MediaChooserTracksFragment
+     * Add the specified track to the playqueue
+     * @param trackId
+     */
     @Override
     public void onAddTrackToQueue(long trackId) {
         MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
@@ -132,6 +139,12 @@ public class MusicChooserActivity extends BaseActivity
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_TRACK_TO_QUEUE,bundle);
     }
 
+    /**
+     * User has clicked on group (an album or an artist)
+     * we should display the tracks in this group
+     * @param searchType
+     * @param albumId
+     */
     @Override
     public void onBrowseGroup(String searchType, long albumId) {
         if (Constants.SEARCH_TYPE_ALBUM.equals(searchType)) {
@@ -147,7 +160,7 @@ public class MusicChooserActivity extends BaseActivity
      * So we browse down (if applicable)
      * Unlike in the example, we do NOT start playing any track
      * @param item
-     */
+
     @Override
     public void onBrowseMediaItemSelected(MediaBrowserCompat.MediaItem item) {
         LogHelper.i(TAG, "onBrowseMediaItemSelected, mediaId=" + item.getMediaId());
@@ -163,14 +176,18 @@ public class MusicChooserActivity extends BaseActivity
             which we dont really want.
             we just want to set the queue
             controls.playFromMediaId(item.getMediaId(), null);
-        } else */
+        } else
         if (item.isBrowsable()) {
             navigateToBrowser(item.getMediaId());
         } else {
             LogHelper.w(TAG, "Ignoring MediaItem that is not browsable",
                     "mediaId=", item.getMediaId());
         }
-    }
+    }*/
+
+    /**
+     * Callback from the MediaChooserFragment to set the title
+     * @param title
 
     @Override
     public void setToolbarTitle(CharSequence title) {
@@ -180,66 +197,19 @@ public class MusicChooserActivity extends BaseActivity
         }
         setTitle(title);
     }
-
+*/
+    /**
+     * Callback from the MediaChooserFragment to set the title from a resource id
+     * @param resourceStringId
+     */
     @Override
     public void setToolbarTitle(int resourceStringId) {
         setTitle(resourceStringId);
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        LogHelper.d(TAG, "onNewIntent, intent=" + intent);
-        initializeFromParams(null, intent);
-        startFullScreenActivityIfNeeded(intent);
-    }
-
-    private void startFullScreenActivityIfNeeded(Intent intent) {
-        if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
-            Intent fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
-                .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                .putExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION,
-                    intent.getParcelableExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION));
-            startActivity(fullScreenIntent);
-        }
-    }
-
-    protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {
-        String mediaId = null;
-        // check if we were started from a "Play XYZ" voice search. If so, we save the extras
-        // (which contain the query details) in a parameter, so we can reuse it later, when the
-        // MediaSession is connected.
-        if (intent.getAction() != null
-            && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)) {
-            mVoiceSearchParams = intent.getExtras();
-            LogHelper.d(TAG, "Starting from voice search query=",
-                mVoiceSearchParams.getString(SearchManager.QUERY));
-        } else {
-            if (savedInstanceState != null) {
-                // If there is a saved media ID, use it
-                mediaId = savedInstanceState.getString(SAVED_MEDIA_ID);
-            }
-        }
-        navigateToBrowser(mediaId);
-    }
-
-    public void onChooseTrack() {
-        LogHelper.i(TAG, "onChooseTrack");
-        MediaChooserTracksFragment fragment = null;
-        fragment = new MediaChooserTracksFragment();
-        //fragment.setMediaId(mediaId);
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.setCustomAnimations(
-                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
-                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
-        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
-        // If this is not the top level media (root), we add it to the fragment back stack,
-        // so that actionbar toggle and Back will work appropriately:
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
 
     /**
+     * Callback from MediaChooserFragment when user clicks on an album
      * Show 'tracks list' fragment.
      * Filtered by album with specified id
      * @param albumId
@@ -261,6 +231,7 @@ public class MusicChooserActivity extends BaseActivity
     }
 
     /**
+     * Callback from MediaChooserFragment when user clicks on an artist
      * Show 'tracks list' fragment.
      * Filtered by artist with specified id
      * @param artistId
@@ -282,8 +253,10 @@ public class MusicChooserActivity extends BaseActivity
     }
 
     /**
+     * Callback from MediaChooserFragment main menu when user clicks on "Album" option
      * Show 'groups' list fragment, where groups are albums
      */
+    @Override
     public void onChooseAlbum() {
         LogHelper.i(TAG, "onChooseAlbum");
         MediaChooserGroupsFragment fragment = new MediaChooserGroupsFragment();
@@ -300,8 +273,10 @@ public class MusicChooserActivity extends BaseActivity
     }
 
     /**
+     * Callback from MediaChooserFragment main menu when user clicks on "Album" option
      * Show 'groups' list fragment, where groups are artists
      */
+    @Override
     public void onChooseArtist() {
         LogHelper.i(TAG, "onChooseArtist");
         MediaChooserGroupsFragment fragment = new MediaChooserGroupsFragment();
@@ -317,13 +292,33 @@ public class MusicChooserActivity extends BaseActivity
         transaction.commit();
     }
 
-
+    /**
+     * Callback from the main menu when user wants to see all tracks
+     */
+    @Override
+    public void onChooseTrack() {
+        LogHelper.i(TAG, "onChooseTrack");
+        MediaChooserTracksFragment fragment = null;
+        fragment = new MediaChooserTracksFragment();
+        //fragment.setMediaId(mediaId);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+    ////////////////////////////////////////////////
+    //// End of callbacks from MediaChooserFragments
+    ////////////////////////////////////////////////
+/*
     private void navigateToBrowser(String mediaId) {
         LogHelper.i(TAG, "navigateToBrowser, mediaId=" + mediaId);
-        //MediaChooserFragment fragment = getBrowseFragment();
-        MediaChooserOptionsFragment fragment = null;
         if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {
-            fragment = new MediaChooserOptionsFragment()/*MediaChooserFragment()*/;
+            fragment = new MediaChooserOptionsFragment();
             fragment.setMediaId(mediaId);
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             transaction.setCustomAnimations(
@@ -338,7 +333,9 @@ public class MusicChooserActivity extends BaseActivity
             transaction.commit();
         }
     }
+*/
 
+/*
     public String getMediaId() {
         MediaChooserTracksFragment fragment = getBrowseFragment();
         if (fragment == null) {
@@ -350,7 +347,7 @@ public class MusicChooserActivity extends BaseActivity
     private MediaChooserTracksFragment getBrowseFragment() {
         return (MediaChooserTracksFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
     }
-
+*/
     @Override
     protected void onMediaControllerConnected() {
         if (mVoiceSearchParams != null) {
@@ -394,6 +391,75 @@ public class MusicChooserActivity extends BaseActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        LogHelper.d(TAG, "onNewIntent, intent=" + intent);
+        initializeFromParams(null, intent);
+        startFullScreenActivityIfNeeded(intent);
+    }
+
+    private void startFullScreenActivityIfNeeded(Intent intent) {
+        if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
+            Intent fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
+                    .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    .putExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION,
+                            intent.getParcelableExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION));
+            startActivity(fullScreenIntent);
+        }
+    }
+
+    protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {
+        LogHelper.i(TAG,"initializeFromParams" );
+        String mediaId = null;
+        // check if we were started from a "Play XYZ" voice search. If so, we save the extras
+        // (which contain the query details) in a parameter, so we can reuse it later, when the
+        // MediaSession is connected.
+        if (intent.getAction() != null
+                && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)) {
+            mVoiceSearchParams = intent.getExtras();
+            LogHelper.d(TAG, "Starting from voice search query=",
+                    mVoiceSearchParams.getString(SearchManager.QUERY));
+        } else {
+            if (savedInstanceState != null) {
+                // If there is a saved media ID, use it
+                mediaId = savedInstanceState.getString(SAVED_MEDIA_ID);
+            }
+        }
+        //navigateToBrowser(mediaId);
+
+        // Here we will have a media id if we have started from a voice search
+
+        LogHelper.i(TAG,"initializeFromParams mediaId = " , mediaId);
+        if (mediaId == null) {
+            // Standard start... show the main menu
+            MediaChooserOptionsFragment fragment = new MediaChooserOptionsFragment();
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.setCustomAnimations(
+                    R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                    R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+            transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+            transaction.commit();
+        } else {
+            // Started from voice search. Show tracks list (TODO..  this would be filtered by the search)
+            MediaChooserTracksFragment fragment = new MediaChooserTracksFragment();
+            fragment.setSearchParams(Constants.SEARCH_TYPE_SEARCH, mediaId);
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.setCustomAnimations(
+                    R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                    R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+            transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+            // If this is not the top level media (root), we add it to the fragment back stack,
+            // so that actionbar toggle and Back will work appropriately:
+            transaction.addToBackStack(null);
+            transaction.commit();
+        }
+
+
+
     }
 
 

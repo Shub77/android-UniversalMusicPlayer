@@ -215,7 +215,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         mControllers = findViewById(R.id.controllers);
 
         mSleepIndicator = (TextView) findViewById(R.id.sleepIndicator);
-        if (getMsTillSleep() < 0) {
+        if (getMsTillSleep() == 0) {
             mSleepIndicator.setVisibility(View.INVISIBLE);
         } else {
             mSleepIndicator.setVisibility(View.VISIBLE);
@@ -618,7 +618,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
 
         long msTillSleep = getMsTillSleep();
 
-        if (msTillSleep < 0) {
+        if (msTillSleep == 0) {
             SetTimerDialog setSleepTimerDialog = new SetTimerDialog();
             setSleepTimerDialog.setOnSetSleepTimerListener(this);
             setSleepTimerDialog.show(fm, "fragment_settimer_dialog");
@@ -626,7 +626,8 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             // sleep timer is active ... allow user to cancel
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-            String msg;
+            String msg = getSleepTimeInWords();
+            /*
             if (msTillSleep < 0) {
                 msg = "Sleep at end of playing song";
             } else if (msTillSleep < 60 * 1000) {
@@ -634,7 +635,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             } else {
                 msg = "Sleep in " + Long.toString(msTillSleep/1000) + " seconds ";
             }
-
+*/
             builder.setTitle("Cancel sleep timer")
                     .setMessage(msg + "\nCancel?")
                     .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -658,6 +659,25 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             AlertDialog alert = builder.create();
             alert.show();
         }
+    }
+
+    private String getSleepTimeInWords() {
+        long msTillSleep = getMsTillSleep();
+        long secsTillSleep = (msTillSleep - (msTillSleep % 1000)) / 1000;
+
+        if (secsTillSleep < 60) {
+            return (Long.toString(secsTillSleep) + " Seconds until sleep");
+        }
+
+        long seconds = secsTillSleep % 60;
+        long minutes = (secsTillSleep - seconds) / 60;
+        if (secsTillSleep < 3600) {
+            return (Long.toString(minutes) + " minutes, " + seconds + " Seconds until sleep");
+        }
+
+        long hours = (secsTillSleep - (secsTillSleep % 3600)) /3600;
+        minutes = minutes - 60 * hours;
+        return (Long.toString(hours) + " hours, " +Long.toString(minutes) + " minutes, " + seconds + " Seconds until sleep");
     }
 
     @Override

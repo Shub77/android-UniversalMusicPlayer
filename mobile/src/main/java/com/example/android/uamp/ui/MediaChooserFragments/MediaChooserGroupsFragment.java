@@ -19,7 +19,6 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.*;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -57,31 +56,11 @@ public class MediaChooserGroupsFragment extends Fragment {
     private static final String TAG = LogHelper.makeLogTag(MediaChooserGroupsFragment.class);
 
     private AlbumCursorAdapter mCursorAdapter;
-    private String mMediaId;
     private MediaChooserFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
     private ClearableEditText etSearchText;
-
-    private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
-        private boolean oldOnline = false;
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // We don't care about network changes while this fragment is not associated
-            // with a media ID (for example, while it is being initialized)
-            if (mMediaId != null) {
-                boolean isOnline = NetworkHelper.isOnline(context);
-                if (isOnline != oldOnline) {
-                    oldOnline = isOnline;
-                    checkForUserVisibleErrors(false);
-                    if (isOnline) {
-                        mCursorAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-        }
-    };
-
+/*
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current AlbumTitle and description and the PlaybackState.
     private final MediaControllerCompat.Callback mMediaControllerCallback =
@@ -100,35 +79,10 @@ public class MediaChooserGroupsFragment extends Fragment {
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
             super.onPlaybackStateChanged(state);
             LogHelper.d(TAG, "Received state change: ", state);
-            checkForUserVisibleErrors(false);
+//            checkForUserVisibleErrors(false);
         }
     };
-
-    private final MediaBrowserCompat.SubscriptionCallback mSubscriptionCallback =
-        new MediaBrowserCompat.SubscriptionCallback() {
-            @Override
-            public void onChildrenLoaded(@NonNull String parentId,
-                                         @NonNull List<MediaBrowserCompat.MediaItem> children) {
-                try {
-                    LogHelper.i(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
-                    checkForUserVisibleErrors(children.isEmpty());
-                    for (MediaBrowserCompat.MediaItem item : children) {
-//                        mBrowserAdapter.add(item);
-                    }
-//                    mBrowserAdapter.notifyDataSetChanged();
-                } catch (Throwable t) {
-                    LogHelper.e(TAG, "Error on childrenloaded", t);
-                }
-            }
-
-            @Override
-            public void onError(@NonNull String id) {
-                LogHelper.e(TAG, "browse fragment subscription onError, id=" + id);
-                Toast.makeText(getActivity(), R.string.error_loading_media, Toast.LENGTH_LONG).show();
-                checkForUserVisibleErrors(true);
-            }
-        };
-
+*/
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -211,7 +165,6 @@ public class MediaChooserGroupsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        //LogHelper.i(TAG, "fragment.onCreateView");
         View rootView = inflater.inflate(R.layout.fragment_media_chooser_groups, container, false);
 
         mErrorView = rootView.findViewById(R.id.playback_error);
@@ -242,7 +195,7 @@ public class MediaChooserGroupsFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                checkForUserVisibleErrors(false);
+                //checkForUserVisibleErrors(false);
                 LogHelper.i(TAG, "clicked group with position", position, "and id ", id);
                 long viewId = view.getId();
                 if (viewId == R.id.plus_eq) {
@@ -302,54 +255,18 @@ public class MediaChooserGroupsFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-
-        // fetch browsing information to fill the listview:
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-
-        //LogHelper.i(TAG, "fragment.onStart, mediaId=", mMediaId,"  onConnected=" + mediaBrowser.isConnected());
-
-        if (mediaBrowser.isConnected()) {
-            onConnected();
-        }
-
-        // Registers BroadcastReceiver to track network connection changes.
-        this.getActivity().registerReceiver(mConnectivityChangeReceiver,
-            new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        updateTitle();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-        if (mediaBrowser != null && mediaBrowser.isConnected() && mMediaId != null) {
-            mediaBrowser.unsubscribe(mMediaId);
-        }
-        MediaControllerCompat controller = ((FragmentActivity) getActivity())
-                .getSupportMediaController();
-        if (controller != null) {
-            controller.unregisterCallback(mMediaControllerCallback);
-        }
-        this.getActivity().unregisterReceiver(mConnectivityChangeReceiver);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mMediaFragmentListener = null;
-    }
-
-    public String getMediaId() {
-        Bundle args = getArguments();
-        if (args != null) {
-            return args.getString(Constants.ARG_MEDIA_ID);
-        }
-        return null;
-    }
-
-    public void setMediaId(String mediaId) {
-        Bundle args = new Bundle(1);
-        args.putString(Constants.ARG_MEDIA_ID, mediaId);
-        setArguments(args);
     }
 
     public String getSearchType() {
@@ -366,40 +283,7 @@ public class MediaChooserGroupsFragment extends Fragment {
         setArguments(args);
     }
 
-    // Called when the MediaBrowser is connected. This method is either called by the
-    // fragment.onStart() or explicitly by the activity in the case where the connection
-    // completes after the onStart()
-    public void onConnected() {
-        if (isDetached()) {
-            return;
-        }
-        mMediaId = getMediaId();
-        if (mMediaId == null) {
-            mMediaId = mMediaFragmentListener.getMediaBrowser().getRoot();
-        }
-        updateTitle();
-
-        // Unsubscribing before subscribing is required if this mediaId already has a subscriber
-        // on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
-        // the callback, but won't trigger the initial callback.onChildrenLoaded.
-        //
-        // This is temporary: A bug is being fixed that will make subscribe
-        // consistently call onChildrenLoaded initially, no matter if it is replacing an existing
-        // subscriber or not. Currently this only happens if the mediaID has no previous
-        // subscriber or if the media content changes on the service side, so we need to
-        // unsubscribe first.
-        mMediaFragmentListener.getMediaBrowser().unsubscribe(mMediaId);
-
-        mMediaFragmentListener.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
-
-        // Add MediaController callback so we can redraw the list when metadata changes:
-        MediaControllerCompat controller = ((FragmentActivity) getActivity())
-                .getSupportMediaController();
-        if (controller != null) {
-            controller.registerCallback(mMediaControllerCallback);
-        }
-    }
-
+/*
     private void checkForUserVisibleErrors(boolean forceError) {
         boolean showError = forceError;
         // If offline, message is about the lack of connectivity:
@@ -428,7 +312,7 @@ public class MediaChooserGroupsFragment extends Fragment {
             " showError=", showError,
             " isOnline=", NetworkHelper.isOnline(getActivity()));
     }
-
+*/
     private void updateTitle() {
         String searchType = getSearchType();
         switch (searchType) {
