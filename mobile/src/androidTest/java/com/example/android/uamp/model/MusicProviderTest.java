@@ -66,36 +66,6 @@ public class MusicProviderTest {
     }
 
     @Test
-    public void testGetGenres() throws Exception {
-        Iterable<String> genres = provider.getGenres();
-        ArrayList<String> list = new ArrayList<>();
-        for (String genre: genres) {
-            list.add(genre);
-        }
-        assertEquals(2, list.size());
-
-        Collections.sort(list);
-        assertEquals(Arrays.asList(new String[]{"Genre 1", "Genre 2"}), list);
-    }
-
-    @Test
-    public void testGetMusicsByGenre() throws Exception {
-        int count = 0;
-        for (MediaMetadataCompat metadata: provider.getMusicsByGenre("Genre 1")) {
-            String genre = metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE);
-            assertEquals("Genre 1", genre);
-            count++;
-        }
-
-        assertEquals(3, count);
-    }
-
-    @Test
-    public void testGetMusicsByInvalidGenre() throws Exception {
-        assertFalse(provider.getMusicsByGenre("XYZ").iterator().hasNext());
-    }
-
-    @Test
     public void testSearchBySongTitle() throws Exception {
         int count = 0;
         for (MediaMetadataCompat metadata: provider.searchMusicBySongTitle("Romantic")) {
@@ -162,7 +132,7 @@ public class MusicProviderTest {
         assertEquals(bArt, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART));
         assertEquals(bIcon, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON));
     }
-
+/*
     @Test
     public void testFavorite() throws Exception {
         MediaMetadataCompat metadata = provider.getShuffledMusic().iterator().next();
@@ -174,7 +144,8 @@ public class MusicProviderTest {
         provider.setFavorite(musicId, false);
         assertFalse(provider.isFavorite(musicId));
     }
-
+*/
+/*
     @Test
     public void testGetChildren() throws Exception {
         MockResources resources = new MockResources() {
@@ -227,4 +198,5 @@ public class MusicProviderTest {
                 level3.get(0).getMediaId(), resources);
         assertTrue(invalidLevel4.isEmpty());
    }
+   */
 }

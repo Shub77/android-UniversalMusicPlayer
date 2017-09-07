@@ -155,7 +155,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
     @Override
     public void onCreate() {
         super.onCreate();
-        LogHelper.d(TAG, "onCreate");
+        LogHelper.i(TAG, "onCreate");
 
         mMusicProvider = new MusicProvider(this);
 
@@ -349,9 +349,19 @@ public class MusicService extends MediaBrowserServiceCompat implements
         return new BrowserRoot(MEDIA_ID_ROOT, null);
     }
 
+    /**
+     * Overriden method of MediaBrowserServiceCompat
+     * In our implentation it doesn't really have any meaning
+     * @param parentMediaId
+     * @param result
+     */
     @Override
     public void onLoadChildren(@NonNull final String parentMediaId,
                                @NonNull final Result<List<MediaItem>> result) {
+        // we have no concept of 'children' when browsing
+        // we aren't using hierarchy
+        result.sendResult(new ArrayList<MediaItem>());
+        /*
         //LogHelper.i(TAG, "OnLoadChildren: parentMediaId=", parentMediaId);
         if (MEDIA_ID_EMPTY_ROOT.equals(parentMediaId)) {
             result.sendResult(new ArrayList<MediaItem>());
@@ -368,6 +378,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                 }
             });
         }
+        */
     }
 
     /**

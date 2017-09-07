@@ -342,8 +342,15 @@ public class QueueManager {
         List<MediaSessionCompat.QueueItem> newQueueItems = new ArrayList<>();
         int count = 0;
         for (MediaMetadataCompat track : tracks) {
+            // TODO: Here (and for artists, and tracks) we start with a track ID from the queue item,
+            // then create and store a hierarchical media ID which is then parsed
+            // To get the track ID...
+            // It is read from the queueitem key METADATA_KEY_MEDIA_ID and then stored back into the same KEY!
+            // The whole thing should be refactored to just use the track ID, with no hierarchy
+            // (plus the hierarchy is basically meaningless here)...
+            CharSequence trackId = track.getText(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
             MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ALBUM/ALBUM|"+Long.toString(albumId))
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ALBUM/ALBUM|"+trackId/*Long.toString(albumId)*/)
                     .build();
 
             // We don't expect queues to change after created, so we use the item index as the
@@ -363,12 +370,13 @@ public class QueueManager {
         // get all the new tracks to add. Will add all tracks in the same category as the chosen track
         Iterable<MediaMetadataCompat> tracks;
         tracks = mMusicProvider.getMusicsByArtist(Long.toString(artistId));
-
         List<MediaSessionCompat.QueueItem> newQueueItems = new ArrayList<>();
         int count = 0;
         for (MediaMetadataCompat track : tracks) {
+            CharSequence trackId = track.getText(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
+
             MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ALBUM/ALBUM|"+Long.toString(artistId))
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ARTIST/ARTIST|"+trackId /*Long.toString(artistId)*/)
                     .build();
 
             // We don't expect queues to change after created, so we use the item index as the
@@ -402,9 +410,8 @@ public class QueueManager {
      * My own implementation of the example based on setQueueFromMusic.
      * Takes an input media ID from the 'music browser' and adds songs to the queue
      * (The standard implementation replaces the queue)
-     * @param mediaId
      */
-    public void addMusicToQueue(String mediaId) {
+/*    public void addMusicToQueue(String mediaId) {
         LogHelper.i(TAG, "setQueueFromMusic id=", mediaId);
         // get all the new tracks to add. Will add all tracks in the same category as the chosen track
         List<MediaSessionCompat.QueueItem> newTracks = QueueHelper.getTracksFromMediaID(mediaId, mMusicProvider);
@@ -420,7 +427,7 @@ public class QueueManager {
         // This might not really be the completely desired functionality. Would it start playing on startup when a randomised queue was intialised
         // We need a 'now playing' but we don't need to start playing it (should be paused)
 
-        /* DISABLED Just set the queue. Don't take anything off it to now playing
+        / * DISABLED Just set the queue. Don't take anything off it to now playing
         if (mNowPlaying == null)
         {
             mNowPlaying = mPlayingQueue.remove(0);
@@ -445,13 +452,13 @@ public class QueueManager {
             // mListener is a MetadataUpdateListener used to call back to the service
             mListener.onMetadataChanged(metadata);
         }
-        DISABLED */
+        DISABLED * /
 
         // This communicates the changed queue. It allows the queue to be shown in
         // in the player activity
         mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
-
+*/
     public void updateMetadata() {
         LogHelper.i(TAG, "upda  teMetadata");
         MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
@@ -499,25 +506,24 @@ public class QueueManager {
 
     /**
      * Takes an input from the 'music browser'
-     * @param title
-     * @param newQueue
+
      */
-    protected void addToCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
+/*    protected void addToCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
         int oldqueuesize = mPlayingQueue.size();
         mPlayingQueue.addAll(newQueue);
         LogHelper.i(TAG, "addToCurrentQueue: adding ",newQueue.size(), " new items to existing queue (",oldqueuesize,")items. New queue has ", mPlayingQueue.size());
-        /*
+        / *
         int index = 0;
 
         if (initialMediaId != null) {
             index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, initialMediaId);
         }
-        */
+        * /
         // TEST looks like we don't need this here. It is called from elsewhere ...!!!! uncomnet this updateMetadata(); // TEST instead of next 2 lines TEST
         // mListener.onQueueUpdated(AlbumTitle, mPlayingQueue);
         //mListener.onNowPlayingChanged(mNowPlaying); // we need to call this so the player gets created.
     }
-
+*/
 
     /* Commented out and replaced by my implementation which adds new music... doesn't replace the queue
     public void setQueueFromMusic(String mediaId) {
@@ -596,7 +602,7 @@ public class QueueManager {
         void onPauseRequest();
 
     }
-
+/*
     // This is from the google example
     public interface ExampleMetadataUpdateListener {
         void onMetadataChanged(MediaMetadataCompat metadata);
@@ -604,4 +610,5 @@ public class QueueManager {
         void onCurrentQueueIndexUpdated(int queueIndex);
         void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newQueue);
     }
+    */
 }

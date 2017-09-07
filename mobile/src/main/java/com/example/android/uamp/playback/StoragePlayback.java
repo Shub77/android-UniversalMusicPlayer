@@ -167,6 +167,7 @@ public class StoragePlayback implements Playback {
 
     @Override
     public void play(QueueItem item) {
+        LogHelper.i(TAG, "play queue item:",item);
         mPlayOnFocusGain = true;
         tryToGetAudioFocus();
         registerAudioNoisyReceiver();

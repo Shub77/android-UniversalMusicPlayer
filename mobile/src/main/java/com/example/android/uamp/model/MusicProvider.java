@@ -66,7 +66,8 @@ public class MusicProvider {
 
     // Although we could cache lists of artists/albums ???
 
-    private final Set<String> mFavoriteTracks;
+//    private final Set<String> mFavoriteTracks;
+
     private Context context;
     enum State {
         NON_INITIALIZED, INITIALIZING, INITIALIZED
@@ -80,53 +81,11 @@ public class MusicProvider {
 
     public MusicProvider(Context context) {
         //this(new StorageMusicSource(context) /* RemoteJSONSource()*/);
-        mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+//        mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
         this.context = context;
 
     }
 
-    //TODO: this is actually ALBUMS
-    public Iterable<Genre> getGenreObjects() {
-
-        if (mCurrentState != State.INITIALIZED) {
-            return Collections.emptyList();
-        }
-
-        // original imlementation : return mMusicListByGenre.keySet();
-        final Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
-        final String _ID = MediaStore.Audio.Albums._ID;
-        final String NUM_ITEMS_COLUMN = MediaStore.Audio.Albums.NUMBER_OF_SONGS;
-
-        final String NAME_COLUMN = MediaStore.Audio.Albums.ALBUM;
-
-        final String[] cursorColumns={_ID, NUM_ITEMS_COLUMN, NAME_COLUMN};
-        final String orderby = NAME_COLUMN + " COLLATE NOCASE";
-
-        final String where = null;
-        ContentResolver cr = context.getContentResolver();
-        Cursor genresCursor =  cr.query(uri, cursorColumns, where, null, orderby);
-        ArrayList<Genre> genres = new ArrayList<>();
-        if (genresCursor != null) {
-            Toast.makeText(context, "genres size=" + genresCursor.getCount(), Toast.LENGTH_LONG).show();
-        }
-        Genre genre;
-        try {
-            while (genresCursor.moveToNext()) {
-                String id = genresCursor.getString(0);
-                String numItems= genresCursor.getString(1);
-                String name = genresCursor.getString(2);
-                genre = new Genre();
-                genre.id = id;
-                genre.name = name;
-                genres.add(genre);
-            }
-        } finally {
-            genresCursor.close();
-        }
-
-        return genres;
-
-    }
 
     /**
      * Get an iterator over the list of genres
@@ -134,7 +93,7 @@ public class MusicProvider {
      * @return genres
      */
     //TODO: this is actually ALBUMS
-    public Iterable<String> getGenres() {
+/*    public Iterable<String> getGenres() {
 
         if (mCurrentState != State.INITIALIZED) {
             return Collections.emptyList();
@@ -174,7 +133,7 @@ public class MusicProvider {
         return genres;
 
     }
-
+*/
     /**
      * Get an iterator over the list of artists
      *
@@ -290,22 +249,23 @@ public class MusicProvider {
     /**
      * Get an iterator over a shuffled collection of all songs
      */
-    public Iterable<MediaMetadataCompat> getShuffledMusic() {
+/*    public Iterable<MediaMetadataCompat> getShuffledMusic() {
         LogHelper.i(TAG, "DO NOT USE THIS getShuffledMusic");
         if (mCurrentState != State.INITIALIZED) {
             //LogHelper.i(TAG, "not initialized");
             return Collections.emptyList();
         }
         List<MediaMetadataCompat> shuffled = new ArrayList<>(4);
-/*
+/ *
         for (MutableMediaMetadata mutableMetadata: mMusicListById.values()) {
             shuffled.add(mutableMetadata.metadata);
         }
-*/
+* /
         Collections.shuffle(shuffled);
         //LogHelper.i(TAG, "shuffled size = ", shuffled.size());
         return shuffled;
     }
+    */
     /**
      * Get music tracks of the given genre
      *
@@ -523,7 +483,7 @@ public class MusicProvider {
 
         Uri trackUri = ContentUris.withAppendedId(
                 android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(id));
-        LogHelper.i(TAG, "id=", id, "trackUri", trackUri.toString(), " artist=", artist);
+        LogHelper.i(TAG, "build Metadata from id=", id, " trackUri", trackUri.toString(), " artist=", artist);
         return new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 //.putString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE, "source")
@@ -676,7 +636,7 @@ public class MusicProvider {
     //TODO: rename to 'getTrackById', 'getMusic' is a bit vague
     public MediaMetadataCompat getMusic(String musicId) {
         //return mMusicListById.containsKey(musicId) ? mMusicListById.get(musicId).metadata : null;
-
+        LogHelper.i(TAG, "getTrackById=", musicId);
         if (mCurrentState != State.INITIALIZED /* || !mMusicListByAlbum.containsKey(album)*/) {
             return null;
         }
@@ -750,6 +710,7 @@ public class MusicProvider {
         */
     }
 
+    /*
     public void setFavorite(String musicId, boolean favorite) {
         if (favorite) {
             mFavoriteTracks.add(musicId);
@@ -757,14 +718,17 @@ public class MusicProvider {
             mFavoriteTracks.remove(musicId);
         }
     }
+    */
 
     public boolean isInitialized() {
         return mCurrentState == State.INITIALIZED;
     }
 
+    /*
     public boolean isFavorite(String musicId) {
         return mFavoriteTracks.contains(musicId);
     }
+    */
 
     /**
      * Get the list of music tracks from a server and caches the track information
@@ -870,7 +834,7 @@ public class MusicProvider {
         }
     }
 */
-
+/*
     public List<MediaBrowserCompat.MediaItem> getChildren(String mediaId, Resources resources) {
         //LogHelper.i(TAG, "getChildren, mediaId=", mediaId );
         List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
@@ -929,7 +893,8 @@ public class MusicProvider {
         }
         return mediaItems;
     }
-
+*/
+/*
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemGenreForRoot(Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
                 .setMediaId(MEDIA_ID_MUSICS_BY_GENRE)
@@ -981,7 +946,7 @@ public class MusicProvider {
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemForGenre(String genre,
                                                                           Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, "NOTREALTEMPGENRE"/*genre*/))
+                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, "NOTREALTEMPGENRE"/ *genre* /))
                 .setTitle(genre)
                 .setSubtitle(resources.getString(
                         R.string.browse_musics_by_genre_subtitle, genre))
@@ -993,7 +958,7 @@ public class MusicProvider {
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemForGenreWithId(String genre, String id,
                                                                           Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, id/*genre*/))
+                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, id/ *genre* /))
                 .setTitle(genre)
                 .setSubtitle(resources.getString(
                         R.string.browse_musics_by_genre_subtitle, genre))
@@ -1031,7 +996,7 @@ public class MusicProvider {
         // can set a hierarchy-aware mediaID. We will need to know the media hierarchy
         // when we get a onPlayFromMusicID call, so we can create the proper queue based
         // on where the music was selected from (by artist, by genre, random, etc)
-        String type = metadata.getString(metadataKey /*MediaMetadataCompat.METADATA_KEY_GENRE*/);
+        String type = metadata.getString(metadataKey / *MediaMetadataCompat.METADATA_KEY_GENRE* /);
         String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
                 metadata.getDescription().getMediaId(),
                 category,
@@ -1043,5 +1008,5 @@ public class MusicProvider {
                 MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
 
     }
-
+*/
 }

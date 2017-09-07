@@ -44,8 +44,8 @@ public class PlaybackManager implements Playback.Callback {
 
     private static final String TAG = LogHelper.makeLogTag(PlaybackManager.class);
     // Action to thumbs up a media item
-    private static final String CUSTOM_ACTION_THUMBS_UP = "com.example.android.uamp.THUMBS_UP";
-    public static final String CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE = "uk.me.asbridge.uamp.ADD_MUSIC_TO_QUEUE";
+//    private static final String CUSTOM_ACTION_THUMBS_UP = "com.example.android.uamp.THUMBS_UP";
+//    public static final String CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE = "uk.me.asbridge.uamp.ADD_MUSIC_TO_QUEUE";
     public static final String CUSTOM_EXTRA_MEDIA_ID = "uk.me.asbridge.uamp.CUSTOM_EXTRA_MEDIA_ID";
     public static final String CUSTOM_ACTION_ADD_TRACK_TO_QUEUE = "uk.me.asbridge.uamp.ADD_TRACK_TO_QUEUE";
     public static final String CUSTOM_EXTRA_TRACK_ID = "uk.me.asbridge.uamp.CUSTOM_EXTRA_TRACK_ID";
@@ -57,9 +57,9 @@ public class PlaybackManager implements Playback.Callback {
 
     public static final String COMMAND_EXTRA_PARAMETER = "uk.me.asbridge.uamp.COMMAND_EXTRA_PARAMETER";
 
-    private MusicProvider mMusicProvider;
+//    private MusicProvider mMusicProvider;
+//    private Resources mResources;
     private QueueManager mQueueManager;
-    private Resources mResources;
     private Playback mPlayback;
     private PlaybackServiceCallback mServiceCallback;
     private MediaSessionCallback mMediaSessionCallback;
@@ -68,9 +68,9 @@ public class PlaybackManager implements Playback.Callback {
     public PlaybackManager(PlaybackServiceCallback serviceCallback, Resources resources,
                            MusicProvider musicProvider, QueueManager queueManager,
                            Playback playback, Context context) {
-        mMusicProvider = musicProvider;
+//        mMusicProvider = musicProvider;
         mServiceCallback = serviceCallback;
-        mResources = resources;
+//        mResources = resources;
         mQueueManager = queueManager;
         mMediaSessionCallback = new MediaSessionCallback();
         mPlayback = playback;
@@ -140,7 +140,7 @@ public class PlaybackManager implements Playback.Callback {
         PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(getAvailableActions());
 
-        setCustomAction(stateBuilder);
+        // setCustomAction(stateBuilder); This set a 'thumbs up action for favorite'
         int state = mPlayback.getState();
 
         // If there is an error message, send it to the playback state:
@@ -166,7 +166,7 @@ public class PlaybackManager implements Playback.Callback {
             mServiceCallback.onNotificationRequired();
         }
     }
-
+/*
     private void setCustomAction(PlaybackStateCompat.Builder stateBuilder) {
         MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
         if (currentMusic == null) {
@@ -181,7 +181,7 @@ public class PlaybackManager implements Playback.Callback {
         LogHelper.i(TAG, "for mediaId = ", mediaId, " musicId = ", musicId);
         int favoriteIcon = mMusicProvider.isFavorite(musicId) ?
                 R.drawable.ic_star_on : R.drawable.ic_star_off;
-        LogHelper.d(TAG, "updatePlaybackState, setting Favorite custom action of music ",
+        LogHelper.i(TAG, "updatePlaybackState, setting Favorite custom action of music ",
                 musicId, " current favorite=", mMusicProvider.isFavorite(musicId));
         Bundle customActionExtras = new Bundle();
         WearHelper.setShowCustomActionOnWear(customActionExtras, true);
@@ -190,7 +190,7 @@ public class PlaybackManager implements Playback.Callback {
                 .setExtras(customActionExtras)
                 .build());
     }
-
+*/
     private long getAvailableActions() {
         long actions =
                 PlaybackStateCompat.ACTION_PLAY_PAUSE |
@@ -373,6 +373,7 @@ public class PlaybackManager implements Playback.Callback {
 
         @Override
         public void onCustomAction(@NonNull String action, Bundle extras) {
+/*
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
                 LogHelper.i(TAG, "onCustomAction: favorite for current track");
                 MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
@@ -386,16 +387,19 @@ public class PlaybackManager implements Playback.Callback {
                 // playback state needs to be updated because the "Favorite" icon on the
                 // custom action will change to reflect the new favorite state.
                 updatePlaybackState(null);
-            } else if (CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE.equals(action)) {
+
+            } else */
+/*
+            if (CUSTOM_ACTION_ADD_MUSIC_TO_QUEUE.equals(action)) {
                 // New custom action to set the queue, without starting to play any media
                 // Media ID is the heiracrchy string (not the long track ID)
                 String mediaId = extras.getString(CUSTOM_EXTRA_MEDIA_ID);
                 LogHelper.i(TAG, "onCustomAction: ADD_MUSIC_TO_QUEUE, medaiId =",mediaId);
                 mQueueManager.addMusicToQueue(mediaId);
-            } else if (CUSTOM_ACTION_ADD_TRACK_TO_QUEUE.equals(action)) {
+            } else */ if (CUSTOM_ACTION_ADD_TRACK_TO_QUEUE.equals(action)) {
                 // New custom action to set the queue, without starting to play any media
                 long trackId = extras.getLong(CUSTOM_EXTRA_TRACK_ID);
-                LogHelper.i(TAG, "onCustomAction: ADD_TRACK_TO_QUEUE, medaiId =",trackId);
+                LogHelper.i(TAG, "onCustomAction: ADD_TRACK_TO_QUEUE, trackId =",trackId);
                 mQueueManager.addTrackToQueue(trackId);
             } else if (CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE.equals(action)) {
                 // New custom action to set the queue, without starting to play any media

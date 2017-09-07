@@ -78,7 +78,7 @@ public class PlaybackManagerTest {
         source.add("Romantic Song 2", "Album 2", "Joe Singer", "Genre 2",
                 "https://examplemusic.com/music5.mp3", null, 2, 2, 4200);
     }
-
+/*
     @Test
     public void testPlay() throws Exception {
         String mediaId = MediaIDHelper.MEDIA_ID_ROOT;
@@ -204,6 +204,6 @@ public class PlaybackManagerTest {
         assertEquals(expectedMusicId,  MediaIDHelper.extractMusicIDFromMediaID(
                 queueManager.getCurrentMusic().getDescription().getMediaId()));
     }
-
+*/
 
 }

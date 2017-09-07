@@ -107,7 +107,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
         @Override
         public void onClick(View v) {
             //final Song song = (Song) getItem(songPosition);
-            LogHelper.i(TAG, "remove song, queueId = ", queueId);
+            LogHelper.i(TAG, "move song to top, queueId = ", queueId);
 
             // Callback to the activity which must implement PlayQueueActionsListener
             ((PlayQueueActionsListener)activity).onMoveSongToTopClicked(queueId);

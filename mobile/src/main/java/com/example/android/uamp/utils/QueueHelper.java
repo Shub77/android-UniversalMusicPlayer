@@ -227,18 +227,30 @@ public class QueueHelper {
 
     public static int count = 0;
 
+    /**
+     * Convert an iterable list of MediaMetadataCompat objects to
+     * a List of MediaSessionCompat.QueueItems
+     * For each MediaMetadataCompat:
+     *    Make a MediaMetdataCompat make a QueueItem from the MediaMetadata description and a static count
+     * @param tracks
+     * @param categories
+     * @return
+     */
     private static List<MediaSessionCompat.QueueItem> convertToQueue(
             Iterable<MediaMetadataCompat> tracks, String... categories) {
         List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
-        // TODO : THIS COUNT IS PROBABLY QRONG IN OUR IMPLEMENTATION (NOT UNIQUE)
-//        int count = 0;
-        for (MediaMetadataCompat track : tracks) {
 
-            // We create a hierarchy-aware mediaID, so we know what the queue is about by looking
-            // at the QueueItem media IDs.
+        for (MediaMetadataCompat track : tracks) {
+            if (track == null)
+            {
+                LogHelper.i(TAG, "TRACK IS NULL");
+            } else {
+                LogHelper.i(TAG, "track not null ", track.getDescription());
+
+            }
             String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
                     track.getDescription().getMediaId(), categories);
-
+            LogHelper.i(TAG, "track not null desc=", track.getDescription(), "mediaID=", track.getDescription().getMediaId(), "hierarchyAwareMediaID=", hierarchyAwareMediaID);
             MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
                     .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
                     .build();

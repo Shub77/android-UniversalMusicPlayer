@@ -29,7 +29,7 @@ import java.util.Arrays;
  * Utility class to help on queue related tasks.
  */
 public class MediaIDHelper {
-
+    private static final String TAG = LogHelper.makeLogTag(MediaIDHelper.class);
     // Media IDs used on browseable items of MediaBrowser
     public static final String MEDIA_ID_EMPTY_ROOT = "__EMPTY_ROOT__";
     public static final String MEDIA_ID_ROOT = "__ROOT__";
@@ -95,6 +95,7 @@ public class MediaIDHelper {
      * @return musicID
      */
     public static String extractMusicIDFromMediaID(@NonNull String mediaID) {
+        LogHelper.i(TAG, "extractMusicIDFromMediaID:",mediaID);
         int pos = mediaID.indexOf(LEAF_SEPARATOR);
         if (pos >= 0) {
             return mediaID.substring(pos+1);
