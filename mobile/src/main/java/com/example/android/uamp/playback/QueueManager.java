@@ -350,7 +350,7 @@ public class QueueManager {
             // (plus the hierarchy is basically meaningless here)...
             CharSequence trackId = track.getText(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
             MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ALBUM/ALBUM|"+trackId/*Long.toString(albumId)*/)
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, /*"ALBUM/ALBUM|"+*/""+trackId/*Long.toString(albumId)*/)
                     .build();
 
             // We don't expect queues to change after created, so we use the item index as the
@@ -376,7 +376,7 @@ public class QueueManager {
             CharSequence trackId = track.getText(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
 
             MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "ARTIST/ARTIST|"+trackId /*Long.toString(artistId)*/)
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, /*"ARTIST/ARTIST|"+*/""+trackId /*Long.toString(artistId)*/)
                     .build();
 
             // We don't expect queues to change after created, so we use the item index as the
@@ -396,7 +396,7 @@ public class QueueManager {
         MediaMetadataCompat track = mMusicProvider.getMusic(stringTrackId);
 
         MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "TRACK/TRACK|"+trackId)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, /*"TRACK/TRACK|"*/""+trackId)
                 .build();
 
 
@@ -467,11 +467,11 @@ public class QueueManager {
             mListener.onMetadataRetrieveError();
             return;
         }
-        final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                currentMusic.getDescription().getMediaId());
-        MediaMetadataCompat metadata = mMusicProvider.getMusic(musicId);
+
+        final String mediaId = currentMusic.getDescription().getMediaId();
+        MediaMetadataCompat metadata = mMusicProvider.getMusic(mediaId);
         if (metadata == null) {
-            throw new IllegalArgumentException("Invalid musicId " + musicId);
+            throw new IllegalArgumentException("Invalid mediaId " + mediaId);
         }
 
         mListener.onMetadataChanged(metadata);
@@ -487,17 +487,20 @@ public class QueueManager {
             AlbumArtCache.getInstance().fetch(albumUri, new AlbumArtCache.FetchListener() {
                 @Override
                 public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-                    mMusicProvider.updateMusicArt(musicId, bitmap, icon);
+                    mMusicProvider.updateMusicArt(mediaId, bitmap, icon);
 
                     // If we are still playing the same music, notify the listeners:
                     MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
                     if (currentMusic == null) {
                         return;
                     }
-                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
-                            currentMusic.getDescription().getMediaId());
-                    if (musicId.equals(currentPlayingId)) {
-                        mListener.onMetadataChanged(mMusicProvider.getMusic(currentPlayingId));
+
+                    //String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(currentMusic.getDescription().getMediaId());
+
+                    String currentPlayingMediaId = currentMusic.getDescription().getMediaId();
+
+                    if (mediaId.equals(currentPlayingMediaId)) {
+                        mListener.onMetadataChanged(mMusicProvider.getMusic(currentPlayingMediaId));
                     }
                 }
             });

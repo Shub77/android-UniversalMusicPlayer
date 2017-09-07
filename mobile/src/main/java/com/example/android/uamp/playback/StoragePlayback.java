@@ -124,11 +124,13 @@ public class StoragePlayback implements Playback {
 
     @Override
     public int getState() {
+        LogHelper.i(TAG, "getState");
         if (mExoPlayer == null) {
             return mExoPlayerNullIsStopped
                     ? PlaybackStateCompat.STATE_STOPPED
                     : PlaybackStateCompat.STATE_NONE;
         }
+        LogHelper.i(TAG, "State = ", mExoPlayer.getPlaybackState());
         switch (mExoPlayer.getPlaybackState()) {
             case ExoPlayer.STATE_IDLE:
                 return PlaybackStateCompat.STATE_PAUSED;

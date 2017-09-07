@@ -115,7 +115,7 @@ public class MusicProviderTest {
     public void testSearchMusicByInvalidArtist() throws Exception {
         assertFalse(provider.searchMusicByArtist("XYZ").iterator().hasNext());
     }
-
+/*
     @Test
     public void testUpdateMusicArt() throws Exception {
         Bitmap bIcon = Bitmap.createBitmap(2, 2, Bitmap.Config.ALPHA_8);
@@ -132,6 +132,7 @@ public class MusicProviderTest {
         assertEquals(bArt, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART));
         assertEquals(bIcon, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON));
     }
+    */
 /*
     @Test
     public void testFavorite() throws Exception {

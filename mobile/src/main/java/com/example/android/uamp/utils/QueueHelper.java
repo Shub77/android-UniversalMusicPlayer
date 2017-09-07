@@ -50,6 +50,7 @@ public class QueueHelper {
      * @param musicProvider
      * @return
      */
+    /*
     public static List<MediaSessionCompat.QueueItem> getTracksFromMediaID(String mediaId,
                                                                      MusicProvider musicProvider) {
         LogHelper.i(TAG, "getPlayingQueue for mediaId ", mediaId);
@@ -93,7 +94,7 @@ public class QueueHelper {
 
         return convertToQueue(tracks, categoryType, categoryValue);
     }
-
+*/
     /**
      * Gets a playing queue based on the supplied media id
      * This is not the integer media id of a song, but the browsable 'Path'
@@ -202,7 +203,7 @@ public class QueueHelper {
         }
         return -1;
     }
-
+/*
     private static List<MediaSessionCompat.QueueItem> convertToQueue(
             MediaMetadataCompat track, String... categories) {
         List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
@@ -224,7 +225,7 @@ public class QueueHelper {
         queue.add(item);
         return queue;
     }
-
+*/
     public static int count = 0;
 
     /**
@@ -252,7 +253,7 @@ public class QueueHelper {
                     track.getDescription().getMediaId(), categories);
             LogHelper.i(TAG, "track not null desc=", track.getDescription(), "mediaID=", track.getDescription().getMediaId(), "hierarchyAwareMediaID=", hierarchyAwareMediaID);
             MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, track.getDescription().getMediaId()/*hierarchyAwareMediaID*/)
                     .build();
 
             // We don't expect queues to change after created, so we use the item index as the

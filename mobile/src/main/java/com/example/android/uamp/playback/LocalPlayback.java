@@ -193,10 +193,10 @@ public final class LocalPlayback implements Playback {
 
         if (mediaHasChanged || mExoPlayer == null) {
             releaseResources(false); // release everything except the player
-            MediaMetadataCompat track =
-                    mMusicProvider.getMusic(
-                            MediaIDHelper.extractMusicIDFromMediaID(
-                                    item.getDescription().getMediaId()));
+            String mediaID = item.getDescription().getMediaId();
+            LogHelper.i(TAG, "play mediaId=", mediaID);
+            MediaMetadataCompat track = mMusicProvider.getMusic(mediaID);
+                    /*mMusicProvider.getMusic(MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId())); no hierarchy*/
 
             String source = track.getString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE);
             if (source != null) {
@@ -411,6 +411,7 @@ public final class LocalPlayback implements Playback {
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+            LogHelper.i(TAG, "onPlayerStateChanged:playbackState=", playbackState);
             switch (playbackState) {
                 case ExoPlayer.STATE_IDLE:
                 case ExoPlayer.STATE_BUFFERING:
@@ -420,6 +421,7 @@ public final class LocalPlayback implements Playback {
                     }
                     break;
                 case ExoPlayer.STATE_ENDED:
+                    LogHelper.i(TAG, "onPlayerStateChanged:STATE_ENDED");
                     // The media player finished playing the current song.
                     if (mCallback != null) {
                         mCallback.onCompletion();
