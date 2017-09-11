@@ -182,13 +182,8 @@ public class StoragePlayback implements Playback {
         if (mediaHasChanged || mExoPlayer == null) {
             releaseResources(false); // release everything except the player
 
-
-
-            MediaMetadataCompat track =
-                    mMusicProvider.getMusic(
-                            MediaIDHelper.extractMusicIDFromMediaID(
-                                    item.getDescription().getMediaId()));
-
+            MediaMetadataCompat track; // = mMusicProvider.getMusic(MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId()));
+            track = mMusicProvider.getMusic(item.getDescription().getMediaId());
 
             String MediaURI = track.getString(METADATA_KEY_MEDIA_URI);
             LogHelper.i(TAG, "MediaURI = "+MediaURI);

@@ -237,8 +237,9 @@ public class ListManager {
             mListener.onMetadataRetrieveError();
             return;
         }
-        final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                currentMusic.getDescription().getMediaId());
+        //final String musicId = MediaIDHelper.extractMusicIDFromMediaID(currentMusic.getDescription().getMediaId());
+
+        final String musicId = currentMusic.getDescription().getMediaId();
         MediaMetadataCompat metadata = mMusicProvider.getMusic(musicId);
         if (metadata == null) {
             throw new IllegalArgumentException("Invalid musicId " + musicId);
@@ -261,10 +262,10 @@ public class ListManager {
                     if (currentMusic == null) {
                         return;
                     }
-                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
-                            currentMusic.getDescription().getMediaId());
-                    if (musicId.equals(currentPlayingId)) {
-                        mListener.onMetadataChanged(mMusicProvider.getMusic(currentPlayingId));
+                    // String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(currentMusic.getDescription().getMediaId());
+                    final String currentPlayingMediaId = currentMusic.getDescription().getMediaId();
+                    if (musicId.equals(currentPlayingMediaId)) {
+                        mListener.onMetadataChanged(mMusicProvider.getMusic(currentPlayingMediaId));
                     }
                 }
             });

@@ -337,8 +337,8 @@ public class QueueHelper {
             long currentPlayingQueueId = controller.getPlaybackState().getActiveQueueItemId();
             String currentPlayingMediaId = controller.getMetadata().getDescription()
                     .getMediaId();
-            String itemMusicId = MediaIDHelper.extractMusicIDFromMediaID(
-                    queueItem.getDescription().getMediaId());
+            String itemMusicId = queueItem.getDescription().getMediaId();//MediaIDHelper.extractMusicIDFromMediaID(
+
             if (queueItem.getQueueId() == currentPlayingQueueId
                     && currentPlayingMediaId != null
                     && TextUtils.equals(currentPlayingMediaId, itemMusicId)) {
