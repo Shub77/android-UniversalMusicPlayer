@@ -248,19 +248,19 @@ public class QueueHelper {
             } else {
                 LogHelper.i(TAG, "track not null ", track.getDescription());
 
-            }
-            String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
-                    track.getDescription().getMediaId(), categories);
-            LogHelper.i(TAG, "track not null desc=", track.getDescription(), "mediaID=", track.getDescription().getMediaId(), "hierarchyAwareMediaID=", hierarchyAwareMediaID);
-            MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, track.getDescription().getMediaId()/*hierarchyAwareMediaID*/)
-                    .build();
+                String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
+                        track.getDescription().getMediaId(), categories);
+                LogHelper.i(TAG, "track not null desc=", track.getDescription(), "mediaID=", track.getDescription().getMediaId(), "hierarchyAwareMediaID=", hierarchyAwareMediaID);
+                MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
+                        .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, track.getDescription().getMediaId()/*hierarchyAwareMediaID*/)
+                        .build();
 
-            // We don't expect queues to change after created, so we use the item index as the
-            // queueId. Any other number unique in the queue would work.
-            MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
-                    trackCopy.getDescription(), count++);
-            queue.add(item);
+                // We don't expect queues to change after created, so we use the item index as the
+                // queueId. Any other number unique in the queue would work.
+                MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(
+                        trackCopy.getDescription(), count++);
+                queue.add(item);
+            }
         }
         return queue;
 

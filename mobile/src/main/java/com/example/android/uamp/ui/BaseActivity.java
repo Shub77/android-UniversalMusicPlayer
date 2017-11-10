@@ -49,8 +49,6 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     private MediaBrowserCompat mMediaBrowser;
     private PlaybackControlsFragment mControlsFragment;
 
-    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +76,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     @Override
     protected void onStart() {
         super.onStart();
-        LogHelper.d(TAG, "Activity onStart");
+        LogHelper.d(TAG, "BaseActivity onStart");
 
         mControlsFragment = (PlaybackControlsFragment) getFragmentManager()
             .findFragmentById(R.id.fragment_playback_controls);
@@ -88,41 +86,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 
         hidePlaybackControls();
 
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-        } else {
-            Toast.makeText(this, "permission OK", Toast.LENGTH_LONG);
-        }
-
         mMediaBrowser.connect();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay!
-                    Toast.makeText(this, "permission was granted, yay!", Toast.LENGTH_LONG);
-                } else {
-                    // permission denied, boo!"
-                    Toast.makeText(this, "permission denied, boo!", Toast.LENGTH_LONG);
-                    finish();
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-
     }
 
     @Override
