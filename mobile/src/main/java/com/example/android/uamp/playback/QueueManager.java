@@ -38,8 +38,6 @@ import java.util.*;
  * Simple data provider for queues. Keeps track of a current queue and a current index in the
  * queue. Also provides methods to set the current queue based on common queries, relying on a
  * given MusicProvider to provide the actual media metadata.
- * THIS IS UNUSED... IT IS A COPY OF QUEUEMANAGER USING A LIST IMPLEMENTATION WHERE MUSIC CYCLES AROUND THE LIST
- * CAN GO FORWARDS AND BACKWARDS. I WANT TO USE MY IMPLEMENTATION OF QUEUEMANAGER WHICH IS A REAL QUEUE
  */
 public class QueueManager {
     private static final String TAG = LogHelper.makeLogTag(QueueManager.class);
@@ -193,19 +191,6 @@ public class QueueManager {
         updateMetadata();
         return queue != null && !queue.isEmpty();
     }
-
-    /*
-    // creates a random queue of n items
-    public void setRandomQueue() {
-        LogHelper.i(TAG, "setRandomQueue");
-        setCurrentQueue(mResources.getString(R.string.random_queue_title), QueueHelper.getRandomQueue(mMusicProvider, RANDOM_QUEUE_SIZE));
-        mListener.onQueueUpdated(mResources.getString(R.string.random_queue_title), mPlayingQueue);
-        if (mNowPlaying == null) {
-            goToNextSong();
-            updateMetadata();
-        }
-    }
-    */
 
     // Fills the queue up to n items by adding Random tracks.
     // If the queue is already >= n then there is no need to do anything
@@ -411,55 +396,8 @@ public class QueueManager {
      * Takes an input media ID from the 'music browser' and adds songs to the queue
      * (The standard implementation replaces the queue)
      */
-/*    public void addMusicToQueue(String mediaId) {
-        LogHelper.i(TAG, "setQueueFromMusic id=", mediaId);
-        // get all the new tracks to add. Will add all tracks in the same category as the chosen track
-        List<MediaSessionCompat.QueueItem> newTracks = QueueHelper.getTracksFromMediaID(mediaId, mMusicProvider);
-        LogHelper.i(TAG, newTracks.size(), " new tracks");
-        mPlayingQueue.addAll(newTracks);
 
-        // here we are setting the currently playing track as the one that was chosen.
-        // we just don't really need to do this. Adding things to the queue doesn't really change what is playing
-        // mCurrentIndex = Math.max(index, 0);
-
-        // In the queue implementation we can browse and just add to the queue. This doesn't change what is playing
-        // Here we say that if we add to the queue and nothing is currently playing then we start playing
-        // This might not really be the completely desired functionality. Would it start playing on startup when a randomised queue was intialised
-        // We need a 'now playing' but we don't need to start playing it (should be paused)
-
-        / * DISABLED Just set the queue. Don't take anything off it to now playing
-        if (mNowPlaying == null)
-        {
-            mNowPlaying = mPlayingQueue.remove(0);
-            LogHelper.i(TAG, "mNowPlaying was null, new now playing = ", mNowPlaying.getDescription().getTitle());
-            // If we don't call updatemetadata then the queue in queuemanager is updated OK, but the
-            // change is never communicated to the service/player activity
-
-            // Commented update metadata and copied the code inline here to test
-            //updateMetadata();
-
-            // copied code from update metadata
-            final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                    mNowPlaying.getDescription().getMediaId());
-            MediaMetadataCompat metadata = mMusicProvider.getMusic(musicId);
-            if (metadata == null) {
-                throw new IllegalArgumentException("Invalid musicId " + musicId);
-            }
-
-            // Call the listener to set the new metadata and playingQueue
-            // If we don't call this then the player activity has no play controls
-            // but if we do call it then everything starts playing
-            // mListener is a MetadataUpdateListener used to call back to the service
-            mListener.onMetadataChanged(metadata);
-        }
-        DISABLED * /
-
-        // This communicates the changed queue. It allows the queue to be shown in
-        // in the player activity
-        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
-    }
-*/
-    public void updateMetadata() {
+        public void updateMetadata() {
         LogHelper.i(TAG, "upda  teMetadata");
         MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
         if (currentMusic == null) {
@@ -506,52 +444,6 @@ public class QueueManager {
             });
         }
     }
-
-    /**
-     * Takes an input from the 'music browser'
-
-     */
-/*    protected void addToCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
-        int oldqueuesize = mPlayingQueue.size();
-        mPlayingQueue.addAll(newQueue);
-        LogHelper.i(TAG, "addToCurrentQueue: adding ",newQueue.size(), " new items to existing queue (",oldqueuesize,")items. New queue has ", mPlayingQueue.size());
-        / *
-        int index = 0;
-
-        if (initialMediaId != null) {
-            index = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, initialMediaId);
-        }
-        * /
-        // TEST looks like we don't need this here. It is called from elsewhere ...!!!! uncomnet this updateMetadata(); // TEST instead of next 2 lines TEST
-        // mListener.onQueueUpdated(AlbumTitle, mPlayingQueue);
-        //mListener.onNowPlayingChanged(mNowPlaying); // we need to call this so the player gets created.
-    }
-*/
-
-    /* Commented out and replaced by my implementation which adds new music... doesn't replace the queue
-    public void setQueueFromMusic(String mediaId) {
-        LogHelper.i(TAG, "setQueueFromMusic id=", mediaId);
-
-        // The mediaId used here is not the unique musicId. This one comes from the
-        // MediaBrowser, and is actually a "hierarchy-aware mediaID": a concatenation of
-        // the hierarchy in MediaBrowser and the actual unique musicID. This is necessary
-        // so we can build the correct playing queue, based on where the track was
-        // selected from.
-        boolean canReuseQueue = false;
-        if (isSameBrowsingCategory(mediaId)) {
-            LogHelper.i(TAG, "Same Browsing Category, so we aren't recreating the queue");
-            canReuseQueue = setCurrentQueueItem(mediaId);
-        }
-        if (!canReuseQueue) {
-            LogHelper.i(TAG, "Recreating the queue based on new mediaId");
-            String queueTitle = mResources.getString(R.string.browse_musics_by_genre_subtitle,
-                    MediaIDHelper.extractBrowseCategoryValueFromMediaID(mediaId));
-            setCurrentQueue(queueTitle,
-                    QueueHelper.getPlayingQueue(mediaId, mMusicProvider), mediaId);
-        }
-        updateMetadata();
-    }
-    */
 
     // Easy change. No current index .. we just return 'Now playing'
     public MediaSessionCompat.QueueItem getCurrentMusic() {
