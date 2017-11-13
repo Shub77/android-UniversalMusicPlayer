@@ -17,7 +17,7 @@ package com.example.android.uamp.ui;
 
 import android.app.ActivityOptions;
 import android.app.FragmentManager;
-import android.content.DialogInterface;
+
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -35,10 +35,9 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.android.uamp.R;
-import com.example.android.uamp.playback.PlaybackManager;
-import com.example.android.uamp.settings.Settings;
+
 import com.example.android.uamp.settings.SettingsActivity;
-import com.example.android.uamp.ui.dialogs.SetTimerDialog;
+
 import com.example.android.uamp.utils.LogHelper;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
@@ -114,9 +113,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
 
                 Class activityClass = null;
                 switch (mItemToOpenWhenDrawerCloses) {
-                    case R.id.navigation_playlists:
-                        activityClass = PlaceholderActivity.class;
-                        break;
                     case R.id.navigation_settings:
                         activityClass = SettingsActivity.class;
                         break;
@@ -325,9 +321,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
                         return true;
                     }
                 });
-        if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
-            navigationView.setCheckedItem(R.id.navigation_playlists);
-        }
     }
 
     protected void updateDrawerToggle() {
