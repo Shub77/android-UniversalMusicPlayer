@@ -54,26 +54,16 @@ public class MusicProvider {
 
     private static final String TAG = LogHelper.makeLogTag(MusicProvider.class);
 
-    // private MusicProviderSource mSource;
-
-    // Categorized caches for music track data:
-    /* Don't  cache all songs
-    private ConcurrentMap<String, List<MediaMetadataCompat>> mMusicListByGenre;
-    private ConcurrentMap<String, List<MediaMetadataCompat>> mMusicListByArtist;
-    private ConcurrentMap<String, List<MediaMetadataCompat>> mMusicListByAlbum;
-    private final ConcurrentMap<String, MutableMediaMetadata> mMusicListById;
-    */
-
-    // Although we could cache lists of artists/albums ???
-
-//    private final Set<String> mFavoriteTracks;
 
     private Context context;
+
+    // This current state was used when music list was loaded asynchronously
+    // (came from the internet). It isn't needed now as music comes straight from the phone.
+    // We are always initialised!
     enum State {
         NON_INITIALIZED, INITIALIZING, INITIALIZED
     }
-
-    private volatile State mCurrentState = State.NON_INITIALIZED;
+    private volatile State mCurrentState = State.INITIALIZED;/*NON_INITIALIZED;*/
 
     public interface Callback {
         void onMusicCatalogReady(boolean success);
@@ -638,6 +628,7 @@ public class MusicProvider {
         //return mMusicListById.containsKey(musicId) ? mMusicListById.get(musicId).metadata : null;
         LogHelper.i(TAG, "getTrackById=", musicId);
         if (mCurrentState != State.INITIALIZED /* || !mMusicListByAlbum.containsKey(album)*/) {
+            LogHelper.i(TAG, "mCurrentState != State.INITIALIZED ... returning NULL" );
             return null;
         }
         //return mMusicListByAlbum.get(album);
@@ -733,36 +724,14 @@ public class MusicProvider {
     /**
      * Get the list of music tracks from a server and caches the track information
      * for future reference, keying tracks by musicId and grouping by genre.
-     */
+
     //TODO: remove all calls to this. We don't need to initialize anything
     public void retrieveMediaAsync(final Callback callback) {
         LogHelper.d(TAG, "retrieveMediaAsync called");
-        if (mCurrentState == State.INITIALIZED) {
-            if (callback != null) {
-                // Nothing to do, execute callback immediately
-                callback.onMusicCatalogReady(true);
-            }
-            return;
-        }
+        mCurrentState = State.INITIALIZED;
 
-        // Asynchronously load the music catalog in a separate thread
-        new AsyncTask<Void, Void, State>() {
-            @Override
-            protected State doInBackground(Void... params) {
-                //retrieveMedia();
-                mCurrentState = State.INITIALIZED;
-                return mCurrentState;
-            }
-
-            @Override
-            protected void onPostExecute(State current) {
-                if (callback != null) {
-                    callback.onMusicCatalogReady(current == State.INITIALIZED);
-                }
-            }
-        }.execute();
     }
-
+*/
     /*
     private synchronized void buildListsByGenre() {
         ConcurrentMap<String, List<MediaMetadataCompat>> newMusicListByGenre = new ConcurrentHashMap<>();

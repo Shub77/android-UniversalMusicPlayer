@@ -16,6 +16,8 @@
 
 package com.example.android.uamp;
 
+import android.app.Application;
+
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.model.MusicProviderSource;
 import com.example.android.uamp.utils.SimpleMusicProviderSource;
@@ -27,13 +29,7 @@ public class TestSetupHelper {
     public static MusicProvider setupMusicProvider(MusicProviderSource source)
             throws Exception {
         final CountDownLatch signal = new CountDownLatch(1);
-        MusicProvider provider = new MusicProvider(source);
-        provider.retrieveMediaAsync(new MusicProvider.Callback() {
-            @Override
-            public void onMusicCatalogReady(boolean success) {
-                signal.countDown();
-            }
-        });
+        MusicProvider provider = new MusicProvider(null);
         signal.await();
         return provider;
     }

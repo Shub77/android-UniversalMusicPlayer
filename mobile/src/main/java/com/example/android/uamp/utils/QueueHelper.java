@@ -280,6 +280,11 @@ public class QueueHelper {
         for (int i = 0 ; i < numSongs ; i++) {
             randomlyChosenTrack = musicProvider.getRandomSongFromAllSongsOnDevice();
             result.add(randomlyChosenTrack);
+            if (randomlyChosenTrack == null) {
+                LogHelper.i(TAG, "randomlyChosenTrack is NULL");
+            } else {
+                LogHelper.i(TAG, "randomly chosen track: ", randomlyChosenTrack.getDescription().getTitle());
+            }
         }
 
         LogHelper.i(TAG, "getRandomQueue: result.size=", result.size());
