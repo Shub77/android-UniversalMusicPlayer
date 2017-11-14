@@ -21,17 +21,14 @@ import android.app.UiModeManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.uamp.R;
 import com.example.android.uamp.ui.tv.TvPlaybackActivity;
 import com.example.android.uamp.utils.LogHelper;
 
@@ -67,40 +64,25 @@ public class MainLauncherActivity extends Activity {
      * The TextView which is used to inform the user whether the permissions are
      * granted.
      */
-    private TextView            textView            = null;
-    private static final int    textViewID          = View.generateViewId();
+    private TextView tvMessage = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LogHelper.i(TAG, "onCreate");
 
-        /** Create the layout that will hold the TextView. */
-        LinearLayout mainLayout = new LinearLayout(this);
-        mainLayout.setLayoutParams(new LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        setContentView(R.layout.activity_main_launcher);
 
-        /** Add a TextView and set the initial text. */
-        textView = new TextView(this);
-        textView.setTextSize(50);
-        textView.setId(textViewID);
-        textView.setText("Waiting for permissions...");
-        mainLayout.addView(textView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        tvMessage = (TextView) findViewById(R.id.tvMessage);
 
-        /** Set the background color. */
-        int off = 128;
-        int rest = 256 - off;
-        int color = Color.argb(255, off + random.nextInt(rest), off + random.nextInt(rest), off + random.nextInt(rest));
-        mainLayout.setBackgroundColor(color);
-
-        /** Set the mainLayout as the content view */
-        setContentView(mainLayout);
+        tvMessage.setText(R.string.waiting_for_permissions);
 
         /**
          * Save the start time of this Activity, which will be used to determine
          * when the splash screen should timeout.
          */
         startTimeMillis = System.currentTimeMillis();
-
+        LogHelper.i(TAG, "check permissiions");
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -109,7 +91,6 @@ public class MainLauncherActivity extends Activity {
                     MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
         } else {
             startNextActivity();
-            Toast.makeText(this, "permission OK", Toast.LENGTH_LONG);
         }
 
     }
@@ -123,11 +104,9 @@ public class MainLauncherActivity extends Activity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay!
-                    Toast.makeText(this, "permission was granted, yay!", Toast.LENGTH_LONG);
                     startNextActivity();
                 } else {
                     // permission denied, boo!"
-                    Toast.makeText(this, "permission denied, boo!", Toast.LENGTH_LONG);
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
@@ -146,7 +125,7 @@ public class MainLauncherActivity extends Activity {
 
             @Override
             public void run() {
-                textView.setText("Permissions granted...");
+                tvMessage.setText(R.string.permissions_granted);
             }
         });
         long delayMillis = TIMEOUT_IN_MS - (System.currentTimeMillis() - startTimeMillis);
