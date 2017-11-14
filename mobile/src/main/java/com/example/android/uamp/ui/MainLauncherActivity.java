@@ -72,9 +72,7 @@ public class MainLauncherActivity extends Activity {
         LogHelper.i(TAG, "onCreate");
 
         setContentView(R.layout.activity_main_launcher);
-
         tvMessage = (TextView) findViewById(R.id.tvMessage);
-
         tvMessage.setText(R.string.waiting_for_permissions);
 
         /**

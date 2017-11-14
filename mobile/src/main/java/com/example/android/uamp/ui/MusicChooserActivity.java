@@ -15,11 +15,14 @@
  */
 package com.example.android.uamp.ui;
 
+import android.Manifest;
 import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -71,6 +74,15 @@ public class MusicChooserActivity extends BaseActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LogHelper.i(TAG, "Activity onCreate");
+
+        LogHelper.i(TAG, "check permissiions");
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission. So start the mainlauncher activity
+            startActivity(new Intent(MusicChooserActivity.this, MainLauncherActivity.class));
+            finish();
+        }
 
         setContentView(R.layout.activity_music_chooser);
 

@@ -15,14 +15,17 @@
  */
 package com.example.android.uamp.ui;
 
+import android.Manifest;
 import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.*;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -156,6 +159,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         LogHelper.d(TAG, "onCreateOptionsMenu");
         super.onCreateOptionsMenu(menu);
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.player_toolbar, menu);
         return true;
@@ -193,6 +197,16 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
     public void onCreate(Bundle savedInstanceState) {
         LogHelper.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+
+        LogHelper.i(TAG, "check permissiions");
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission. So start the mainlauncher activity
+            startActivity(new Intent(FullScreenPlayQueueActivity.this, MainLauncherActivity.class));
+            finish();
+        }
+
         setContentView(R.layout.activity_full_playqueue);
         initializeToolbar();
         if (getSupportActionBar() != null) {
