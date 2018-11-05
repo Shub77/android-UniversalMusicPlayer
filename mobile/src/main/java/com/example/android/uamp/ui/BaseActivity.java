@@ -53,7 +53,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LogHelper.d(TAG, "Activity onCreate");
+        LogHelper.d(TAG, "BaseActivity Activity onCreate");
 
         if (Build.VERSION.SDK_INT >= 21) {
             // Since our app icon has the same color as colorPrimary, our entry in the Recent Apps
