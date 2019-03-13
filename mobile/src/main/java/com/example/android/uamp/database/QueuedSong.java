@@ -14,7 +14,11 @@ import io.reactivex.annotations.NonNull;
 public class QueuedSong {
 
     @NonNull
-    @PrimaryKey
+    @PrimaryKey (autoGenerate = true)
+    @ColumnInfo(name = "pk")
+    private int pk;
+
+    @NonNull
     @ColumnInfo(name = "queueorder")
     private int queueorder;
 
@@ -23,9 +27,14 @@ public class QueuedSong {
     private int trackId;
 
 
-    public QueuedSong(@NonNull int queueorder, @NonNull int trackId) {
+    public QueuedSong(@NonNull int pk, @NonNull int queueorder, @NonNull int trackId) {
+        this.pk = pk;
         this.trackId = trackId;
         this.queueorder = queueorder;
+    }
+
+    public int getPk() {
+        return this.pk;
     }
 
     public int getQueueorder() {

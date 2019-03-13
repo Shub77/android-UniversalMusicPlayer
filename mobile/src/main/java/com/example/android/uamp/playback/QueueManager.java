@@ -26,6 +26,8 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.R;
+import com.example.android.uamp.database.QueuedSong;
+import com.example.android.uamp.database.QueuedSongRepository;
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.utils.LogHelper;
@@ -46,6 +48,8 @@ public class QueueManager {
     private MetadataUpdateListener mListener;
     private Resources mResources;
     private Context mContext;
+
+    private QueuedSongRepository mQueuedSongRepository;
 
     // "Now playing" queue:
     private List<MediaSessionCompat.QueueItem> mPlayingQueue;
@@ -69,7 +73,7 @@ public class QueueManager {
         this.mContext = context;
 
         mPlayingQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
-
+        mQueuedSongRepository = new QueuedSongRepository(context);
         // the current index is replaced by now playing in this implementation
         // mCurrentIndex = 0;
         mNowPlaying = null;
@@ -200,9 +204,20 @@ public class QueueManager {
         if (currentQueueSize < Settings.getPlayQueueSize(mContext))
         {
             List<MediaSessionCompat.QueueItem> newTracks =  QueueHelper.getRandomQueue(mMusicProvider, Settings.getPlayQueueSize(mContext) - currentQueueSize);
+
             // Add the new songs
             mPlayingQueue.addAll(newTracks);
+
+
+            for (MediaSessionCompat.QueueItem item: newTracks) {
+                QueuedSong qs= new QueuedSong(0, currentQueueSize, 3);
+                LogHelper.d(TAG, "ADDING SONG TO DB", currentQueueSize);
+                mQueuedSongRepository.insertQueuedSong(qs);
+            }
+
         }
+
+
         mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
     }
 

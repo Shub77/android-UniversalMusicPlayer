@@ -1,6 +1,8 @@
 package com.example.android.uamp.database;
 
+import android.app.Application;
 import android.arch.lifecycle.MutableLiveData;
+import android.content.Context;
 import android.os.AsyncTask;
 
 import java.util.List;
@@ -11,12 +13,18 @@ import java.util.List;
 
 public class QueuedSongRepository implements AsyncResult {
 
-    private MutableLiveData<List<QueuedSong>> searchResults =
-            new MutableLiveData<>();
+    private List<QueuedSong> searchResults;
+    private QueuedSongDao mQueuedSongDao;
+
+    public QueuedSongRepository(Context context) {
+        QueuedSongDatabase db = QueuedSongDatabase.getDatabase(context);
+        mQueuedSongDao = db.QueuedSongDao();
+    }
+
 
     @Override
     public void asyncFinished(List<QueuedSong> results){
-        searchResults.setValue(results);
+        searchResults = results;
     }
 
     private static class queryAsyncTask extends
@@ -39,6 +47,10 @@ public class QueuedSongRepository implements AsyncResult {
         protected void onPostExecute(List<QueuedSong> result) {
             delegate.asyncFinished(result);
         }
+    }
+
+    public void insertQueuedSong(QueuedSong queuedSong) {
+        new insertAsyncTask(mQueuedSongDao).execute(queuedSong);
     }
 
     private static class insertAsyncTask extends AsyncTask<QueuedSong, Void, Void> {

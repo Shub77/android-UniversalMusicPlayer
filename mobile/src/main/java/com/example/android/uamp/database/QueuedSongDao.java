@@ -22,7 +22,6 @@ public interface QueuedSongDao {
     @Query ("Select * from queuedsongs WHERE queueorder = :queueorder")
     QueuedSong getQueuedSongByOrder(int queueorder);
 
-
     @Query ("Delete From queuedsongs WHERE queueorder = :queueorder")
     void deleteQueuedSong(int queueorder);
 

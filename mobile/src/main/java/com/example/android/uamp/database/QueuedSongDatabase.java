@@ -10,7 +10,7 @@ import android.content.Context;
  */
 
 
-@Database(entities = {QueuedSong.class}, version =1)
+@Database(entities = {QueuedSong.class}, version =2)
 public abstract class QueuedSongDatabase extends RoomDatabase {
 
     public abstract QueuedSongDao QueuedSongDao();
@@ -23,6 +23,7 @@ public abstract class QueuedSongDatabase extends RoomDatabase {
                     INSTANCE =
                             Room.databaseBuilder(context.getApplicationContext(),
                                     QueuedSongDatabase.class, "queuedsong_database")
+                                    .fallbackToDestructiveMigration()
                                     .build();
 
                 }
