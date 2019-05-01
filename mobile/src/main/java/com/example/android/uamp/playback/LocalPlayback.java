@@ -31,6 +31,7 @@ import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.model.MusicProviderSource;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -210,7 +211,7 @@ public final class LocalPlayback implements Playback {
                 mExoPlayer.addListener(mEventListener);
             }
 
-            mExoPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mExoPlayer.setAudioStreamType(C.STREAM_TYPE_MUSIC/*was AudioManager.STREAM_MUSIC*/);
 
             // Produces DataSource instances through which media data is loaded.
             DataSource.Factory dataSourceFactory =
@@ -393,9 +394,43 @@ public final class LocalPlayback implements Playback {
     }
 
     private final class ExoPlayerEventListener implements ExoPlayer.EventListener {
+
+        @Override
+        public void onSeekProcessed() {
+            // I added this because of compiler error
+            // after upgrading to exoplayer 2.7.0
+        }
+
+        @Override
+        public void onTimelineChanged(Timeline t, Object o, int i) {
+            // I added this because of compiler error
+            // after upgrading to exoplayer 2.7.0
+            // See removed method below
+        }
+/*
         @Override
         public void onTimelineChanged(Timeline timeline, Object manifest) {
             // Nothing to do.
+            // I removed this because of compiler error
+            // after upgrading to exoplayer 2.7.0 (see added method above)
+        }
+*/
+        @Override
+        public void onRepeatModeChanged(int i) {
+            // I added this because of compiler error
+            // after upgrading to exoplayer 2.7.0
+        }
+
+        @Override
+        public void onShuffleModeEnabledChanged(boolean b) {
+            // I added this because of compiler error
+            // after upgrading to exoplayer 2.7.0
+        }
+
+        @Override
+        public void onPositionDiscontinuity(int i) {
+            // I added this because of compiler error
+            // after upgrading to exoplayer 2.7.0
         }
 
         @Override
@@ -452,12 +487,14 @@ public final class LocalPlayback implements Playback {
                 mCallback.onError("ExoPlayer error " + what);
             }
         }
+/* I commented this out to remove error after upgrading to exoplayer 2.7.0
+ * Note that at the same time on PositionDiscintinuity was added in the exoplayer event listener
 
         @Override
         public void onPositionDiscontinuity() {
             // Nothing to do.
         }
-
+*/
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             // Nothing to do.

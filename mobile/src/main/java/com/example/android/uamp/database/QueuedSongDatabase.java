@@ -10,7 +10,7 @@ import android.content.Context;
  */
 
 
-@Database(entities = {QueuedSong.class}, version =2)
+@Database(entities = {QueuedSong.class}, version =3)
 public abstract class QueuedSongDatabase extends RoomDatabase {
 
     public abstract QueuedSongDao QueuedSongDao();

@@ -534,6 +534,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
     }
 
     private void updateProgress() {
+        // LogHelper.i(TAG, "updateProgress");
         if (mLastPlaybackState == null) {
             return;
         }

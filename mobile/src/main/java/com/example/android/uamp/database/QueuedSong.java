@@ -26,11 +26,15 @@ public class QueuedSong {
     @ColumnInfo(name = "trackId")
     private int trackId;
 
+    @NonNull
+    @ColumnInfo(name = "description")
+    private String description;
 
-    public QueuedSong(@NonNull int pk, @NonNull int queueorder, @NonNull int trackId) {
+    public QueuedSong(@NonNull int pk, @NonNull int queueorder, @NonNull int trackId, @NonNull String description) {
         this.pk = pk;
         this.trackId = trackId;
         this.queueorder = queueorder;
+        this.description = description;
     }
 
     public int getPk() {
@@ -43,6 +47,10 @@ public class QueuedSong {
 
     public int getTrackId() {
         return this.trackId;
+    }
+
+    public String getDescription() {
+        return this.description;
     }
 
     public void setOrder(int queueorder) {
