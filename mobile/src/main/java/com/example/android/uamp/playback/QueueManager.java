@@ -281,6 +281,17 @@ public class QueueManager {
         }
     }
 
+    /**
+     * Implemented for reordering using recycler view
+     * @param originalFromPosition
+     * @param finalToPosition
+     */
+    public void reorderQueuebyPositions(int originalFromPosition, int finalToPosition) {
+        LogHelper.i(TAG, "reorderQueuebyPositions o=",originalFromPosition, " f=", finalToPosition);
+        mPlayingQueue.add(finalToPosition, mPlayingQueue.remove(originalFromPosition));
+        mListener.onQueueUpdated("AlbumTitle", mPlayingQueue);
+    }
+
     public void moveQueueItemToTopByQueueId(long queueId) {
         LogHelper.i(TAG, "moveQueueItemToTopByQueueId ", queueId);
         Iterator<MediaSessionCompat.QueueItem> it = mPlayingQueue.iterator();

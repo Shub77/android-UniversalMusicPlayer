@@ -62,7 +62,7 @@ public class MusicChooserActivity extends BaseActivity
 
     /**
      * Optionally used with {@link #EXTRA_START_FULLSCREEN} to carry a MediaDescription to
-     * the {@link FullScreenPlayQueueActivity}, speeding up the screen rendering
+     * the {@link FullScreenRecyclerPlayQueueActivity}, speeding up the screen rendering
      * while the {@link MediaControllerCompat} is connecting.
      */
     public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
@@ -395,7 +395,7 @@ public class MusicChooserActivity extends BaseActivity
         Intent fullScreenIntent;
         switch (item.getItemId()) {
             case R.id.action_show_now_playing:
-                fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
+                fullScreenIntent = new Intent(this, FullScreenRecyclerPlayQueueActivity.class)
                         .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
                                 Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(fullScreenIntent);
@@ -415,7 +415,7 @@ public class MusicChooserActivity extends BaseActivity
 
     private void startFullScreenActivityIfNeeded(Intent intent) {
         if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
-            Intent fullScreenIntent = new Intent(this, FullScreenPlayQueueActivity.class)
+            Intent fullScreenIntent = new Intent(this, FullScreenRecyclerPlayQueueActivity.class)
                     .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
                             Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     .putExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION,

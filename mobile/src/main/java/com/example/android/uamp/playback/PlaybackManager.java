@@ -28,14 +28,9 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 
-import com.example.android.uamp.R;
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.MediaIDHelper;
-import com.example.android.uamp.utils.WearHelper;
-
-import java.util.Calendar;
 
 /**
  * Manage the interactions among the container service, the queue manager and the actual playback.
@@ -55,7 +50,11 @@ public class PlaybackManager implements Playback.Callback {
     public static final String COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID= "uk.me.asbridge.uamp.COMMAND_REMOVE_FROM_PLAYQUEUE_BY_QUEUEID";
     public static final String COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID= "uk.me.asbridge.uamp.COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID";
 
+    public static final String COMMAND_REORDER_SONG_IN_QUEUE_BY_POSITION= "uk.me.asbridge.uamp.COMMAND_REORDER_SONG_IN_QUEUE_BY_POSITION";
+
     public static final String COMMAND_EXTRA_PARAMETER = "uk.me.asbridge.uamp.COMMAND_EXTRA_PARAMETER";
+    public static final String COMMAND_PARAMETER_POSITION_FROM = "uk.me.asbridge.uamp.COMMAND_PARAMETER_POSITION_FROM";
+    public static final String COMMAND_PARAMETER_POSITION_TO = "uk.me.asbridge.uamp.COMMAND_PARAMETER_POSITION_TO";
 
 //    private MusicProvider mMusicProvider;
 //    private Resources mResources;
@@ -456,6 +455,11 @@ public class PlaybackManager implements Playback.Callback {
                 case COMMAND_PLAYQUEUE_MOVE_TO_TOP_BY_QUEUEID:
                     queueId = extras.getLong(COMMAND_EXTRA_PARAMETER);
                     mQueueManager.moveQueueItemToTopByQueueId(queueId);
+                    break;
+                case COMMAND_REORDER_SONG_IN_QUEUE_BY_POSITION:
+                    int originalFromPosition = extras.getInt(COMMAND_PARAMETER_POSITION_FROM);
+                    int finalToPosition = extras.getInt(COMMAND_PARAMETER_POSITION_TO);
+                    mQueueManager.reorderQueuebyPositions(originalFromPosition, finalToPosition);
                     break;
             }
         }

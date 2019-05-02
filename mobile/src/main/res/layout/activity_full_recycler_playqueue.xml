@@ -58,8 +58,9 @@ limitations under the License.
         android:layout_below="@id/toolbar"
         android:background="@drawable/fullscreen_bg_gradient">
 
-        <ListView
-                android:id="@+id/playqueuelist"
+        <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerplayqueuelist"
+                android:scrollbars="vertical"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:scaleType="centerCrop"

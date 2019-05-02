@@ -126,6 +126,9 @@ public class MainLauncherActivity extends Activity {
                 tvMessage.setText(R.string.permissions_granted);
             }
         });
+        startActivity(new Intent(MainLauncherActivity.this, getNextActivityClass()));
+        finish();
+        /* Don't do the delay
         long delayMillis = TIMEOUT_IN_MS - (System.currentTimeMillis() - startTimeMillis);
         if (delayMillis < 0) {
             delayMillis = 0;
@@ -137,6 +140,7 @@ public class MainLauncherActivity extends Activity {
                 finish();
             }
         }, delayMillis);
+        */
     }
 
     private Class getNextActivityClass() {
@@ -146,7 +150,7 @@ public class MainLauncherActivity extends Activity {
             return TvPlaybackActivity.class;
         } else {
             LogHelper.i(TAG, "Running on a non-TV Device");
-            return FullScreenPlayQueueActivity.class;
+            return FullScreenRecyclerPlayQueueActivity.class;
         }
     }
 

@@ -19,6 +19,7 @@ android {
     compileSdkVersion 25
 
     defaultConfig {
+        multiDexEnabled true
         applicationId "com.example.android.uamp"
         minSdkVersion 17
         targetSdkVersion 25

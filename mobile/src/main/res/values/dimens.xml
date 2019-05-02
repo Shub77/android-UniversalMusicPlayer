@@ -41,7 +41,7 @@
     <dimen name="end_text_margin">16dp</dimen>
 
     <!-- playqueue browser listview -->
-    <dimen name="playqueue_item_height">72dp</dimen>
+    <dimen name="playqueue_item_height">68dp</dimen>
     <dimen name="playqueue_item_icon_margin_start">6dp</dimen>
     <dimen name="playqueue_item_text_margin_start">112dp</dimen>
 
