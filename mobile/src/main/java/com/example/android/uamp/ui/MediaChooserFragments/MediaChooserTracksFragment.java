@@ -202,30 +202,14 @@ public class MediaChooserTracksFragment extends Fragment {
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
 
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
-        mCursorAdapter = new MusicCursorAdapter(getActivity(), tracksCursor, listView);
+        mCursorAdapter = new MusicCursorAdapter(getActivity(), tracksCursor, mMediaFragmentListener);
 
         listView.setAdapter(mCursorAdapter);
 
-        // This onclick listener for the list item.
-        // The click could come from the list item background -> means browse
-        // OR could come from the 'add' button -> means add to the music queue
-        // Requires the add button code to pass the button click up to the list item click, to be handled here
-        // Here we use the view parameter to determine if a button was clicked
-        // of if the click came directly from the list background
-        // requires android:descendantFocusability="blocksDescendants" in the list item layout,
-        // otherwise the button takes all the focus and we can't click on the list item background
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // checkForUserVisibleErrors(false);
-                LogHelper.i(TAG, "clicked item with position", position, "and id ", id);
-                long viewId = view.getId();
-                if (viewId == R.id.plus_eq) {
-                    LogHelper.i(TAG, "Add button clicked for track", id);
-                    mMediaFragmentListener.onAddTrackToQueue(id);
-                }
-            }
-        });
+        // Here there is no on-click listener for the listview because there is no
+        // functionality for clicking the background of the item (we are at the lowest level,
+        // nowhere else to browse to. The plus button of the listview will handle its own click
+
         etSearchText = (ClearableEditText) rootView.findViewById(R.id.searchText);
         etSearchText.setHint(R.string.search_tracks);
         etSearchText.addTextChangedListener(new TextWatcher() {
@@ -361,11 +345,11 @@ public class MediaChooserTracksFragment extends Fragment {
     // An adapter for showing the list of browsed MediaItem's
     private static class MusicCursorAdapter extends CursorAdapter  {
 
-        private static ListView listView;
+        MediaChooserFragmentListener mListener;
 
-        public MusicCursorAdapter(Activity context, Cursor tracksCursor, ListView listView) {
+        public MusicCursorAdapter(Activity context, Cursor tracksCursor,  MediaChooserFragmentListener listener) {
             super(context, tracksCursor, 0);
-            this.listView = listView;
+            mListener = listener;
         }
 
         public static class ViewHolder{
@@ -385,7 +369,7 @@ public class MediaChooserTracksFragment extends Fragment {
             long id = cursor.getLong(0);
             viewHolder.title.setText(trackTitle);
             viewHolder.artist.setText(trackArtist);
-            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, id));
+            viewHolder.btnAddToPlayqueue.setOnClickListener(new btnAddToPlayqueueClickListener(0, id, mListener));
         }
 
         // The newView method is used to inflate a new view and return it,
@@ -402,19 +386,23 @@ public class MediaChooserTracksFragment extends Fragment {
         }
 
         class btnAddToPlayqueueClickListener implements View.OnClickListener {
-            int position;
-            long id;
+            private int position;
+            private long id;
+            private MediaChooserFragmentListener listener;
 
             // constructor
-            public btnAddToPlayqueueClickListener(int position, long id) {
+            public btnAddToPlayqueueClickListener(int position, long id, MediaChooserFragmentListener listener) {
                 this.position = position;
                 this.id = id;
+                this.listener = listener;
             }
             @Override
             public void onClick(View v) {
-                // checkbox clicked
-                LogHelper.i(TAG, "add group pos ",position);
-                ((ListView) listView).performItemClick(v, position, id); // Let the event be handled in onItemClick()
+                // button clicked
+                LogHelper.i(TAG, "add group pos ",position, "id=", id);
+                listener.onAddTrackToQueue(id);
+                // in this track adapter no need to pass the click up to the listview to handle.
+                // we are at the lowest level, so the list item cannot be clicked.
             }
         }
     }
