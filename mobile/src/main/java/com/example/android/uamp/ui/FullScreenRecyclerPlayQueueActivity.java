@@ -388,12 +388,11 @@ public class FullScreenRecyclerPlayQueueActivity extends ActionBarCastActivity
         LogHelper.i(TAG, "connectToSession: queue == null?", queue==null);
         if (queue != null) {
             LogHelper.i(TAG, "connectToSession: queue size = ", queue.size());
-            mDisplayedPlayQueue.clear(); // playQueueRecyclerAdapter.clear();
+            mDisplayedPlayQueue.clear();
             for (MediaSessionCompat.QueueItem item : queue) {
-                mDisplayedPlayQueue.add(item); // playQueueRecyclerAdapter.add(item);
+                mDisplayedPlayQueue.add(item);
             }
             playQueueRecyclerAdapter.notifyDataSetChanged();
-            LogHelper.i(TAG, "adapter size = ", playQueueRecyclerAdapter.getItemCount());
         } else {
             LogHelper.i(TAG, "Queue is null");
         }
