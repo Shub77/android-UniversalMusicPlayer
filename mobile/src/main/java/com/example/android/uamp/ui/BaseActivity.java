@@ -101,6 +101,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 
     @Override
     public MediaBrowserCompat getMediaBrowser() {
+        LogHelper.i(TAG, "getMediaBrowser");
         return mMediaBrowser;
     }
 

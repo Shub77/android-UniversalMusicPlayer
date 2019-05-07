@@ -12,5 +12,6 @@ public class Constants {
     public static final String SEARCH_TYPE_ALBUM = "SEARCH_TYPE_ALBUM";
     public static final String SEARCH_TYPE_ARTIST = "SEARCH_TYPE_ARTIST";
     public static final String SEARCH_TYPE_SEARCH = "SEARCH_TYPE_SEARCH";
+    public static final String SEARCH_TYPE_HISTORY = "SEARCH_TYPE_HISTORY";
     public static final String SEARCH_TYPE_NONE = "SEARCH_TYPE_NONE";
 }

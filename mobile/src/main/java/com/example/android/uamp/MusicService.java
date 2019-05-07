@@ -33,9 +33,11 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.media.MediaRouter;
+import android.widget.Toast;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.playback.*;
+import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.ui.MainLauncherActivity;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
@@ -50,7 +52,9 @@ import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_EMPTY_ROOT;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
@@ -84,7 +88,7 @@ import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
  * <li> Update playbackState, "now playing" metadata and queue, using MediaSession proper methods
  *      {@link android.media.session.MediaSession#setPlaybackState(android.media.session.PlaybackState)}
  *      {@link android.media.session.MediaSession#setMetadata(android.media.MediaMetadata)} and
- *      {@link android.media.session.MediaSession#setQueue(java.util.List)})
+ *      {android.media.session.MediaSession#setQueue(java.util.List)})
  *
  * <li> Declare and export the service in AndroidManifest with an intent receiver for the action
  *      android.media.browse.MediaBrowserService
@@ -148,6 +152,25 @@ public class MusicService extends MediaBrowserServiceCompat implements
     private boolean mIsConnectedToCar;
     private BroadcastReceiver mCarConnectionReceiver;
 
+    private ArrayList<MediaItem> mHistoryList = new ArrayList<>();
+
+    private void addItemToHistory(MediaMetadataCompat metadata) {
+        int historySize = Settings.getHistorySize(getApplicationContext());
+        MediaItem mediaItem = new MediaItem(metadata.getDescription(), 0);
+        mHistoryList.add(0, mediaItem); // add to top of history (most recent)
+        if (mHistoryList.size() > historySize) {
+            int index = 0;
+            Iterator<MediaItem> itr = mHistoryList.iterator();
+            while (itr.hasNext()) {
+                itr.next();
+                if (index++ > historySize) {
+                    LogHelper.i(TAG, "remove item from history");
+                    itr.remove();
+                }
+            }
+        }
+    }
+
     /*
      * (non-Javadoc)
      * @see android.app.Service#onCreate()
@@ -177,6 +200,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
                     @Override
                     public void onMetadataChanged(MediaMetadataCompat metadata) {
                         LogHelper.i(TAG, "Service MetadataUpdateListener onMetadataChanged ", metadata.getDescription().getTitle());
+                        addItemToHistory(metadata);
+                        notifyChildrenChanged("HISTORY");
                         mSession.setMetadata(metadata);
                     }
 
@@ -195,7 +220,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
                     @Override
                     public void onNowPlayingChanged(MediaSessionCompat.QueueItem newNowPlaying) {
-                        LogHelper.i(TAG, "Service MetadataUpdateListener onNowPlayingChanged ", newNowPlaying.getDescription().getTitle());
+                        LogHelper.i(TAG, "Service MetadataUpdateListener onNowPlayingChanged ", newNowPlaying.getDescription().getTitle(), "id=,",
+                                newNowPlaying.getDescription().getMediaId());
                         mPlaybackManager.handlePlayRequest();
                     }
 
@@ -320,7 +346,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid,
                                  Bundle rootHints) {
-        LogHelper.d(TAG, "OnGetRoot: clientPackageName=" + clientPackageName,
+        LogHelper.i(TAG, "OnGetRoot: clientPackageName=" + clientPackageName,
                 "; clientUid=" + clientUid + " ; rootHints=", rootHints);
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
@@ -347,13 +373,34 @@ public class MusicService extends MediaBrowserServiceCompat implements
             // Wear device, you should return a different MEDIA ROOT here, and then,
             // on onLoadChildren, handle it accordingly.
         }
-
+        LogHelper.i(TAG,"return root");
         return new BrowserRoot(MEDIA_ID_ROOT, null);
+    }
+
+    private List<MediaItem> getMediaItemsByGroup(String group, String id) {
+        ArrayList<MediaItem> result = new ArrayList<>();
+        Iterable<MediaMetadataCompat> metadatas;
+        if ("ARTIST".equals(group)) {
+            metadatas = mMusicProvider.getMusicsByArtist(id);
+        } else if ("ALBUM".equals(group)) {
+            metadatas = mMusicProvider.getMusicsByAlbum(id);
+        } else {
+            return result;
+        }
+
+        MediaItem mediaItem;
+        Iterator itr = metadatas.iterator();
+        while (itr.hasNext()) {
+            MediaMetadataCompat metadata = (MediaMetadataCompat)itr.next();
+            mediaItem = new MediaItem(metadata.getDescription(),0);
+            result.add(mediaItem);
+        }
+        return result;
     }
 
     /**
      * Overriden method of MediaBrowserServiceCompat
-     * In our implentation it doesn't really have any meaning
+     * Used to get history
      * @param parentMediaId
      * @param result
      */
@@ -362,25 +409,20 @@ public class MusicService extends MediaBrowserServiceCompat implements
                                @NonNull final Result<List<MediaItem>> result) {
         // we have no concept of 'children' when browsing
         // we aren't using hierarchy
-        result.sendResult(new ArrayList<MediaItem>());
-        /*
-        //LogHelper.i(TAG, "OnLoadChildren: parentMediaId=", parentMediaId);
-        if (MEDIA_ID_EMPTY_ROOT.equals(parentMediaId)) {
-            result.sendResult(new ArrayList<MediaItem>());
-        } else if (mMusicProvider.isInitialized()) {
-            // if music library is ready, return immediately
-            result.sendResult(mMusicProvider.getChildren(parentMediaId, getResources()));
+        LogHelper.i(TAG, "OnLoadChildren id=", parentMediaId, ", history size=",mHistoryList.size());
+        if (parentMediaId.equals("HISTORY")) {
+            result.sendResult(mHistoryList);
+        } else if (parentMediaId.startsWith("ARTIST")) {
+            String id = parentMediaId.substring(8);
+            LogHelper.i(TAG, "id = ", id);
+            result.sendResult(getMediaItemsByGroup("ARTIST", id));
+        } else if (parentMediaId.startsWith("ALBUM")) {
+                String id = parentMediaId.substring(7);
+                LogHelper.i(TAG, "id = ", id);
+                result.sendResult(getMediaItemsByGroup("ALBUM", id));
         } else {
-            // otherwise, only return results when the music library is retrieved
-            result.detach();
-            mMusicProvider.retrieveMediaAsync(new MusicProvider.Callback() {
-                @Override
-                public void onMusicCatalogReady(boolean success) {
-                    result.sendResult(mMusicProvider.getChildren(parentMediaId, getResources()));
-                }
-            });
+            result.sendResult(null);
         }
-        */
     }
 
     /**

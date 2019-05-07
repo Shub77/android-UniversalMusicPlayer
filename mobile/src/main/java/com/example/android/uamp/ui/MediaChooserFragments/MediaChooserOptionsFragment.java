@@ -86,6 +86,8 @@ public class MediaChooserOptionsFragment extends Fragment implements View.OnClic
         b.setOnClickListener(this);
         b = (Button) rootView.findViewById(R.id.btnChooseArtist);
         b.setOnClickListener(this);
+        b = (Button) rootView.findViewById(R.id.btnHistory);
+        b.setOnClickListener(this);
 
         return rootView;
     }
@@ -106,6 +108,10 @@ public class MediaChooserOptionsFragment extends Fragment implements View.OnClic
             case R.id.btnChooseArtist:
                 LogHelper.i(TAG, "btnChooseArtist");
                 mMediaFragmentListener.onChooseArtist();
+                break;
+            case R.id.btnHistory:
+                LogHelper.i(TAG, "btnHistory");
+                mMediaFragmentListener.onHistory();
                 break;
         }
 

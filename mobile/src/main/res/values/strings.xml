@@ -65,6 +65,7 @@
     <string name="choose_song">Choose a song</string>
     <string name="choose_album">Browse albums</string>
     <string name="choose_artist">Browse artists</string>
+    <string name="choose_history">Recently played</string>
 
     <string name="drawer_settings_title">Settings</string>
     <string name="drawer_sleep_title">Sleep</string>
@@ -73,6 +74,8 @@
     <string name="minimumsonglength__title">Minimum song length (in seconds)</string>
     <string name="playqueuesize_summary">Playqueue size</string>
     <string name="playqueuesize__title">Number of tracks in the play queue</string>
+    <string name="historysize_summary">History size</string>
+    <string name="historysize__title">Number of tracks in recently played list</string>
 
     <string name="move_item_to_top">move to top</string>
     <string name="remove_item">remove</string>
@@ -88,6 +91,7 @@
     <string name="media_chooser_tracks_on_album_title">Music on album</string>
     <string name="media_chooser_tracks_by_artist_title">Music by artist</string>
     <string name="media_chooser_tracks_by_search">Music by search</string>
+    <string name="media_chooser_tracks_by_history">Recently played</string>
     <string name="waiting_for_permissions">Waiting for permissions...</string>
     <string name="permissions_granted">Permissions granted</string>
 

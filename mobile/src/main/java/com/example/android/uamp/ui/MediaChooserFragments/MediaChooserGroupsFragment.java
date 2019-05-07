@@ -60,29 +60,7 @@ public class MediaChooserGroupsFragment extends Fragment {
     private View mErrorView;
     private TextView mErrorMessage;
     private ClearableEditText etSearchText;
-/*
-    // Receive callbacks from the MediaController. Here we update our state such as which queue
-    // is being shown, the current AlbumTitle and description and the PlaybackState.
-    private final MediaControllerCompat.Callback mMediaControllerCallback =
-            new MediaControllerCompat.Callback() {
-        @Override
-        public void onMetadataChanged(MediaMetadataCompat metadata) {
-            super.onMetadataChanged(metadata);
-            if (metadata == null) {
-                return;
-            }
-            LogHelper.d(TAG, "Received metadata change to media ",
-                    metadata.getDescription().getMediaId());
-        }
 
-        @Override
-        public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
-            super.onPlaybackStateChanged(state);
-            LogHelper.d(TAG, "Received state change: ", state);
-//            checkForUserVisibleErrors(false);
-        }
-    };
-*/
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);

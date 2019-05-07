@@ -13,6 +13,7 @@ public class Settings {
     private static final String TAG = "Settings";
 
     public static final String PREF_PLAYQUEUE_SIZE = "playqueuesize";
+    public static final String PREF_HISTORY_SIZE = "historysize";
     public static final String PREF_MINDURATIONINSECONDS = "minsonglength";
     public static final String PREF_TIME_TO_GO_TO_SLEEP = "timetogotosleep";
 
@@ -24,12 +25,20 @@ public class Settings {
         return Integer.parseInt(playQueueSize);
     }
 
+    public static int getHistorySize(Context context) {
+
+        SharedPreferences defaultSharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        String historySize = defaultSharedPref.getString(PREF_HISTORY_SIZE, "8");
+
+        return Integer.parseInt(historySize);
+    }
+
     public static int getMinDurationInSeconds(Context context) {
 
         SharedPreferences defaultSharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        String playQueueSize = defaultSharedPref.getString(PREF_MINDURATIONINSECONDS, "30");
+        String mindurSize = defaultSharedPref.getString(PREF_MINDURATIONINSECONDS, "30");
 
-        return Integer.parseInt(playQueueSize);
+        return Integer.parseInt(mindurSize);
     }
 
     public static long getTimeToGoToSleep(Context context) {

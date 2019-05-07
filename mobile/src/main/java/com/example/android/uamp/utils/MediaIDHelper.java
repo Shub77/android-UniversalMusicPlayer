@@ -22,6 +22,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.util.Arrays;
 
@@ -142,6 +143,7 @@ public class MediaIDHelper {
     }
 
     public static String getParentMediaID(@NonNull String mediaID) {
+        LogHelper.i(TAG, "getParentMediaID ",mediaID);
         String[] hierarchy = getHierarchy(mediaID);
         if (!isBrowseable(mediaID)) {
             return createMediaID(null, hierarchy);

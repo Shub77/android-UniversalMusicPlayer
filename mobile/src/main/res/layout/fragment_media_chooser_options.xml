@@ -59,10 +59,18 @@
     </Button>
 
     <Button
-            android:id="@+id/btnChooseArtist"
-            android:text="@string/choose_artist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/btnChooseAlbum">
+        android:id="@+id/btnChooseArtist"
+        android:text="@string/choose_artist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnChooseAlbum">
+    </Button>
+
+    <Button
+        android:id="@+id/btnHistory"
+        android:text="@string/choose_history"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnChooseArtist">
     </Button>
 </RelativeLayout>

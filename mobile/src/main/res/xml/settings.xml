@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
-            android:key="playqueuesize"
-            android:summary="@string/playqueuesize_summary"
-            android:title="@string/playqueuesize__title"
-            android:numeric="integer"
-            android:maxLength="2"
-            android:defaultValue="10"
-    />    <EditTextPreference
+        android:key="playqueuesize"
+        android:summary="@string/playqueuesize_summary"
+        android:title="@string/playqueuesize__title"
+        android:numeric="integer"
+        android:maxLength="2"
+        android:defaultValue="10"/>
+    <EditTextPreference
+        android:key="historysize"
+        android:summary="@string/historysize_summary"
+        android:title="@string/historysize__title"
+        android:numeric="integer"
+        android:maxLength="2"
+        android:defaultValue="8"
+    />
+    <EditTextPreference
             android:key="minsonglength"
             android:summary="@string/minimumsonglength_summary"
             android:title="@string/minimumsonglength__title"

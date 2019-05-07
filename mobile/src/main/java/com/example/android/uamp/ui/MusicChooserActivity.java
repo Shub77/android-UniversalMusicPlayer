@@ -32,8 +32,10 @@ import com.example.android.uamp.constants.Constants;
 import com.example.android.uamp.model.MediaChooserFragmentListener;
 import com.example.android.uamp.playback.PlaybackManager;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserGroupsFragment;
+import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserHistoryFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserTracksFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserOptionsFragment;
+import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserTracksByGroupFragment;
 import com.example.android.uamp.utils.LogHelper;
 
 /**
@@ -198,19 +200,6 @@ public class MusicChooserActivity extends BaseActivity
     }*/
 
     /**
-     * Callback from the MediaChooserFragment to set the title
-     * @param title
-
-    @Override
-    public void setToolbarTitle(CharSequence title) {
-        LogHelper.d(TAG, "Setting toolbar AlbumTitle to ", title);
-        if (title == null) {
-            title = getString(R.string.app_name);
-        }
-        setTitle(title);
-    }
-*/
-    /**
      * Callback from the MediaChooserFragment to set the title from a resource id
      * @param resourceStringId
      */
@@ -221,52 +210,9 @@ public class MusicChooserActivity extends BaseActivity
 
 
     /**
-     * Callback from MediaChooserFragment when user clicks on an album
-     * Show 'tracks list' fragment.
-     * Filtered by album with specified id
-     * @param albumId
-     */
-    public void browseAlbum(long albumId) {
-        LogHelper.i(TAG, "browseAlbum with id=", albumId);
-        MediaChooserTracksFragment fragment = null;
-        fragment = new MediaChooserTracksFragment();
-        fragment.setSearchParams(Constants.SEARCH_TYPE_ALBUM, Long.toString(albumId));
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.setCustomAnimations(
-                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
-                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
-        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
-        // If this is not the top level media (root), we add it to the fragment back stack,
-        // so that actionbar toggle and Back will work appropriately:
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-
-    /**
-     * Callback from MediaChooserFragment when user clicks on an artist
-     * Show 'tracks list' fragment.
-     * Filtered by artist with specified id
-     * @param artistId
-     */
-    public void browseArtist(long artistId) {
-        LogHelper.i(TAG, "browseArtist with id=", artistId);
-        MediaChooserTracksFragment fragment = null;
-        fragment = new MediaChooserTracksFragment();
-        fragment.setSearchParams(Constants.SEARCH_TYPE_ARTIST, Long.toString(artistId));
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.setCustomAnimations(
-                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
-                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
-        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
-        // If this is not the top level media (root), we add it to the fragment back stack,
-        // so that actionbar toggle and Back will work appropriately:
-        transaction.addToBackStack(null);
-        transaction.commit();
-    }
-
-    /**
      * Callback from MediaChooserFragment main menu when user clicks on "Album" option
-     * Show 'groups' list fragment, where groups are albums
+     * user wants to see list of all albums
+     * Show 'groups' chooser  fragment, where groups are albums
      */
     @Override
     public void onChooseAlbum() {
@@ -285,8 +231,9 @@ public class MusicChooserActivity extends BaseActivity
     }
 
     /**
-     * Callback from MediaChooserFragment main menu when user clicks on "Album" option
-     * Show 'groups' list fragment, where groups are artists
+     * Callback from MediaChooserFragment main menu when user clicks on "Artists" option
+     * user wants to see list of all artists
+     * Show 'groups' chooser  fragment, where groups are artists
      */
     @Override
     public void onChooseArtist() {
@@ -305,7 +252,9 @@ public class MusicChooserActivity extends BaseActivity
     }
 
     /**
-     * Callback from the main menu when user wants to see all tracks
+     * Callback from MediaChooserFragment main menu when user clicks on "Songs" option
+     * user wants to see list of all tracks
+     * Show Tracks chooser fragment
      */
     @Override
     public void onChooseTrack() {
@@ -323,9 +272,118 @@ public class MusicChooserActivity extends BaseActivity
         transaction.addToBackStack(null);
         transaction.commit();
     }
+
+    /**
+     * Callback from MediaChooserFragment main menu when user clicks on "History" option
+     * user wants to see list of recent tracks
+     * Show Hisory chooser fragment
+     */
+    @Override
+    public void onHistory() {
+        LogHelper.i(TAG, "OnChooseHistory");
+        MediaChooserHistoryFragment fragment = null;
+        fragment = new MediaChooserHistoryFragment();
+        //fragment.setMediaId(mediaId);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
     ////////////////////////////////////////////////
     //// End of callbacks from MediaChooserFragments
     ////////////////////////////////////////////////
+
+    /**
+     * Show 'tracks list' fragment.
+     * Filtered by album with specified id
+     * USES THE MEDIA BROWSER SERVICE TO RETURN THE TRACKLIST
+     * @param artistId
+     **/
+    public void browseAlbum(long artistId) {
+        LogHelper.i(TAG, "browseArtist from service with id=", artistId);
+        MediaChooserTracksByGroupFragment fragment = null;
+        fragment = new MediaChooserTracksByGroupFragment();
+        fragment.setSearchParams(Constants.SEARCH_TYPE_ALBUM, Long.toString(artistId));
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    /**
+     * Show 'tracks list' fragment.
+     * Filtered by album with specified id
+     * @param albumId
+
+    public void browseAlbum(long albumId) {
+        LogHelper.i(TAG, "browseAlbum with id=", albumId);
+        MediaChooserTracksFragment fragment = null;
+        fragment = new MediaChooserTracksFragment();
+        fragment.setSearchParams(Constants.SEARCH_TYPE_ALBUM, Long.toString(albumId));
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+*/
+    /**
+     * Show 'tracks list' fragment.
+     * Filtered by artist with specified id
+     * USES THE MEDIA BROWSER SERVICE TO RETURN THE TRACKLIST
+     * @param artistId
+     **/
+    public void browseArtist(long artistId) {
+        LogHelper.i(TAG, "browseArtist from service with id=", artistId);
+        MediaChooserTracksByGroupFragment fragment = null;
+        fragment = new MediaChooserTracksByGroupFragment();
+        fragment.setSearchParams(Constants.SEARCH_TYPE_ARTIST, Long.toString(artistId));
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+
+    /*
+     * Show 'tracks list' fragment.
+     * Filtered by artist with specified id
+     * @param artistId
+    public void browseArtist(long artistId) {
+        LogHelper.i(TAG, "browseArtist with id=", artistId);
+        MediaChooserTracksFragment fragment = null;
+        fragment = new MediaChooserTracksFragment();
+        fragment.setSearchParams(Constants.SEARCH_TYPE_ARTIST, Long.toString(artistId));
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+    */
 /*
     private void navigateToBrowser(String mediaId) {
         LogHelper.i(TAG, "navigateToBrowser, mediaId=" + mediaId);
