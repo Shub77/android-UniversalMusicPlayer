@@ -26,18 +26,18 @@
     <string name="browse_genre_subtitle">Songs by genre</string>
     <string name="browse_album_subtitle">Songs by album</string>
     <string name="browse_artist_subtitle">Songs by artist</string>
-    <string name="browse_song_subtitle">Search all songs</string>
-    <string name="browse_musics_by_genre_subtitle">%1$s songs</string>
+    <string name="browse_song_subtitle">Search all browsableItems</string>
+    <string name="browse_musics_by_genre_subtitle">%1$s browsableItems</string>
     <string name="browse_musics_by_album_subtitle">By %1$s</string>
-    <string name="browse_musics_by_artist_subtitle">songs by %1$s</string>
+    <string name="browse_musics_by_artist_subtitle">browsableItems by %1$s</string>
     <string name="browse_musics_by_song_subtitle">subtitle</string>
     <string name="random_queue_title">Random music</string>
     <string name="error_no_connection">Cannot connect to server. Please, check your Internet connectivity.</string>
     <string name="error_loading_media">Error Loading Media</string>
     <string name="casting_to_device">Casting to %1$s</string>
     <string name="currently_playing_song">Song currently playing</string>
-    <string name="currently_playing_artist">Artist of currently playing song</string>
-    <string name="currently_playing_extra_info">Extra info for currently playing song</string>
+    <string name="currently_playing_artist">Artist of currently playing browsableItem</string>
+    <string name="currently_playing_extra_info">Extra info for currently playing browsableItem</string>
     <string name="play_item">Play item</string>
     <string name="add_item_to_queue">Add item to queue</string>
     <string name="play_pause">play or pause</string>
@@ -70,8 +70,8 @@
     <string name="drawer_settings_title">Settings</string>
     <string name="drawer_sleep_title">Sleep</string>
 
-    <string name="minimumsonglength_summary">Minimum song length</string>
-    <string name="minimumsonglength__title">Minimum song length (in seconds)</string>
+    <string name="minimumsonglength_summary">Minimum browsableItem length</string>
+    <string name="minimumsonglength__title">Minimum browsableItem length (in seconds)</string>
     <string name="playqueuesize_summary">Playqueue size</string>
     <string name="playqueuesize__title">Number of tracks in the play queue</string>
     <string name="historysize_summary">History size</string>
@@ -87,7 +87,7 @@
     <string name="media_chooser_mainmenu_title">Choose music</string>
     <string name="media_chooser_albums_title">Albums</string>
     <string name="media_chooser_artists_title">Artists</string>
-    <string name="media_chooser_alltracks_title">All songs</string>
+    <string name="media_chooser_alltracks_title">All browsableItems</string>
     <string name="media_chooser_tracks_on_album_title">Music on album</string>
     <string name="media_chooser_tracks_by_artist_title">Music by artist</string>
     <string name="media_chooser_tracks_by_search">Music by search</string>

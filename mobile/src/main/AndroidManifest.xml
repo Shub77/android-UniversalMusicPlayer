@@ -50,13 +50,31 @@
 
         <!-- Main activity for music browsing on phone -->
 
-        <!-- Main activity for choosing music on phone -->
+        <!-- old activity for choosing music on phone, will be deleted-->
         <activity
-                android:name=".ui.MusicChooserActivity"
-                android:label="@string/browse">
+            android:name=".ui.MusicChooserActivity"
+            android:label="@string/browse">
             <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".ui.FullScreenRecyclerPlayQueueActivity"/>
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.FullScreenRecyclerPlayQueueActivity"/>
+        </activity>
+
+        <!-- Client activity for choosing music on phone. Relplaces MusicChooserActivity-->
+        <activity
+            android:name=".ui.MediaBrowserClient.MediaBrowserClientActivity"
+            android:label="@string/browse">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.FullScreenRecyclerPlayQueueActivity"/>
+        </activity>
+
+        <!-- Client activity for choosing music on phone. Relplaces MusicChooserActivity-->
+        <activity
+            android:name=".ui.MediaBrowserClient.MediaBrowserUampActivity"
+            android:label="@string/browse">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.FullScreenRecyclerPlayQueueActivity"/>
         </activity>
 
         <!-- Placeholder activity for phone UI -->
@@ -78,7 +96,7 @@
             </intent-filter>
         </activity>
 
-        <!-- A full screen activity showing list of queued songs and controls and a seek bar for
+        <!-- A full screen activity showing list of queued browsableItems and controls and a seek bar for
 the current playing music -->
         <activity
             android:name=".ui.FullScreenPlayQueueActivity"
@@ -88,7 +106,7 @@ the current playing music -->
         </activity>
 
 
-        <!-- A full screen activity showing list of queued songs in a recycler view
+        <!-- A full screen activity showing list of queued browsableItems in a recycler view
         and controls and a seek bar for the current playing music. This is supposed
          to have the same functionality as FSplayQueue activity, but using a recycler
          view for swipe to dismiss and drag to reorder-->
@@ -115,7 +133,7 @@ the current playing music -->
             android:theme="@style/Theme.UAmp.TVLeanback"
             android:parentActivityName=".ui.tv.TvBrowseActivity" />
 
-        <!-- Android TV UI when playing a song -->
+        <!-- Android TV UI when playing a browsableItem -->
         <activity
             android:name=".ui.tv.TvPlaybackActivity"
             android:theme="@style/Theme.UAmp.TVLeanback"

@@ -6,6 +6,7 @@ package com.example.android.uamp.constants;
 public class Constants {
     public static final String ARG_ID = "id";
     public static final String ARG_MEDIA_ID = "media_id";
+    public static final String ARG_TITLE = "title";
     public static final String ARG_SEARCH_TYPE = "search_type";
 
 

@@ -43,13 +43,15 @@ public class TvBrowseActivity extends FragmentActivity
     private String mMediaId;
     private String mBrowseTitle;
 
+    private FragmentActivity mActivity;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         LogHelper.i(TAG, "Activity onCreate");
 
         setContentView(R.layout.tv_activity_player);
-
+        mActivity = this;
         mMediaBrowser = new MediaBrowserCompat(this,
                 new ComponentName(this, MusicService.class),
                 mConnectionCallback, null);
@@ -112,7 +114,7 @@ public class TvBrowseActivity extends FragmentActivity
                     try {
                         MediaControllerCompat mediaController = new MediaControllerCompat(
                                 TvBrowseActivity.this, mMediaBrowser.getSessionToken());
-                        setSupportMediaController(mediaController);
+                        MediaControllerCompat.setMediaController(mActivity ,mediaController);
                         navigateToBrowser(mMediaId);
                     } catch (RemoteException e) {
                         LogHelper.e(TAG, e, "could not connect media controller");
@@ -127,7 +129,7 @@ public class TvBrowseActivity extends FragmentActivity
                 @Override
                 public void onConnectionSuspended() {
                     LogHelper.i(TAG, "onConnectionSuspended");
-                    setSupportMediaController(null);
+                    MediaControllerCompat.setMediaController(mActivity,null);
                 }
             };
 }

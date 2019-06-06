@@ -20,7 +20,12 @@ public interface MediaChooserFragmentListener extends MediaBrowserProvider {
     void onAddArtistToQueue(long id);
     void onAddTrackToQueue(long trackId);
 
+    // Methods for recycler view with recursive browsing
+    void onAddBrowsableItemToQueueByMediaIdFromRecyclerView(String trackId);
+    void onBrowseItemFromRecyclerView(String trackId, String title);
+
     void setToolbarTitle(int resourceStringId);
+    void setToolbarTitleString(String titleString);
 
     // the response to a user clicking [the background of] an Artist or Album
     // This is a request to browse the tracks in that album or artist
@@ -34,5 +39,6 @@ public interface MediaChooserFragmentListener extends MediaBrowserProvider {
     void onChooseAlbum();
     void onChooseArtist();
     void onHistory();
+    void onPages();
 
 }

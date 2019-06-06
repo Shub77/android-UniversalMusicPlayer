@@ -50,9 +50,9 @@ public class LogHelper {
 
     public static void d(String tag, Object... messages) {
         // Only log DEBUG if build type is DEBUG
-        if (BuildConfig.DEBUG) {
+        //if (BuildConfig.DEBUG) {
             log(tag, Log.DEBUG, null, messages);
-        }
+        //}
     }
 
     public static void i(String tag, Object... messages) {

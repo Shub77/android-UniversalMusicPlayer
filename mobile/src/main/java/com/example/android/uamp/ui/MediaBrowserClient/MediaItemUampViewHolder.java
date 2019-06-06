@@ -1,3 +1,5 @@
+package com.example.android.uamp.ui.MediaBrowserClient;
+
 /*
  * Copyright (C) 2014 The Android Open Source Project
  *
@@ -13,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp.ui;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,14 +31,15 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.android.uamp.R;
-import com.example.android.uamp.utils.MediaIDHelper;
+import com.example.android.uamp.utils.LogHelper;
 
-public class MediaItemViewHolder {
+public class MediaItemUampViewHolder {
 
     public static final int STATE_INVALID = -1;
     public static final int STATE_NONE = 0;
@@ -48,58 +50,61 @@ public class MediaItemViewHolder {
     private static ColorStateList sColorStatePlaying;
     private static ColorStateList sColorStateNotPlaying;
 
-    ImageView mPlayImageView;
-    ImageView mAddImageView;
+    ImageView mImageView;
     TextView mTitleView;
     TextView mDescriptionView;
+    ImageButton mPlusView;
 
     // Returns a view for use in media item list.
-    static View setupListView(Activity activity, View convertView, ViewGroup parent,
-                              MediaBrowserCompat.MediaItem item) {
+    static View setupListView(Activity activity, View convertView, final ViewGroup parent,
+                              MediaBrowserCompat.MediaItem item, final int position) {
         if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
             initializeColorStateLists(activity);
         }
 
-        MediaItemViewHolder holder;
+        MediaItemUampViewHolder holder;
 
         Integer cachedState = STATE_INVALID;
 
         if (convertView == null) {
             convertView = LayoutInflater.from(activity)
                     .inflate(R.layout.media_list_item_with_plus, parent, false);
-            holder = new MediaItemViewHolder();
-            holder.mPlayImageView = (ImageView) convertView.findViewById(R.id.play_eq);
-            holder.mAddImageView = (ImageView) convertView.findViewById(R.id.plus_eq);
+            holder = new MediaItemUampViewHolder();
+            holder.mImageView = (ImageView) convertView.findViewById(R.id.play_eq);
+            holder.mPlusView = (ImageButton) convertView.findViewById(R.id.plus_eq);
             holder.mTitleView = (TextView) convertView.findViewById(R.id.title);
             holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description);
             convertView.setTag(holder);
         } else {
-            holder = (MediaItemViewHolder) convertView.getTag();
+            holder = (MediaItemUampViewHolder) convertView.getTag();
             cachedState = (Integer) convertView.getTag(R.id.tag_mediaitem_state_cache);
         }
 
         MediaDescriptionCompat description = item.getDescription();
         holder.mTitleView.setText(description.getTitle());
         holder.mDescriptionView.setText(description.getSubtitle());
+        holder.mPlusView.setVisibility(item.isPlayable()? View.VISIBLE:View.INVISIBLE);
 
-        String mediaID = item.getMediaId();
-        if (mediaID.indexOf('/') < 0 && mediaID.indexOf('|') < 0) {
-            holder.mAddImageView.setVisibility(View.GONE);
-        } else {
-            holder.mAddImageView.setVisibility(View.VISIBLE);
-            //holder.mAddImageView.setOnClickListener(new OnAddImageViewClickListener(mediaID));
+        if (item.isPlayable()) {
+            holder.mPlusView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LogHelper.i("holder", "onclick");
+                    ((ListView) parent).performItemClick(v, position, 0); // Let the event be handled in onItemClick()
+
+                }
+            });
         }
-
         // If the state of convertView is different, we need to adapt the view to the
         // new state.
         int state = getMediaItemState(activity, item);
         if (cachedState == null || cachedState != state) {
             Drawable drawable = getDrawableByState(activity, state);
             if (drawable != null) {
-                holder.mPlayImageView.setImageDrawable(drawable);
-                holder.mPlayImageView.setVisibility(View.VISIBLE);
+                holder.mImageView.setImageDrawable(drawable);
+                holder.mImageView.setVisibility(View.VISIBLE);
             } else {
-                holder.mPlayImageView.setVisibility(View.GONE);
+                holder.mImageView.setVisibility(View.INVISIBLE);
             }
             convertView.setTag(R.id.tag_mediaitem_state_cache, state);
         }
@@ -109,21 +114,11 @@ public class MediaItemViewHolder {
 
     private static void initializeColorStateLists(Context ctx) {
         sColorStateNotPlaying = ColorStateList.valueOf(ctx.getResources().getColor(
-            R.color.media_item_icon_not_playing));
+                R.color.media_item_icon_not_playing));
         sColorStatePlaying = ColorStateList.valueOf(ctx.getResources().getColor(
-            R.color.media_item_icon_playing));
+                R.color.media_item_icon_playing));
     }
 
-    /**
-     * Gets the Drawable to display in the media browser for the equalizer
-     * Depends on the item category and type
-     * If it isn't playable... No image
-     * If it is Playing ... animated equalizer
-     * If it is Paused ... stopped equalizer
-     * @param context
-     * @param state
-     * @return
-     */
     public static Drawable getDrawableByState(Context context, int state) {
         if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
             initializeColorStateLists(context);
@@ -156,7 +151,7 @@ public class MediaItemViewHolder {
         // Set state to playable first, then override to playing or paused state if needed
         if (mediaItem.isPlayable()) {
             state = STATE_PLAYABLE;
-            if (MediaIDHelper.isMediaItemPlaying(context, mediaItem)) {
+            if (MediaIDUampHelper.isMediaItemPlaying(context, mediaItem)) {
                 state = getStateFromController(context);
             }
         }
@@ -165,75 +160,15 @@ public class MediaItemViewHolder {
     }
 
     public static int getStateFromController(Context context) {
-        MediaControllerCompat controller = MediaControllerCompat.getMediaController((Activity) context);
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController((FragmentActivity) context);
         PlaybackStateCompat pbState = controller.getPlaybackState();
         if (pbState == null ||
                 pbState.getState() == PlaybackStateCompat.STATE_ERROR) {
-            return MediaItemViewHolder.STATE_NONE;
+            return MediaItemUampViewHolder.STATE_NONE;
         } else if (pbState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-            return  MediaItemViewHolder.STATE_PLAYING;
+            return  MediaItemUampViewHolder.STATE_PLAYING;
         } else {
-            return MediaItemViewHolder.STATE_PAUSED;
+            return MediaItemUampViewHolder.STATE_PAUSED;
         }
     }
-
-    public static  View getListItemViewView(Activity activity, View convertView, final ViewGroup parent, MediaBrowserCompat.MediaItem item, final int position) {
-        MediaItemViewHolder holder;
-
-        Integer cachedState = STATE_INVALID;
-
-        if (convertView == null) {
-            convertView = LayoutInflater.from(activity)
-                    .inflate(R.layout.media_list_item_with_plus, parent, false);
-            holder = new MediaItemViewHolder();
-            holder.mPlayImageView = (ImageView) convertView.findViewById(R.id.play_eq);
-            holder.mAddImageView = (ImageView) convertView.findViewById(R.id.plus_eq);
-            holder.mTitleView = (TextView) convertView.findViewById(R.id.title);
-            holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description);
-            convertView.setTag(holder);
-        } else {
-            holder = (MediaItemViewHolder) convertView.getTag();
-            cachedState = (Integer) convertView.getTag(R.id.tag_mediaitem_state_cache);
-        }
-
-        // Set the text
-        MediaDescriptionCompat description = item.getDescription();
-        holder.mTitleView.setText(description.getTitle());
-        holder.mDescriptionView.setText(description.getSubtitle());
-
-        // Handle the visibility of the add button (not valid for top level categories)
-        String mediaID = item.getMediaId();
-        if (MediaIDHelper.isValidCategory(mediaID)) {
-            holder.mAddImageView.setVisibility(View.GONE);
-        } else {
-            holder.mAddImageView.setVisibility(View.VISIBLE);
-            // This onclick listener for the button just passes the click to be handled by the standard list
-            // list item on click code (which will use the 'view' to determine if a button was clicked
-            // of if the click came directly from the list background
-            // requires android:descendantFocusability="blocksDescendants" in the list item layout,
-            // otherwise the button takes all the focus and we can't click on the list item background
-            // see http://www.migapro.com/click-events-listview-gridview/
-            holder.mAddImageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ((ListView) parent).performItemClick(v, position, 0); // Let the event be handled in onItemClick()
-                }
-            });
-        }
-
-        // If the state of convertView is different, we need to adapt the view to the new state
-        int state = MediaItemViewHolder.getMediaItemState(activity, item);
-        if (cachedState == null || cachedState != state) {
-            Drawable drawable = MediaItemViewHolder.getDrawableByState(activity, state);
-            if (drawable != null) {
-                holder.mPlayImageView.setImageDrawable(drawable);
-                holder.mPlayImageView.setVisibility(View.VISIBLE);
-            } else {
-                holder.mPlayImageView.setVisibility(View.GONE);
-            }
-            convertView.setTag(R.id.tag_mediaitem_state_cache, state);
-        }
-        return convertView;
-    }
-
 }

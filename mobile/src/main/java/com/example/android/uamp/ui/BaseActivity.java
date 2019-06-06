@@ -40,7 +40,8 @@ import com.example.android.uamp.utils.NetworkHelper;
 import com.example.android.uamp.utils.ResourceHelper;
 
 /**
- * Base activity for activities that need to show a playback control fragment when media is playing.
+ * Base activity for activities that need to show a playback control fragment when media is playing
+ * Used in the MediaBrowser fragments, which show playback control at bottom of screen
  */
 public abstract class BaseActivity extends ActionBarCastActivity implements MediaBrowserProvider {
 
@@ -76,7 +77,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     @Override
     protected void onStart() {
         super.onStart();
-        LogHelper.d(TAG, "BaseActivity onStart");
+        LogHelper.i(TAG, "BaseActivity onStart");
 
         mControlsFragment = (PlaybackControlsFragment) getFragmentManager()
             .findFragmentById(R.id.fragment_playback_controls);
@@ -85,7 +86,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         }
 
         hidePlaybackControls();
-
+        LogHelper.i(TAG, "connecting to media browser");
         mMediaBrowser.connect();
     }
 
@@ -93,8 +94,8 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     protected void onStop() {
         super.onStop();
         LogHelper.d(TAG, "Activity onStop");
-        if (getSupportMediaController() != null) {
-            getSupportMediaController().unregisterCallback(mMediaControllerCallback);
+        if (MediaControllerCompat.getMediaController(this) != null) {
+            MediaControllerCompat.getMediaController(this).unregisterCallback(mMediaControllerCallback);
         }
         mMediaBrowser.disconnect();
     }
@@ -135,7 +136,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
      * @return true if the MediaSession's state requires playback controls to be visible.
      */
     protected boolean shouldShowControls() {
-        MediaControllerCompat mediaController = getSupportMediaController();
+        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
         if (mediaController == null ||
             mediaController.getMetadata() == null ||
             mediaController.getPlaybackState() == null) {
@@ -153,7 +154,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 
     private void connectToSession(MediaSessionCompat.Token token) throws RemoteException {
         MediaControllerCompat mediaController = new MediaControllerCompat(this, token);
-        setSupportMediaController(mediaController);
+        MediaControllerCompat.setMediaController(this, mediaController);
         mediaController.registerCallback(mMediaControllerCallback);
 
         if (shouldShowControls()) {
@@ -197,15 +198,27 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
             }
         };
 
+    /**
+     * Called from my MediaBrowser.ConnectionCallback when browser is connected
+     * Base class implementation does nothing, but derived classes can override this
+     * method to get a signal that the media browser is connected
+     */
+    protected  void onBrowserConnected() {
+        LogHelper.i(TAG, "onBrowserConnected");
+    }
+
     private final MediaBrowserCompat.ConnectionCallback mConnectionCallback =
         new MediaBrowserCompat.ConnectionCallback() {
             @Override
             public void onConnected() {
-                LogHelper.d(TAG, "onConnected");
+                LogHelper.i(TAG, "onConnected");
                 try {
+                    // call onBrowser connected to signal to derived classes that we are connected
+                    // (they might be waiting)
+                    onBrowserConnected();
                     connectToSession(mMediaBrowser.getSessionToken());
                 } catch (RemoteException e) {
-                    LogHelper.e(TAG, e, "could not connect media controller");
+                    LogHelper.i(TAG, e, "could not connect media controller");
                     hidePlaybackControls();
                 }
             }

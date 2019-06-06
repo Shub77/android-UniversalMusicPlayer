@@ -31,7 +31,7 @@
     <color name="background_gradient_start">#000000</color>
     <color name="background_gradient_end">#DDDDDD</color>
     <color name="default_background">#0096a6</color>
-    <color name="mediaListTextColorPrimary">@color/white</color>
+    <color name="mediaListTextColorPrimary">@color/dark_grey</color>
     <color name="mediaListTextColorSecondary">@color/light_grey</color>
 
     <color name="playqueue_button_color">#333</color>

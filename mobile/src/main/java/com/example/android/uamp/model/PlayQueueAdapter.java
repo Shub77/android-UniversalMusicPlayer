@@ -87,7 +87,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
         }
         @Override
         public void onClick(View v) {
-            //final Song song = (Song) getItem(songPosition);
+            //final BrowsableItem song = (BrowsableItem) getItem(songPosition);
             LogHelper.i(TAG, "remove song, queueId = ", queueId);
 
             // Callback to the activity which must implement PlayQueueActionsListener
@@ -106,7 +106,7 @@ public class PlayQueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem>
         }
         @Override
         public void onClick(View v) {
-            //final Song song = (Song) getItem(songPosition);
+            //final BrowsableItem song = (BrowsableItem) getItem(songPosition);
             LogHelper.i(TAG, "move song to top, queueId = ", queueId);
 
             // Callback to the activity which must implement PlayQueueActionsListener

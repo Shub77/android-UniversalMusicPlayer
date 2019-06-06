@@ -83,7 +83,7 @@ public final class VoiceSearchParams {
                     genre = extras.getString(genreKey);
                     artist = extras.getString(MediaStore.EXTRA_MEDIA_ARTIST);
                 } else if (TextUtils.equals(mediaFocus, MediaStore.Audio.Media.ENTRY_CONTENT_TYPE)) {
-                    // for a Song focused search, AlbumTitle, album, artist and genre are set:
+                    // for a BrowsableItem focused search, AlbumTitle, album, artist and genre are set:
                     isSongFocus = true;
                     song = extras.getString(MediaStore.EXTRA_MEDIA_TITLE);
                     album = extras.getString(MediaStore.EXTRA_MEDIA_ALBUM);

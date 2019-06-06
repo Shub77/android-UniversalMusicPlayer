@@ -16,6 +16,7 @@
 package com.example.android.uamp.ui;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.DialogInterface;
@@ -88,7 +89,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
     private Drawable mPauseDrawable;
     private Drawable mPlayDrawable;
     private ListView mPlayqueueList;
-
+    private ActionBarCastActivity mActivity;
     private String mCurrentArtUrl;
     private final Handler mHandler = new Handler();
     private MediaBrowserCompat mMediaBrowser;
@@ -239,14 +240,14 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         playQueueAdapter = new PlayQueueAdapter(this);
         mPlayqueueList.setAdapter(playQueueAdapter);
 
-
+        mActivity = this;
 
         mSkipNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LogHelper.i(TAG, "mSkipNext onClickListener");
                 MediaControllerCompat.TransportControls controls =
-                    getSupportMediaController().getTransportControls();
+                        MediaControllerCompat.getMediaController(mActivity).getTransportControls();
                 controls.skipToNext();
             }
         });
@@ -255,7 +256,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             @Override
             public void onClick(View v) {
                 MediaControllerCompat.TransportControls controls =
-                    getSupportMediaController().getTransportControls();
+                        MediaControllerCompat.getMediaController(mActivity).getTransportControls();
                 controls.skipToPrevious();
             }
         });
@@ -263,10 +264,10 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PlaybackStateCompat state = getSupportMediaController().getPlaybackState();
+                PlaybackStateCompat state = MediaControllerCompat.getMediaController(mActivity).getPlaybackState();
                 if (state != null) {
                     MediaControllerCompat.TransportControls controls =
-                            getSupportMediaController().getTransportControls();
+                            MediaControllerCompat.getMediaController(mActivity).getTransportControls();
                     switch (state.getState()) {
                         case PlaybackStateCompat.STATE_PLAYING: // fall through
                         case PlaybackStateCompat.STATE_BUFFERING:
@@ -298,7 +299,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                getSupportMediaController().getTransportControls().seekTo(seekBar.getProgress());
+                MediaControllerCompat.getMediaController(mActivity).getTransportControls().seekTo(seekBar.getProgress());
                 scheduleSeekbarUpdate();
             }
         });
@@ -331,7 +332,7 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             LogHelper.i(TAG, "Queue is null");
         }
 
-        setSupportMediaController(mediaController);
+        MediaControllerCompat.setMediaController(this,mediaController);
         mediaController.registerCallback(mCallback);
         PlaybackStateCompat state = mediaController.getPlaybackState();
         updatePlaybackState(state);
@@ -410,8 +411,8 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
         if (mMediaBrowser != null) {
             mMediaBrowser.disconnect();
         }
-        if (getSupportMediaController() != null) {
-            getSupportMediaController().unregisterCallback(mCallback);
+        if (MediaControllerCompat.getMediaController(this) != null) {
+            MediaControllerCompat.getMediaController(this).unregisterCallback(mCallback);
         }
     }
 
@@ -478,8 +479,8 @@ public class FullScreenPlayQueueActivity extends ActionBarCastActivity
             return;
         }
         mLastPlaybackState = state;
-        if (getSupportMediaController() != null && getSupportMediaController().getExtras() != null) {
-            String castName = getSupportMediaController()
+        if (MediaControllerCompat.getMediaController(this) != null && MediaControllerCompat.getMediaController(this).getExtras() != null) {
+            String castName = MediaControllerCompat.getMediaController(this)
                     .getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
             String line3Text = castName == null ? "" : getResources()
                         .getString(R.string.casting_to_device, castName);

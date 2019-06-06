@@ -254,8 +254,10 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
             mDrawerLayout.closeDrawers();
             return;
         }
-        // Otherwise, it may return to the previous fragment stack
         FragmentManager fragmentManager = getFragmentManager();
+        LogHelper.i(TAG, "popBackStack(): BSEntryCount=",fragmentManager.getBackStackEntryCount());
+        // Otherwise, it may return to the previous fragment stack
+
         if (fragmentManager.getBackStackEntryCount() > 0) {
             fragmentManager.popBackStack();
         } else {
@@ -287,7 +289,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (mDrawerLayout != null) {
-            LogHelper.i(TAG, "mDrawerLayout != null");
             NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
             if (navigationView == null) {
                 throw new IllegalStateException("Layout requires a NavigationView " +
@@ -326,6 +327,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity  {
         if (mDrawerToggle == null) {
             return;
         }
+        LogHelper.i(TAG,"updateDrawerToggle:BSEntryCount=", getFragmentManager().getBackStackEntryCount());
         boolean isRoot = getFragmentManager().getBackStackEntryCount() == 0;
         mDrawerToggle.setDrawerIndicatorEnabled(isRoot);
         if (getSupportActionBar() != null) {

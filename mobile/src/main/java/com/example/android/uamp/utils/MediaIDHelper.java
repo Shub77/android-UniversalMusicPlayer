@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -128,16 +129,6 @@ public class MediaIDHelper {
         return null;
     }
 
-    /**
-     * Test if the specified media id is for a track (not a category)
-     * @param mediaID
-     * @return true if the media id relates to a specific track
-     */
-    public static boolean isTrack(@NonNull String mediaID) {
-        // If the item is a track then it wil have the form __CATEGORYTYPE__/categoryvalue|trackId
-        return mediaID.indexOf(LEAF_SEPARATOR) >= 0;
-    }
-
     public static boolean isBrowseable(@NonNull String mediaID) {
         return mediaID.indexOf(LEAF_SEPARATOR) < 0;
     }
@@ -166,13 +157,15 @@ public class MediaIDHelper {
                                              MediaBrowserCompat.MediaItem mediaItem) {
         // Media item is considered to be playing or paused based on the controller's current
         // media id
-        MediaControllerCompat controller = ((FragmentActivity) context)
-                .getSupportMediaController();
+        /*
+        MediaControllerCompat controller = ((FragmentActivity) context).getSupportMediaController();
+        Cnahged for 27.1.1
+        */
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController((Activity) context);
         if (controller != null && controller.getMetadata() != null) {
             String currentPlayingMediaId = controller.getMetadata().getDescription()
                     .getMediaId();
-            String itemMusicId = MediaIDHelper.extractMusicIDFromMediaID(
-                    mediaItem.getDescription().getMediaId());
+            String itemMusicId = MediaIDHelper.extractMusicIDFromMediaID(mediaItem.getDescription().getMediaId());
             if (currentPlayingMediaId != null
                     && TextUtils.equals(currentPlayingMediaId, itemMusicId)) {
                 return true;

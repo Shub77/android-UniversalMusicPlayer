@@ -18,6 +18,8 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
 >
 
     <android.support.v7.widget.CardView
@@ -41,44 +43,17 @@
             android:textColor="@android:color/white"
             android:textStyle="bold"/>
     </android.support.v7.widget.CardView>
-    <Button
-            android:id="@+id/btnChooseSong"
-            android:text="@string/choose_song"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_below="@id/playback_error">
-    </Button>
-
-    <Button
-            android:id="@+id/btnChooseAlbum"
-            android:text="@string/choose_album"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/btnChooseSong">
-    </Button>
-
-    <Button
-        android:id="@+id/btnChooseArtist"
-        android:text="@string/choose_artist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnChooseAlbum">
-    </Button>
-
-    <Button
-        android:id="@+id/btnHistory"
-        android:text="@string/choose_history"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnChooseArtist">
-    </Button>
-
-    <Button
-        android:id="@+id/btnPagedSongs"
-        android:text="Pages"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnHistory">
-    </Button>
+    <com.example.android.uamp.ui.dialogs.ClearableEditText
+            android:id="@+id/searchText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+    </com.example.android.uamp.ui.dialogs.ClearableEditText>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/list_view"
+        android:scrollbars="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:scaleType="centerCrop"
+        android:layout_above="@+id/line1"
+        android:contentDescription="@string/playqueue_list_str" />
 </RelativeLayout>

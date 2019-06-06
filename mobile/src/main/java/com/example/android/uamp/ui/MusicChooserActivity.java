@@ -33,6 +33,7 @@ import com.example.android.uamp.model.MediaChooserFragmentListener;
 import com.example.android.uamp.playback.PlaybackManager;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserGroupsFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserHistoryFragment;
+import com.example.android.uamp.ui.MediaBrowserClient.MediaBrowserClientFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserTracksFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserOptionsFragment;
 import com.example.android.uamp.ui.MediaChooserFragments.MediaChooserTracksByGroupFragment;
@@ -114,6 +115,33 @@ public class MusicChooserActivity extends BaseActivity
      * or clicked on an option to browse further (e.g clicked an album to see all songs)
     */
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Methods for recycler view with recursive browsing
+    @Override
+    public void onAddBrowsableItemToQueueByMediaIdFromRecyclerView(String mediaId) {
+        LogHelper.i(TAG, "onAddBrowsableItemToQueueByMediaIdFromRecyclerView. mediaId = ", mediaId);
+        MediaControllerCompat.TransportControls controls = MediaControllerCompat.getMediaController(this).getTransportControls();
+        Bundle bundle = new Bundle();
+        if (mediaId.startsWith("__ALBUM__")) {
+            Long albumId = Long.parseLong(mediaId.substring(9));
+            bundle.putLong(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, albumId);
+            controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE, bundle);
+        } else if (mediaId.startsWith("__ARTIST__")) {
+                Long artistId = Long.parseLong(mediaId.substring(10));
+                bundle.putLong(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, artistId);
+                controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE,bundle);
+        } else { // should use __TRACK__
+            Long trackId = Long.parseLong(mediaId);
+            bundle.putLong(PlaybackManager.CUSTOM_EXTRA_TRACK_ID, trackId);
+            controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_TRACK_TO_QUEUE,bundle);
+        }
+    }
+    // End Methods for recycler view with recursive browsing
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
     /**
      * Callbacks from the MediaChooserGroupsFragment
      * Add all songs on the specified album to the playqueue
@@ -121,7 +149,7 @@ public class MusicChooserActivity extends BaseActivity
      */
     @Override
     public void onAddAlbumToQueue(long albumId) {
-        MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
+        MediaControllerCompat.TransportControls controls = MediaControllerCompat.getMediaController(this).getTransportControls();
         Bundle bundle = new Bundle();
         bundle.putLong(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, albumId);
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ALBUM_TO_QUEUE,bundle);
@@ -134,7 +162,7 @@ public class MusicChooserActivity extends BaseActivity
      */
     @Override
     public void onAddArtistToQueue(long artistID) {
-        MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
+        MediaControllerCompat.TransportControls controls = MediaControllerCompat.getMediaController(this).getTransportControls();
         Bundle bundle = new Bundle();
         bundle.putLong(PlaybackManager.CUSTOM_EXTRA_MEDIA_ID, artistID);
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_ARTIST_TO_QUEUE,bundle);
@@ -147,7 +175,7 @@ public class MusicChooserActivity extends BaseActivity
      */
     @Override
     public void onAddTrackToQueue(long trackId) {
-        MediaControllerCompat.TransportControls controls = getSupportMediaController().getTransportControls();
+        MediaControllerCompat.TransportControls controls = MediaControllerCompat.getMediaController(this).getTransportControls();
         Bundle bundle = new Bundle();
         bundle.putLong(PlaybackManager.CUSTOM_EXTRA_TRACK_ID, trackId);
         controls.sendCustomAction(PlaybackManager.CUSTOM_ACTION_ADD_TRACK_TO_QUEUE,bundle);
@@ -208,6 +236,27 @@ public class MusicChooserActivity extends BaseActivity
         setTitle(resourceStringId);
     }
 
+    @Override
+    public void setToolbarTitleString(String titleString) {
+        setTitle(titleString);
+    }
+
+    @Override
+    public void onBrowseItemFromRecyclerView(String mediaId, String title) {
+        LogHelper.i(TAG, "onBrowseItemFromRecyclerView:mediaId = ", mediaId);
+        MediaBrowserClientFragment fragment = new MediaBrowserClientFragment();
+        fragment.setBrowseParameters(mediaId, "title");
+        setToolbarTitleString(title);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
 
     /**
      * Callback from MediaChooserFragment main menu when user clicks on "Album" option
@@ -261,7 +310,28 @@ public class MusicChooserActivity extends BaseActivity
         LogHelper.i(TAG, "onChooseTrack");
         MediaChooserTracksFragment fragment = null;
         fragment = new MediaChooserTracksFragment();
-        //fragment.setMediaId(mediaId);
+        //fragment.setMediaIdAndTitle(mediaId);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.setCustomAnimations(
+                R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+        transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+        // If this is not the top level media (root), we add it to the fragment back stack,
+        // so that actionbar toggle and Back will work appropriately:
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    /**
+     * Callback from MediaChooserFragment main menu when user clicks to see al tracks
+     * This uses a paged implementation
+     */
+    @Override
+    public void onPages() {
+        LogHelper.i(TAG, "onPages");
+        MediaBrowserClientFragment fragment = null;
+        fragment = new MediaBrowserClientFragment();
+        fragment.setBrowseParameters("__ROOT__", "root title");
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.setCustomAnimations(
                 R.animator.slide_in_from_right, R.animator.slide_out_to_left,
@@ -283,7 +353,7 @@ public class MusicChooserActivity extends BaseActivity
         LogHelper.i(TAG, "OnChooseHistory");
         MediaChooserHistoryFragment fragment = null;
         fragment = new MediaChooserHistoryFragment();
-        //fragment.setMediaId(mediaId);
+        //fragment.setMediaIdAndTitle(mediaId);
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.setCustomAnimations(
                 R.animator.slide_in_from_right, R.animator.slide_out_to_left,
@@ -389,7 +459,7 @@ public class MusicChooserActivity extends BaseActivity
         LogHelper.i(TAG, "navigateToBrowser, mediaId=" + mediaId);
         if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {
             fragment = new MediaChooserOptionsFragment();
-            fragment.setMediaId(mediaId);
+            fragment.setMediaIdAndTitle(mediaId);
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             transaction.setCustomAnimations(
                 R.animator.slide_in_from_right, R.animator.slide_out_to_left,
@@ -425,7 +495,7 @@ public class MusicChooserActivity extends BaseActivity
             // send it to the media session and set it to null, so it won't play again
             // when the activity is stopped/started or recreated:
             String query = mVoiceSearchParams.getString(SearchManager.QUERY);
-            getSupportMediaController().getTransportControls()
+            MediaControllerCompat.getMediaController(this).getTransportControls()
                     .playFromSearch(query, mVoiceSearchParams);
             mVoiceSearchParams = null;
         }

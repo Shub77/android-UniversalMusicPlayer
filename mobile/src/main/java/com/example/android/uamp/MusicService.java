@@ -26,19 +26,26 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.MediaBrowserServiceCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.media.MediaRouter;
-import android.widget.Toast;
 
+import com.example.android.uamp.ui.MediaBrowserClient.BrowsableItem;
+import com.example.android.uamp.model.CursorBasedPagedAlbumByIdMediaProvider;
+import com.example.android.uamp.model.CursorBasedPagedAlbumsMediaProvider;
+import com.example.android.uamp.model.CursorBasedPagedArtistByIdMediaProvider;
+import com.example.android.uamp.model.CursorBasedPagedArtistsMediaProvider;
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.playback.*;
 import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.ui.MainLauncherActivity;
+import com.example.android.uamp.ui.MediaBrowserClient.MediaIDUampHelper;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.TvHelper;
@@ -54,10 +61,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
+import com.example.android.uamp.model.CursorBasedPagedMediaProvider;
 
-import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_EMPTY_ROOT;
-import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
+import static com.example.android.uamp.ui.MediaBrowserClient.MediaIDUampHelper.MEDIA_ID_EMPTY_ROOT;
+import static com.example.android.uamp.ui.MediaBrowserClient.MediaIDUampHelper.MEDIA_ID_ROOT;
 
 /**
  * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
@@ -152,11 +159,18 @@ public class MusicService extends MediaBrowserServiceCompat implements
     private boolean mIsConnectedToCar;
     private BroadcastReceiver mCarConnectionReceiver;
 
+    // Used by the onLoadChildren to get paginated data
+    private CursorBasedPagedMediaProvider mCursorBasedPagedMediaProvider;
+    private CursorBasedPagedAlbumsMediaProvider mCursorBasedPagedAlbumsMediaProvider;
+    private CursorBasedPagedAlbumByIdMediaProvider mCursorBasedPagedAlbumByIdMediaProvider;
+    private CursorBasedPagedArtistByIdMediaProvider mCursorBasedPagedArtistByIdMediaProvider;
+    private CursorBasedPagedArtistsMediaProvider mCursorBasedPagedArtistsMediaProvider;
+
     private ArrayList<MediaItem> mHistoryList = new ArrayList<>();
 
     private void addItemToHistory(MediaMetadataCompat metadata) {
         int historySize = Settings.getHistorySize(getApplicationContext());
-        MediaItem mediaItem = new MediaItem(metadata.getDescription(), 0);
+        MediaItem mediaItem = new MediaItem(metadata.getDescription(), MediaItem.FLAG_PLAYABLE);
         mHistoryList.add(0, mediaItem); // add to top of history (most recent)
         if (mHistoryList.size() > historySize) {
             int index = 0;
@@ -357,7 +371,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
             LogHelper.i(TAG, "OnGetRoot: Browsing NOT ALLOWED for unknown caller. "
                     + "Returning empty browser root so all apps can use MediaController."
                     + clientPackageName);
-            return new MediaBrowserServiceCompat.BrowserRoot(MEDIA_ID_EMPTY_ROOT, null);
+            return new MediaBrowserServiceCompat.BrowserRoot(MediaIDUampHelper.MEDIA_ID_EMPTY_ROOT, null);
         }
         //noinspection StatementWithEmptyBody
         if (CarHelper.isValidCarPackage(clientPackageName)) {
@@ -374,28 +388,174 @@ public class MusicService extends MediaBrowserServiceCompat implements
             // on onLoadChildren, handle it accordingly.
         }
         LogHelper.i(TAG,"return root");
-        return new BrowserRoot(MEDIA_ID_ROOT, null);
+        return new BrowserRoot(MediaIDUampHelper.MEDIA_ID_ROOT, null);
     }
 
-    private List<MediaItem> getMediaItemsByGroup(String group, String id) {
-        ArrayList<MediaItem> result = new ArrayList<>();
-        Iterable<MediaMetadataCompat> metadatas;
-        if ("ARTIST".equals(group)) {
-            metadatas = mMusicProvider.getMusicsByArtist(id);
-        } else if ("ALBUM".equals(group)) {
-            metadatas = mMusicProvider.getMusicsByAlbum(id);
-        } else {
-            return result;
+    /**
+     * Overriden method of MediaBrowserServiceCompat
+     * Used to get MediaItems
+     * @param parentId - The media browsing ID - track, album artist All etc
+     * @param result - returned MediaItems
+     * @Param options - Bundle specifying Page and Page size. Used by Paged adapter to load only selected data
+     */
+    @Override
+    public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result, @NonNull Bundle options) {
+        LogHelper.i(TAG, "onLoadChildren (Paged). ParentId = ", parentId);
+        result.detach();
+        if (parentId.startsWith(MediaIDUampHelper.MEDIA_ID_ALBUM)) {
+            String albumMediaID = parentId.substring(MediaIDUampHelper.MEDIA_ID_ALBUMS.length());
+            if (!(options.containsKey(MediaBrowserCompat.EXTRA_PAGE) && options.containsKey(MediaBrowserCompat.EXTRA_PAGE_SIZE)))
+                return;
+
+//            if (mCursorBasedPagedAlbumByIdMediaProvider == null)
+            mCursorBasedPagedAlbumByIdMediaProvider = new CursorBasedPagedAlbumByIdMediaProvider(getApplicationContext(), albumMediaID);//mediaProviderFactory.provide();
+
+            int page = options.getInt(MediaBrowserCompat.EXTRA_PAGE);
+            int pageSize = options.getInt(MediaBrowserCompat.EXTRA_PAGE_SIZE);
+            List<BrowsableItem> browsableItems = getTracksOnAlbumByIdPage(page, pageSize);
+
+            List<MediaBrowserCompat.MediaItem> mediaItems = mapToMediaItems(browsableItems);
+            result.sendResult(mediaItems);
+        } else if (parentId.startsWith(MediaIDUampHelper.MEDIA_ID_ARTIST)) {
+            String albumMediaID = parentId.substring(MediaIDUampHelper.MEDIA_ID_ARTIST.length());
+            if (!(options.containsKey(MediaBrowserCompat.EXTRA_PAGE) && options.containsKey(MediaBrowserCompat.EXTRA_PAGE_SIZE)))
+                return;
+
+//            if (mCursorBasedPagedAlbumByIdMediaProvider == null)
+            mCursorBasedPagedArtistByIdMediaProvider = new CursorBasedPagedArtistByIdMediaProvider(getApplicationContext(), albumMediaID);//mediaProviderFactory.provide();
+
+            int page = options.getInt(MediaBrowserCompat.EXTRA_PAGE);
+            int pageSize = options.getInt(MediaBrowserCompat.EXTRA_PAGE_SIZE);
+            List<BrowsableItem> browsableItems = getTracksByArtistByIdPage(page, pageSize);
+
+            List<MediaBrowserCompat.MediaItem> mediaItems = mapToMediaItems(browsableItems);
+            result.sendResult(mediaItems);
         }
 
-        MediaItem mediaItem;
-        Iterator itr = metadatas.iterator();
-        while (itr.hasNext()) {
-            MediaMetadataCompat metadata = (MediaMetadataCompat)itr.next();
-            mediaItem = new MediaItem(metadata.getDescription(),0);
-            result.add(mediaItem);
+        else if (parentId.equals(MediaIDUampHelper.MEDIA_ID_ALBUMS)) {
+            if (!(options.containsKey(MediaBrowserCompat.EXTRA_PAGE) && options.containsKey(MediaBrowserCompat.EXTRA_PAGE_SIZE)))
+                return;
+
+            if (mCursorBasedPagedAlbumsMediaProvider == null)
+                mCursorBasedPagedAlbumsMediaProvider = new CursorBasedPagedAlbumsMediaProvider(getApplicationContext());//mediaProviderFactory.provide();
+
+            int page = options.getInt(MediaBrowserCompat.EXTRA_PAGE);
+            int pageSize = options.getInt(MediaBrowserCompat.EXTRA_PAGE_SIZE);
+            List<BrowsableItem> browsableItems = getAlbumsPage(page, pageSize);
+
+            List<MediaBrowserCompat.MediaItem> mediaItems = mapToMediaItems(browsableItems);
+            result.sendResult(mediaItems);
+        } else if (parentId.equals(MediaIDUampHelper.MEDIA_ID_ARTISTS)) {
+            if (!(options.containsKey(MediaBrowserCompat.EXTRA_PAGE) && options.containsKey(MediaBrowserCompat.EXTRA_PAGE_SIZE)))
+                return;
+
+            if (mCursorBasedPagedArtistsMediaProvider == null)
+                mCursorBasedPagedArtistsMediaProvider = new CursorBasedPagedArtistsMediaProvider(getApplicationContext());//mediaProviderFactory.provide();
+
+            int page = options.getInt(MediaBrowserCompat.EXTRA_PAGE);
+            int pageSize = options.getInt(MediaBrowserCompat.EXTRA_PAGE_SIZE);
+            List<BrowsableItem> browsableItems = getArtistsPage(page, pageSize);
+
+            List<MediaBrowserCompat.MediaItem> mediaItems = mapToMediaItems(browsableItems);
+            result.sendResult(mediaItems);
+
+        } else if (parentId.equals(MediaIDUampHelper.MEDIA_ID_ALL_SONGS)) {
+            if (!(options.containsKey(MediaBrowserCompat.EXTRA_PAGE) && options.containsKey(MediaBrowserCompat.EXTRA_PAGE_SIZE)))
+                return;
+
+            if (mCursorBasedPagedMediaProvider == null)
+                mCursorBasedPagedMediaProvider = new CursorBasedPagedMediaProvider(getApplicationContext());//mediaProviderFactory.provide();
+
+            int page = options.getInt(MediaBrowserCompat.EXTRA_PAGE);
+            int pageSize = options.getInt(MediaBrowserCompat.EXTRA_PAGE_SIZE);
+            List<BrowsableItem> browsableItems = getSongsPage(page, pageSize);
+
+            List<MediaBrowserCompat.MediaItem> mediaItems = mapToMediaItems(browsableItems);
+            result.sendResult(mediaItems);
+        } else if (parentId.equals(MEDIA_ID_ROOT)) {
+            ArrayList<BrowsableItem> mainMenuItems = new ArrayList<>();
+            BrowsableItem s;
+            s = new BrowsableItem("All Songs", "View All songs on the device", MediaIDUampHelper.MEDIA_ID_ALL_SONGS,false, true);
+            mainMenuItems.add(s);
+            s = new BrowsableItem("History", "View recently played songs", MediaIDUampHelper.MEDIA_ID_HISTORY, false, true);
+            mainMenuItems.add(s);
+            s = new BrowsableItem("Albums", "View all albums", MediaIDUampHelper.MEDIA_ID_ALBUMS, false, true);
+            mainMenuItems.add(s);
+            s = new BrowsableItem("Artists", "View all artists", MediaIDUampHelper.MEDIA_ID_ARTISTS, false, true);
+            mainMenuItems.add(s);
+            List<MediaBrowserCompat.MediaItem> mediaItems = mapToMediaItems(mainMenuItems);
+            result.sendResult(mediaItems);
+        } else if (parentId.equals(MediaIDUampHelper.MEDIA_ID_HISTORY)) {
+            result.sendResult(mHistoryList);
+        } else {
+            List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<MediaItem>();
+            result.sendResult(mediaItems);
         }
-        return result;
+
+    }
+
+    private List<BrowsableItem> getSongsPage(int page, int pageSize) {
+        int startPosition = page * pageSize;
+        if (startPosition + pageSize <= mCursorBasedPagedMediaProvider.getMediaSize())
+            return mCursorBasedPagedMediaProvider.getSongsAtRange(startPosition, startPosition + pageSize);
+        else
+            return mCursorBasedPagedMediaProvider.getSongsAtRange(startPosition, mCursorBasedPagedMediaProvider.getMediaSize());
+    }
+
+    private List<BrowsableItem> getAlbumsPage(int page, int pageSize) {
+        int startPosition = page * pageSize;
+        if (startPosition + pageSize <= mCursorBasedPagedAlbumsMediaProvider.getMediaSize())
+            return mCursorBasedPagedAlbumsMediaProvider.getAlbumsAtRange(startPosition, startPosition + pageSize);
+        else
+            return mCursorBasedPagedAlbumsMediaProvider.getAlbumsAtRange(startPosition, mCursorBasedPagedAlbumsMediaProvider.getMediaSize());
+    }
+
+    private List<BrowsableItem> getArtistsPage(int page, int pageSize) {
+        int startPosition = page * pageSize;
+        if (startPosition + pageSize <= mCursorBasedPagedArtistsMediaProvider.getMediaSize())
+            return mCursorBasedPagedArtistsMediaProvider.getArtistsAtRange(startPosition, startPosition + pageSize);
+        else
+            return mCursorBasedPagedArtistsMediaProvider.getArtistsAtRange(startPosition, mCursorBasedPagedArtistsMediaProvider.getMediaSize());
+    }
+
+    private List<BrowsableItem> getTracksOnAlbumByIdPage(int page, int pageSize) {
+        int startPosition = page * pageSize;
+        if (startPosition + pageSize <= mCursorBasedPagedAlbumByIdMediaProvider.getMediaSize())
+            return mCursorBasedPagedAlbumByIdMediaProvider.getTracksOnAlbumByIdPage(startPosition, startPosition + pageSize);
+        else
+            return mCursorBasedPagedAlbumByIdMediaProvider.getTracksOnAlbumByIdPage(startPosition, mCursorBasedPagedAlbumByIdMediaProvider.getMediaSize());
+    }
+
+    private List<BrowsableItem> getTracksByArtistByIdPage(int page, int pageSize) {
+        int startPosition = page * pageSize;
+        if (startPosition + pageSize <= mCursorBasedPagedArtistByIdMediaProvider.getMediaSize())
+            return mCursorBasedPagedArtistByIdMediaProvider.getTracksByArtistByIdPage(startPosition, startPosition + pageSize);
+        else
+            return mCursorBasedPagedArtistByIdMediaProvider.getTracksByArtistByIdPage(startPosition, mCursorBasedPagedArtistByIdMediaProvider.getMediaSize());
+    }
+
+    private List<MediaBrowserCompat.MediaItem> mapToMediaItems(List<BrowsableItem> browsableItems) {
+        List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
+        for (BrowsableItem browsableItem : browsableItems) {
+            MediaDescriptionCompat mediaDescription = new MediaDescriptionCompat.Builder()
+                    .setTitle(browsableItem.title)
+                    .setSubtitle(browsableItem.subtitle)
+                    .setMediaId(browsableItem.mediaId)
+                    .build();
+
+            int flags = 0;
+            if (browsableItem.isPlayable) {
+                flags |= MediaItem.FLAG_PLAYABLE;
+            }
+            if (browsableItem.isBrowsable) {
+                flags |= MediaItem.FLAG_BROWSABLE;
+            }
+
+            MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(mediaDescription, flags);
+            mediaItems.add(mediaItem);
+        }
+
+        return mediaItems;
     }
 
     /**
@@ -407,19 +567,43 @@ public class MusicService extends MediaBrowserServiceCompat implements
     @Override
     public void onLoadChildren(@NonNull final String parentMediaId,
                                @NonNull final Result<List<MediaItem>> result) {
-        // we have no concept of 'children' when browsing
-        // we aren't using hierarchy
-        LogHelper.i(TAG, "OnLoadChildren id=", parentMediaId, ", history size=",mHistoryList.size());
-        if (parentMediaId.equals("HISTORY")) {
+        LogHelper.i(TAG, "OnLoadChildren id=", parentMediaId);
+        if (parentMediaId.equals(MediaIDUampHelper.MEDIA_ID_HISTORY)) {
             result.sendResult(mHistoryList);
-        } else if (parentMediaId.startsWith("ARTIST")) {
-            String id = parentMediaId.substring(8);
-            LogHelper.i(TAG, "id = ", id);
-            result.sendResult(getMediaItemsByGroup("ARTIST", id));
-        } else if (parentMediaId.startsWith("ALBUM")) {
-                String id = parentMediaId.substring(7);
-                LogHelper.i(TAG, "id = ", id);
-                result.sendResult(getMediaItemsByGroup("ALBUM", id));
+        } else if (parentMediaId.equals(MediaIDUampHelper.MEDIA_ID_ALL_SONGS)) {
+            ArrayList<MediaItem> mediaItems = mMusicProvider.getAllSongs();
+            result.sendResult(mediaItems);
+        } else if (parentMediaId.equals(MediaIDUampHelper.MEDIA_ID_ARTISTS)) {
+            ArrayList<MediaItem> mediaItems = mMusicProvider.getArtistMediaItems();
+            LogHelper.i(TAG, "found ", mediaItems.size()," items");
+            result.sendResult(mediaItems);
+        } else if (parentMediaId.equals(MediaIDUampHelper.MEDIA_ID_ALBUMS)) {
+           ArrayList<MediaItem> mediaItems = mMusicProvider.getAlbumMediaItems();
+           LogHelper.i(TAG, "found ", mediaItems.size()," items");
+            result.sendResult(mediaItems);
+        } else if (parentMediaId.startsWith(MediaIDUampHelper.MEDIA_ID_ARTIST)) {
+            String artistMediaID = MediaIDUampHelper.getArtistIdFromMediaId(parentMediaId);
+            LogHelper.i(TAG, "id = ", artistMediaID);
+            ArrayList<MediaItem> mediaItems = mMusicProvider.getMediaItemsByArtist(artistMediaID);
+            result.sendResult(mediaItems);
+        } else if (parentMediaId.startsWith(MediaIDUampHelper.MEDIA_ID_ALBUM)) {
+            String AlbumMediaId = MediaIDUampHelper.getAlbumIdFromMediaId(parentMediaId);
+            LogHelper.i(TAG, "id = ", AlbumMediaId);
+            ArrayList<MediaItem> mediaItems = mMusicProvider.getMediaItemsByAlbum(AlbumMediaId);
+            result.sendResult(mediaItems);
+        } else if (parentMediaId.equals(MEDIA_ID_ROOT)) {
+            ArrayList<BrowsableItem> mainMenuItems = new ArrayList<>();
+            BrowsableItem s;
+            s = new BrowsableItem("All Songs", "View All songs on the device", MediaIDUampHelper.MEDIA_ID_ALL_SONGS,false, true);
+            mainMenuItems.add(s);
+            s = new BrowsableItem("History", "View recently played songs", MediaIDUampHelper.MEDIA_ID_HISTORY, false, true);
+            mainMenuItems.add(s);
+            s = new BrowsableItem("Albums", "View all albums", MediaIDUampHelper.MEDIA_ID_ALBUMS, false, true);
+            mainMenuItems.add(s);
+            s = new BrowsableItem("Artists", "View all artists", MediaIDUampHelper.MEDIA_ID_ARTISTS, false, true);
+            mainMenuItems.add(s);
+            List<MediaBrowserCompat.MediaItem> mediaItems = mapToMediaItems(mainMenuItems);
+            result.sendResult(mediaItems);
         } else {
             result.sendResult(null);
         }

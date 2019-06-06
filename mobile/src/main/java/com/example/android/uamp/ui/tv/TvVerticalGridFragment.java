@@ -74,7 +74,7 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
     }
 
     protected void setMediaId(String mediaId) {
-        LogHelper.i(TAG, "setMediaId: ", mediaId);
+        LogHelper.i(TAG, "setMediaIdAndTitle: ", mediaId);
         if (TextUtils.equals(mMediaId, mediaId)) {
             return;
         }
@@ -115,7 +115,7 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                                   RowPresenter.ViewHolder rowViewHolder, Row row) {
 
-            MediaControllerCompat controller = getActivity().getSupportMediaController();
+            MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
             if (controller == null) {
                 return;
             }
