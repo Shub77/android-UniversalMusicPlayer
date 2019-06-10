@@ -335,7 +335,6 @@ public class MediaChooserTracksFragment extends Fragment {
                 break;
             case Constants.SEARCH_TYPE_SEARCH:
                 mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_tracks_by_search);
-                break;
             case Constants.SEARCH_TYPE_NONE:
                 mMediaFragmentListener.setToolbarTitle(R.string.media_chooser_alltracks_title);
                 break;

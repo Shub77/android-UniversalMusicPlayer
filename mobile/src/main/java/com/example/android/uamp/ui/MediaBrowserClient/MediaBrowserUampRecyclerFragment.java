@@ -33,6 +33,8 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.media.MediaItemStatus;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +45,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.uamp.R;
+import com.example.android.uamp.ui.dialogs.ClearableEditText;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.NetworkHelper;
 
@@ -69,11 +72,12 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
     private MediaFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
+    private ClearableEditText etSearchText;
 
     private RecyclerView recyclerView;
     private RecyclerView.LayoutManager layoutManager;
     //private BrowseAdapter mBrowserAdapter;
-    private RecyclerView.Adapter mAdapter;
+    private MediaBrowserClientUampRecyclerViewAdapter mAdapter;
 
     ArrayList<MediaBrowserCompat.MediaItem> myDataset;
 
@@ -167,7 +171,7 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         LogHelper.i(TAG, "fragment.onCreateView");
-        View rootView = inflater.inflate(R.layout.fragment_recycler_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_uamp_recycler_list, container, false);
 
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
@@ -186,6 +190,25 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
         // specify an adapter
         mAdapter = new MediaBrowserClientUampRecyclerViewAdapter(myDataset, this, getActivity());
         recyclerView.setAdapter(mAdapter);
+
+        etSearchText = (ClearableEditText) rootView.findViewById(R.id.searchText);
+        etSearchText.setHint(R.string.search_tracks);
+        etSearchText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mAdapter.getFilter().filter(s.toString());
+            }
+        });
 
         return rootView;
     }

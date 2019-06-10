@@ -16,6 +16,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,9 +27,13 @@ import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adapter<MediaBrowserClientUampRecyclerViewAdapter.MyViewHolder> {
+public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adapter<MediaBrowserClientUampRecyclerViewAdapter.MyViewHolder>
+        implements Filterable {
+
     private ArrayList<MediaBrowserCompat.MediaItem> mDataset;
+    private ArrayList<MediaBrowserCompat.MediaItem> mFilteredDataset;
 
     private static final String TAG = LogHelper.makeLogTag(MediaBrowserClientUampRecyclerViewAdapter.class);
 
@@ -70,6 +76,7 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
     public MediaBrowserClientUampRecyclerViewAdapter(ArrayList<MediaBrowserCompat.MediaItem> myDataset,
             BrowserRecyclerViewAdapterListener listener, Context context) {
         mDataset = myDataset;
+        mFilteredDataset = myDataset;
         mListener = listener;
         mContext = context;
     }
@@ -86,12 +93,48 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
         return vh;
     }
 
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                String charString = charSequence.toString();
+                if (charString.isEmpty()) {
+                    mFilteredDataset = mDataset;
+                } else {
+                    ArrayList<MediaBrowserCompat.MediaItem> filteredList = new ArrayList<>();
+                    for (MediaBrowserCompat.MediaItem item : mDataset) {
+
+                        // name match condition. this might differ depending on your requirement
+                        // here we are looking for name or phone number match
+                        if (item.getDescription().getTitle().toString().toLowerCase().contains(charString.toLowerCase())
+                        || item.getDescription().getSubtitle().toString().toLowerCase().contains(charString.toLowerCase())) {
+                            filteredList.add(item);
+                        }
+                    }
+
+                    mFilteredDataset = filteredList;
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = mFilteredDataset ;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                mFilteredDataset = (ArrayList<MediaBrowserCompat.MediaItem>) filterResults.values;
+                notifyDataSetChanged();
+            }
+        };
+    }
+
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        final MediaBrowserCompat.MediaItem  item = mDataset.get(position);
+        final MediaBrowserCompat.MediaItem  item = mFilteredDataset.get(position);
         MediaDescriptionCompat description = item.getDescription();
         holder.titleView.setText(description.getTitle());
         holder.descriptionView.setText(description.getSubtitle());
@@ -135,6 +178,12 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
             holder.view.setTag(R.id.tag_mediaitem_state_cache, state);
         }
 
+    }
+
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
+        return mFilteredDataset.size();
     }
 
     ///////////////
@@ -200,12 +249,6 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
     }
 
     ///////////////
-
-    // Return the size of your dataset (invoked by the layout manager)
-    @Override
-    public int getItemCount() {
-        return mDataset.size();
-    }
 
     public interface BrowserRecyclerViewAdapterListener {
         public void onBrowseClick(MediaBrowserCompat.MediaItem item);
