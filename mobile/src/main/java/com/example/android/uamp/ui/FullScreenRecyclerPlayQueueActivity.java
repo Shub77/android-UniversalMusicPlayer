@@ -433,7 +433,7 @@ public class FullScreenRecyclerPlayQueueActivity extends ActionBarCastActivity
     private void updateFromParams(Intent intent) {
         if (intent != null) {
             MediaDescriptionCompat description = intent.getParcelableExtra(
-                MusicChooserActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION);
+                MediaBrowserUampActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION);
             if (description != null) {
                 updateMediaDescription(description);
             }

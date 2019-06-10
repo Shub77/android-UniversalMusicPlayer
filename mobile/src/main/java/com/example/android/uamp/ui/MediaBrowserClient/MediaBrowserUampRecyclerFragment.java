@@ -144,6 +144,10 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
                         }
                         //mBrowserAdapter.notifyDataSetChanged();
                         mAdapter.notifyDataSetChanged();
+                        // We set the filter here, because otherwise if 'albums' are filtered, then we go to an album
+                        // then we go back to 'albums' (which still has the filter text)... No albums are shown
+                        // until the filter is changed
+                        mAdapter.getFilter().filter(etSearchText.getText());
                     } catch (Throwable t) {
                         LogHelper.e(TAG, "Error on childrenloaded", t);
                     }
@@ -296,9 +300,12 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
             return;
         }
         mMediaId = getMediaId();
+        // Null mediaId indicates "root"
         if (mMediaId == null) {
             LogHelper.i(TAG, "mMediaId is null");
             mMediaId = mMediaFragmentListener.getMediaBrowser().getRoot();
+            // For the root we don't show the filter (because list is so short)
+            etSearchText.setVisibility(View.GONE);
         }
 
         mTitle = getTitle();

@@ -35,7 +35,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
 
-import com.example.android.uamp.ui.MusicChooserActivity;
+import com.example.android.uamp.ui.MediaBrowserClient.MediaBrowserUampActivity;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.ResourceHelper;
 
@@ -202,11 +202,11 @@ public class MediaNotificationManager extends BroadcastReceiver {
     }
 
     private PendingIntent createContentIntent(MediaDescriptionCompat description) {
-        Intent openUI = new Intent(mService, MusicChooserActivity.class);
+        Intent openUI = new Intent(mService, MediaBrowserUampActivity.class);
         openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        openUI.putExtra(MusicChooserActivity.EXTRA_START_FULLSCREEN, true);
+        openUI.putExtra(MediaBrowserUampActivity.EXTRA_START_FULLSCREEN, true);
         if (description != null) {
-            openUI.putExtra(MusicChooserActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION, description);
+            openUI.putExtra(MediaBrowserUampActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION, description);
         }
         return PendingIntent.getActivity(mService, REQUEST_CODE, openUI,
                 PendingIntent.FLAG_CANCEL_CURRENT);
