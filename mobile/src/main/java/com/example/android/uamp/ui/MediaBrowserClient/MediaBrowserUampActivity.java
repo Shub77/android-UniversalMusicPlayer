@@ -42,7 +42,7 @@ package com.example.android.uamp.ui.MediaBrowserClient;
  * connected while this activity is running.
  */
 public class MediaBrowserUampActivity extends BaseActivity
-        implements MediaBrowserUampFragment.MediaFragmentListener {
+        implements MediaBrowserUampRecyclerFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(MediaBrowserUampActivity.class);
     private static final String SAVED_MEDIA_ID="com.example.android.uamp.SAVED_MEDIA_ID";
@@ -119,7 +119,7 @@ public class MediaBrowserUampActivity extends BaseActivity
     }
 
     @Override
-    public void onMediaItemSelectedForBrowse(MediaBrowserCompat.MediaItem item, String title) {
+    public void onMediaItemSelectedForBrowse(MediaBrowserCompat.MediaItem item) {
         LogHelper.d(TAG, "onMediaItemSelectedForBrowse, mediaId=" + item.getMediaId());
         if (item.isBrowsable()) {
             navigateToBrowser(item.getMediaId(), item.getDescription().getTitle().toString());
@@ -207,10 +207,10 @@ public class MediaBrowserUampActivity extends BaseActivity
 
     private void navigateToBrowser(String mediaId, CharSequence title) {
         LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
-        MediaBrowserUampFragment fragment = getBrowseFragment();
+        MediaBrowserUampRecyclerFragment fragment = getBrowseFragment();
 
         if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {
-            fragment = new MediaBrowserUampFragment();
+            fragment = new MediaBrowserUampRecyclerFragment();
             fragment.setMediaIdAndTitle(mediaId, title.toString());
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             transaction.setCustomAnimations(
@@ -227,7 +227,7 @@ public class MediaBrowserUampActivity extends BaseActivity
     }
 
     public String getMediaId() {
-        MediaBrowserUampFragment fragment = getBrowseFragment();
+        MediaBrowserUampRecyclerFragment fragment = getBrowseFragment();
         if (fragment == null) {
             return null;
         }
@@ -235,15 +235,15 @@ public class MediaBrowserUampActivity extends BaseActivity
     }
 
     public String getBrowseTitle() {
-        MediaBrowserUampFragment fragment = getBrowseFragment();
+        MediaBrowserUampRecyclerFragment fragment = getBrowseFragment();
         if (fragment == null) {
             return null;
         }
         return fragment.getTitle();
     }
 
-    private MediaBrowserUampFragment getBrowseFragment() {
-        return (MediaBrowserUampFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+    private MediaBrowserUampRecyclerFragment getBrowseFragment() {
+        return (MediaBrowserUampRecyclerFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
     }
 
     @Override

@@ -39,6 +39,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -315,24 +317,9 @@ public class MediaBrowserUampFragment extends Fragment {
     }
 
     private void updateTitle() {
-        /*
-        if (MediaIDUampHelper.MEDIA_ID_ROOT.equals(mMediaId)) {
-            mMediaFragmentListener.setToolbarTitle(null);
-            return;
-        }
-        */
         mMediaFragmentListener.setToolbarTitle(mTitle);
-        /*
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-        mediaBrowser.getItem(mMediaId, new MediaBrowserCompat.ItemCallback() {
-            @Override
-            public void onItemLoaded(MediaBrowserCompat.MediaItem item) {
-                mMediaFragmentListener.setToolbarTitle(
-                        item.getDescription().getTitle());
-            }
-        });
-        */
     }
+
 
     // An adapter for showing the list of browsed MediaItem's
     private static class BrowseAdapter extends ArrayAdapter<MediaBrowserCompat.MediaItem> {
@@ -347,6 +334,7 @@ public class MediaBrowserUampFragment extends Fragment {
             return MediaItemUampViewHolder.setupListView((Activity) getContext(), convertView, parent,
                     item, position);
         }
+
     }
 
     public interface MediaFragmentListener  {// extends MediaBrowserProvider {
