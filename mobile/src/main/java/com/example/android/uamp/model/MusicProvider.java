@@ -23,17 +23,13 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-
-import android.widget.Toast;
-import com.example.android.uamp.R;
 import com.example.android.uamp.settings.Settings;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.MediaIDHelper;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +40,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.example.android.uamp.utils.MediaIDHelper.*;
+
 
 /**
  * Simple data provider for music tracks. The actual metadata source is delegated to a
@@ -63,38 +59,41 @@ public class MusicProvider {
     }
 
     /**
-     * Get an iterator over the list of artists
+     * Get a list of artists
      *
      * @return artists
      */
-    public Iterable<Artist> getArtistObjects() {
-        //return mMusicListByArtist.keySet();
+    public ArrayList<MediaBrowserCompat.MediaItem> getArtistMediaItems() {
         final Uri uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI;
         final String _ID = MediaStore.Audio.Artists._ID;
-
         final String NAME_COLUMN = MediaStore.Audio.Artists.ARTIST;
-
         final String[] cursorColumns={_ID, NAME_COLUMN };
         final String orderby = NAME_COLUMN + " COLLATE NOCASE";
-
         final String where = null;
+
         ContentResolver cr = context.getContentResolver();
         Cursor artistsCursor =  cr.query(uri, cursorColumns, where, null, orderby);
-
-        ArrayList<Artist> artists = new ArrayList<>();
-        Artist artist;
+        ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
+        MediaBrowserCompat.MediaItem mediaItem;
         try {
             while (artistsCursor.moveToNext()) {
                 String id = artistsCursor.getString(0);
                 String name = artistsCursor.getString(1);
-                artist = new Artist(id, name);
-                artists.add(artist);
+                MediaDescriptionCompat mediaDescription = new MediaDescriptionCompat.Builder()
+                        .setTitle(name)
+                        .setSubtitle("Songs by "+name)
+                        .setMediaId("__ARTIST__"+id)
+                        .build();
+
+                int flags = MediaBrowserCompat.MediaItem.FLAG_PLAYABLE | MediaBrowserCompat.MediaItem.FLAG_BROWSABLE;
+                mediaItem = new MediaBrowserCompat.MediaItem(mediaDescription, flags);
+                mediaItems.add(mediaItem);
             }
         } finally {
             artistsCursor.close();
         }
 
-        return artists;
+        return mediaItems;
 
     }
 
@@ -103,36 +102,42 @@ public class MusicProvider {
      *
      * @return albums
      */
-    public Iterable<Album> getAlbumObjects() {
+    public ArrayList<MediaBrowserCompat.MediaItem> getAlbumMediaItems() {
         final Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
         final String _ID = MediaStore.Audio.Albums._ID;
-        final String NUM_ITEMS_COLUMN = MediaStore.Audio.Albums.NUMBER_OF_SONGS;
         final String ARTIST_COLUMN = MediaStore.Audio.Albums.ARTIST;
         final String NAME_COLUMN = MediaStore.Audio.Albums.ALBUM;
 
-        final String[] cursorColumns={_ID, NUM_ITEMS_COLUMN, NAME_COLUMN, ARTIST_COLUMN};
+        final String[] cursorColumns={_ID, NAME_COLUMN, ARTIST_COLUMN};
         final String orderby = NAME_COLUMN + " COLLATE NOCASE";
 
         final String where = null;
         ContentResolver cr = context.getContentResolver();
         Cursor albumsCursor =  cr.query(uri, cursorColumns, where, null, orderby);
 
-        ArrayList<Album> albums = new ArrayList<>();
-        Album album;
+        ArrayList<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
+        MediaBrowserCompat.MediaItem mediaItem;
         try {
             while (albumsCursor.moveToNext()) {
-                album = new Album();
-                album.id = albumsCursor.getString(0);
-                String numItems= albumsCursor.getString(1);
-                album.name = albumsCursor.getString(2);
-                album.artist = albumsCursor.getString(3);
-                albums.add(album);
+                String id = albumsCursor.getString(0);
+                String name = albumsCursor.getString(1);
+                String artist = albumsCursor.getString(2);
+                MediaDescriptionCompat mediaDescription = new MediaDescriptionCompat.Builder()
+                        .setTitle(name)
+                        .setSubtitle(artist)
+                        .setMediaId("__ALBUM__"+id)
+                        .build();
+
+                int flags = MediaBrowserCompat.MediaItem.FLAG_PLAYABLE | MediaBrowserCompat.MediaItem.FLAG_BROWSABLE;
+
+                mediaItem = new MediaBrowserCompat.MediaItem(mediaDescription, flags);
+                mediaItems.add(mediaItem);
             }
         } finally {
             albumsCursor.close();
         }
 
-        return albums;
+        return mediaItems;
     }
 
 
@@ -260,6 +265,34 @@ public class MusicProvider {
         return tracks;
     }
 
+    public ArrayList<MediaBrowserCompat.MediaItem> getMediaItemsByArtist(String id) {
+        ArrayList<MediaBrowserCompat.MediaItem> result = new ArrayList<>();
+        Iterable<MediaMetadataCompat> metadatas;
+        metadatas = getMusicsByArtist(id);
+        MediaBrowserCompat.MediaItem mediaItem;
+        Iterator itr = metadatas.iterator();
+        while (itr.hasNext()) {
+            MediaMetadataCompat metadata = (MediaMetadataCompat)itr.next();
+            mediaItem = new MediaBrowserCompat.MediaItem(metadata.getDescription(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE );
+            result.add(mediaItem);
+        }
+        return result;
+    }
+
+    public ArrayList<MediaBrowserCompat.MediaItem> getMediaItemsByAlbum(String id) {
+        ArrayList<MediaBrowserCompat.MediaItem> result = new ArrayList<>();
+        Iterable<MediaMetadataCompat> metadatas;
+        metadatas = getMusicsByAlbum(id);
+        MediaBrowserCompat.MediaItem mediaItem;
+        Iterator itr = metadatas.iterator();
+        while (itr.hasNext()) {
+            MediaMetadataCompat metadata = (MediaMetadataCompat)itr.next();
+            mediaItem = new MediaBrowserCompat.MediaItem(metadata.getDescription(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE );
+            result.add(mediaItem);
+        }
+        return result;
+    }
+
     /**
      * Get music tracks of the given artist
      * By the supplied artist ID, not the artist name
@@ -309,11 +342,9 @@ public class MusicProvider {
     }
 
     /**
-     * Get music tracks of the given artist
-     * By the supplied artist ID, not the artist name
-     *
+     * Get all songs
      */
-    public Iterable<MediaMetadataCompat> getAllSongs() {
+    public ArrayList<MediaBrowserCompat.MediaItem> getAllSongs() {
         final Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
         final String _ID = MediaStore.Audio.Media._ID;
@@ -332,7 +363,8 @@ public class MusicProvider {
 
         ContentResolver cr = context.getContentResolver();
         Cursor tracksCursor =  cr.query(uri, cursorColumns, selection, selectionArgs, orderby);
-        ArrayList<MediaMetadataCompat> tracks = new ArrayList<>();
+        ArrayList<MediaBrowserCompat.MediaItem> tracks = new ArrayList<>();
+        MediaBrowserCompat.MediaItem mediaItem;
 
         try {
             while (tracksCursor.moveToNext()) {
@@ -344,7 +376,14 @@ public class MusicProvider {
                 Long durationInMs = tracksCursor.getLong(5);
                 Long trackNo = tracksCursor.getLong(6);
                 LogHelper.i(TAG, "Track ", id, " artist id=",artist_id );
-                tracks.add(buildMetadataFromProperties(id,title,artist, album, durationInMs, trackNo));
+                MediaDescriptionCompat mediaDescription = new MediaDescriptionCompat.Builder()
+                        .setTitle(title)
+                        .setSubtitle(artist)
+                        .setMediaId(id)
+                        .build();
+
+                mediaItem = new MediaBrowserCompat.MediaItem(mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
+                tracks.add(mediaItem);
             }
         } finally {
             tracksCursor.close();
