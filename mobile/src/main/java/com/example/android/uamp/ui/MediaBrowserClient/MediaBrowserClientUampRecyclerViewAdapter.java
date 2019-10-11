@@ -95,10 +95,12 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
 
     @Override
     public Filter getFilter() {
+        LogHelper.i(TAG, "Filter, getfilter" );
         return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence charSequence) {
                 String charString = charSequence.toString();
+                LogHelper.i(TAG, "Filter, performFiltering:", charString );
                 if (charString.isEmpty()) {
                     mFilteredDataset = mDataset;
                 } else {
@@ -124,7 +126,9 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
                 mFilteredDataset = (ArrayList<MediaBrowserCompat.MediaItem>) filterResults.values;
+                LogHelper.i(TAG, "Filter, publishResults. Size =", mFilteredDataset.size());
                 notifyDataSetChanged();
+                mListener.onPublishFilterResults();
             }
         };
     }
@@ -204,7 +208,7 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
         switch (state) {
             case STATE_PLAYABLE:
                 Drawable pauseDrawable = ContextCompat.getDrawable(context,
-                        R.drawable.ic_play_arrow_black_36dp);
+                        R.drawable.ic_not_playing_36dp);
                 DrawableCompat.setTintList(pauseDrawable, sColorStateNotPlaying);
                 return pauseDrawable;
             case STATE_PLAYING:
@@ -253,6 +257,7 @@ public class MediaBrowserClientUampRecyclerViewAdapter extends RecyclerView.Adap
     public interface BrowserRecyclerViewAdapterListener {
         public void onBrowseClick(MediaBrowserCompat.MediaItem item);
         public void onAddClick(MediaBrowserCompat.MediaItem item);
+        public void onPublishFilterResults();
     }
 }
 

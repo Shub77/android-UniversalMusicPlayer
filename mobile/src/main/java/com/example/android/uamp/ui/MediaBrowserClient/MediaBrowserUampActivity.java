@@ -21,6 +21,7 @@ import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -122,7 +123,7 @@ public class MediaBrowserUampActivity extends BaseActivity
     public void onMediaItemSelectedForBrowse(MediaBrowserCompat.MediaItem item) {
         LogHelper.d(TAG, "onMediaItemSelectedForBrowse, mediaId=" + item.getMediaId());
         if (item.isBrowsable()) {
-            navigateToBrowser(item.getMediaId(), item.getDescription().getTitle().toString());
+            navigateToBrowser(item.getMediaId(), item.getDescription().getTitle().toString(), null);
         } else {
             LogHelper.w(TAG, "Ignoring MediaItem that is not browsable: ",
                     "mediaId=", item.getMediaId());
@@ -187,6 +188,7 @@ public class MediaBrowserUampActivity extends BaseActivity
     protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {
         String mediaId = null;
         String title =  "Browse Music";
+        Parcelable layoutManager = null;
         // check if we were started from a "Play XYZ" voice search. If so, we save the extras
         // (which contain the query details) in a parameter, so we can reuse it later, when the
         // MediaSession is connected.
@@ -200,13 +202,19 @@ public class MediaBrowserUampActivity extends BaseActivity
                 // If there is a saved media ID, use it
                 mediaId = savedInstanceState.getString(SAVED_MEDIA_ID);
                 title = savedInstanceState.getString(SAVED_TITLE);
+                layoutManager = savedInstanceState.getParcelable("SAVED_LAYOUT_MANAGER");
+                LogHelper.i(TAG, "initFromParmas. MId=", mediaId, " lm=",layoutManager);
             }
         }
-        navigateToBrowser(mediaId, title);
+        navigateToBrowser(mediaId, title, layoutManager);
     }
 
     private void navigateToBrowser(String mediaId, CharSequence title) {
-        LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
+        navigateToBrowser(mediaId, title, null);
+    }
+
+    private void navigateToBrowser(String mediaId, CharSequence title, Parcelable layoutManager) {
+        LogHelper.i(TAG, "navigateToBrowser, mediaId=" + mediaId);
         MediaBrowserUampRecyclerFragment fragment = getBrowseFragment();
 
         if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {

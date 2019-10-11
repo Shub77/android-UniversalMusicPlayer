@@ -27,10 +27,9 @@
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/media_item_icon_margin_start"
-        android:tintMode="src_in"
         android:tint="@color/media_item_icon_not_playing"
         android:contentDescription="@string/add_item_to_queue"
-        android:src="@drawable/ic_play_arrow_black_36dp"/>
+        android:src="@drawable/ic_not_playing_36dp"/>
 
     <ImageButton
         android:id="@+id/plus_eq"
@@ -40,10 +39,8 @@
         android:layout_centerVertical="true"
         android:layout_marginStart="2dp"
         android:layout_toEndOf="@id/play_eq"
-        android:tintMode="src_in"
-        android:tint="@color/media_item_icon_not_playing"
         android:contentDescription="@string/add_item_to_queue"
-        android:src="@drawable/ic_pause_black_36dp"
+        android:src="@drawable/ic_plus_black_24dp"
         android:focusable="false"/>
     <LinearLayout
         android:layout_width="match_parent"

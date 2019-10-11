@@ -24,13 +24,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.media.MediaItemStatus;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -38,9 +38,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,9 +72,9 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
     private TextView mErrorMessage;
     private ClearableEditText etSearchText;
 
-    private RecyclerView recyclerView;
-    private RecyclerView.LayoutManager layoutManager;
-    //private BrowseAdapter mBrowserAdapter;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.LayoutManager mLayoutManager;
+
     private MediaBrowserClientUampRecyclerViewAdapter mAdapter;
 
     ArrayList<MediaBrowserCompat.MediaItem> myDataset;
@@ -93,7 +91,7 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
                     oldOnline = isOnline;
                     checkForUserVisibleErrors(false);
                     if (isOnline) {
-                        //mBrowserAdapter.notifyDataSetChanged();
+                        LogHelper.i(TAG, "mConnectivityChangeReceiver");
                         mAdapter.notifyDataSetChanged();
                     }
                 }
@@ -122,7 +120,6 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
                     super.onPlaybackStateChanged(state);
                     LogHelper.i(TAG, "Received state change: ", state);
                     checkForUserVisibleErrors(false);
-                    //mBrowserAdapter.notifyDataSetChanged();
                     mAdapter.notifyDataSetChanged();
                 }
             };
@@ -139,27 +136,41 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
                         //mBrowserAdapter.clear();
                         myDataset.clear();
                         for (MediaBrowserCompat.MediaItem item : children) {
-                            //mBrowserAdapter.add(item);
                             myDataset.add(item);
                         }
-                        //mBrowserAdapter.notifyDataSetChanged();
-                        mAdapter.notifyDataSetChanged();
+
                         // We set the filter here, because otherwise if 'albums' are filtered, then we go to an album
                         // then we go back to 'albums' (which still has the filter text)... No albums are shown
-                        // until the filter is changed
+                        // until the filter is changed ??? or maybe not...
                         mAdapter.getFilter().filter(etSearchText.getText());
+
                     } catch (Throwable t) {
                         LogHelper.e(TAG, "Error on childrenloaded", t);
                     }
                 }
 
+
                 @Override
                 public void onError(@NonNull String id) {
                     LogHelper.e(TAG, "browse fragment subscription onError, id=" + id);
-                    Toast.makeText(getActivity(), R.string.error_loading_media, Toast.LENGTH_LONG).show();
                     checkForUserVisibleErrors(true);
                 }
             };
+
+
+    /**
+     * This method is a callback from the BrowserRecyclerViewAdapterListener
+     * called from the Recycler View Adapter when the Filter results are ready
+     * We use it to restore the layout manager that was saved before the activity restarted
+     * This restores the scroll position after rotation
+     */
+    @Override
+    public void onPublishFilterResults() {
+        LogHelper.i(TAG, "onPublishFilterResults: mListState=", mListState);
+        if (mListState != null) {
+            mLayoutManager.onRestoreInstanceState(mListState);
+        }
+    }
 
     @Override
     public void onAttach(Activity activity) {
@@ -180,20 +191,19 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
         mErrorView = rootView.findViewById(R.id.playback_error);
         mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
 
-        // mBrowserAdapter = new BrowseAdapter(getActivity());
-
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
+        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
-        recyclerView.setHasFixedSize(true);
+        // True is better, but maybe I have false because of the filter?
+        mRecyclerView.setHasFixedSize(false);
 
         // use a linear layout manager
-        layoutManager = new LinearLayoutManager(getActivity());
-        recyclerView.setLayoutManager(layoutManager);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
         myDataset = new ArrayList<>();
         // specify an adapter
         mAdapter = new MediaBrowserClientUampRecyclerViewAdapter(myDataset, this, getActivity());
-        recyclerView.setAdapter(mAdapter);
+        mRecyclerView.setAdapter(mAdapter);
 
         etSearchText = (ClearableEditText) rootView.findViewById(R.id.searchText);
         etSearchText.setHint(R.string.search_tracks);
@@ -288,6 +298,30 @@ public class MediaBrowserUampRecyclerFragment extends Fragment implements MediaB
         args.putString(MediaBrowserUampRecyclerFragment.ARG_MEDIA_ID, mediaId);
         args.putString(ARG_TITLE, title);
         setArguments(args);
+    }
+
+    private Parcelable mListState;
+    @Override
+    public void onSaveInstanceState(Bundle state) {
+        LogHelper.i(TAG, "Frag; ",getMediaId(), " onSaveInstanceState()");
+        // Save list state
+        if (mLayoutManager != null) {
+            mListState = mLayoutManager.onSaveInstanceState();
+            state.putParcelable("LIST_STATE_KEY", mListState);
+        }
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        LogHelper.i(TAG, "Frag; ",getMediaId(), " onActivityCreated()");
+        // Retrieve list state and list/item positions
+        if(savedInstanceState != null) {
+            LogHelper.i(TAG, "getting SIS");
+            mListState = savedInstanceState.getParcelable("LIST_STATE_KEY");
+        } else {
+            LogHelper.i(TAG, "SIS is null");
+        }
     }
 
     // Called when the MediaBrowser is connected. This method is either called by the

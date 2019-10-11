@@ -35,10 +35,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.android.uamp.R;
+import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 
 public class MediaItemViewHolder {
 
+    private static final String TAG = LogHelper.makeLogTag(MediaItemViewHolder.class);
     public static final int STATE_INVALID = -1;
     public static final int STATE_NONE = 0;
     public static final int STATE_PLAYABLE = 1;
@@ -132,8 +134,9 @@ public class MediaItemViewHolder {
         switch (state) {
             case STATE_PLAYABLE:
                 Drawable pauseDrawable = ContextCompat.getDrawable(context,
-                        R.drawable.ic_play_arrow_black_36dp);
+                        R.drawable.ic_not_playing_36dp);
                 DrawableCompat.setTintList(pauseDrawable, sColorStateNotPlaying);
+                LogHelper.i(TAG, " get STATEPLAYABLE icon");
                 return pauseDrawable;
             case STATE_PLAYING:
                 AnimationDrawable animation = (AnimationDrawable)
