@@ -26,6 +26,7 @@ android {
         versionCode 2
         versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        project.ext.set("archivesBaseName", "com.example.android.uamp.gmusic")
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
